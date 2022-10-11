@@ -1,0 +1,13 @@
+1 - WRITING USB DEVICS DRIVES
+
+	Link:   https://www.kernel.org/doc/html/v6.0-rc7/driver-api/usb/writing_usb_driver.html
+
+
+2 - Exemplos de criação de drivers
+
+	https://www.apriorit.com/dev-blog/195-simple-driver-for-linux-os
+
+	http://derekmolloy.ie/writing-a-linux-kernel-module-part-2-a-character-device/
+
+	https://blog.sourcerer.io/writing-a-simple-linux-kernel-module-d9dc3762c234
+

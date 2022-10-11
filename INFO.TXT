@@ -1,0 +1,44 @@
+Incluir no arquivo INFO.TXT original que está no PC
+
+1 - Informações sobre makefile
+
+    O que é:        obj-$(CONFIG_USB_GSPCA)          += gspca_main.o
+                
+    https://stackoverflow.com/questions/10949986/whats-meaning-of-obj-y-something-in-linux-kernel-makefile
+
+
+    No Makefile utilizei:
+
+    obj-m       += elgin_sn9c103.o
+
+
+2 - Após instalação do módulo foi possível carrega-lo utilizando, pois o depmod não tinha sido atualizado
+
+    > sudo insmod /lib/modules/5.4.0-126-generic/kernel/drivers/media/usb/driver/driver_main.ko
+
+
+3 - Porém, para carrega-lo utilizando "modprobe" é necessário reconstruir a lista de dependências de módulos
+    como descrito em:  https://stackoverflow.com/questions/34800731/module-not-found-when-i-do-a-modprobe
+
+    Assim, após instalação do módulo faça:
+
+        > sudo depmod
+
+4 - Sequências de comandos
+
+        > sudo make                         -   compilar
+        > sudo make clean                   -   Apagar arquivos gerados
+        > sudo make install                 -   Instalar módulo na pasta "kernel/drivers/media/usb/elgin"          
+        > sudo depmod                       -   Atualizar lista de dependências
+
+        > sudo modprobe elgin_sn9c103       -   carregar driver - executa a inicialização definida pelo "module_init"
+        > sudo modprobe -r elgin_sn9c103    -   remover driver  - executa a finalização definida pelo "module_exit"
+
+        > lsmod | grep elgin                -   Exibir driver carregado
+        > lsusb                             -   listar dispositivos USB conectados
+        >sudo modinfo name_of_driver        -   Lista as informações do driver
+
+
+5 - Se tudo estiver correto, após o 'depmod' o módulo será carregado quando o dispositivo USB for inserido.
+
+

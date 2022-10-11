@@ -1,0 +1,249 @@
+
+
+/* Links:
+
+1 - Linux Kernel from Github:
+
+    https://github.com/torvalds/linux
+
+2 - Create a kernel Module
+
+    https://www.apriorit.com/dev-blog/195-simple-driver-for-linux-os
+
+3 - Talking to Device Files
+
+    https://linux.die.net/lkmpg/x892.html
+
+4 - Video Capture Devices
+
+    https://docs.huihoo.com/linux/kernel/2.6.26/videobook/ch03.html
+
+5 - Kernel Documment latest
+
+    https://www.kernel.org/doc/html/latest/kbuild/index.html
+
+6 - Kernel Documment 5.4
+
+    https://www.kernel.org/doc/html/v5.4/kbuild/index.html
+
+7 - struct video_device:  https://www.kernel.org/doc/html/v5.4/media/kapi/v4l2-dev.html?highlight=video%20device%20registration#c.video_device
+
+struct video_device {
+#if defined(CONFIG_MEDIA_CONTROLLER);
+  struct media_entity entity;
+  struct media_intf_devnode *intf_devnode;
+  struct media_pipeline pipe;
+#endif;
+  const struct v4l2_file_operations *fops;
+  u32 device_caps;
+  struct device dev;
+  struct cdev *cdev;
+  struct v4l2_device *v4l2_dev;
+  struct device *dev_parent;
+  struct v4l2_ctrl_handler *ctrl_handler;
+  struct vb2_queue *queue;
+  struct v4l2_prio_state *prio;
+  char name[32];
+  enum vfl_devnode_type vfl_type;
+  enum vfl_devnode_direction vfl_dir;
+  int minor;
+  u16 num;
+  unsigned long flags;
+  int index;
+  spinlock_t fh_lock;
+  struct list_head        fh_list;
+  int dev_debug;
+  v4l2_std_id tvnorms;
+  void (*release)(struct video_device *vdev);
+  const struct v4l2_ioctl_ops *ioctl_ops;
+  unsigned long valid_ioctls[BITS_TO_LONGS(BASE_VIDIOC_PRIVATE)];
+  struct mutex *lock;
+};
+
+
+8 - struct v4l2_device:   https://www.kernel.org/doc/html/v5.4/media/kapi/v4l2-device.html?highlight=struct%20v4l2_device#c.v4l2_device
+
+struct v4l2_device {
+  struct device *dev;
+  struct media_device *mdev;
+  struct list_head subdevs;
+  spinlock_t lock;
+  char name[V4L2_DEVICE_NAME_SIZE];
+  void (*notify)(struct v4l2_subdev *sd, unsigned int notification, void *arg);
+  struct v4l2_ctrl_handler *ctrl_handler;
+  struct v4l2_prio_state prio;
+  struct kref ref;
+  void (*release)(struct v4l2_device *v4l2_dev);
+};
+
+
+9 - struct usb_device_id:  https://www.kernel.org/doc/html/v5.4/driver-api/basics.html?highlight=struct%20usb_device_id
+
+struct usb_device_id {
+  __u16 match_flags;
+  __u16 idVendor;
+  __u16 idProduct;
+  __u16 bcdDevice_lo;
+  __u16 bcdDevice_hi;
+  __u8 bDeviceClass;
+  __u8 bDeviceSubClass;
+  __u8 bDeviceProtocol;
+  __u8 bInterfaceClass;
+  __u8 bInterfaceSubClass;
+  __u8 bInterfaceProtocol;
+  __u8 bInterfaceNumber;
+  kernel_ulong_t driver_info;
+};
+
+10 - struct v4l2_ioctl_ops:   https://www.kernel.org/doc/html/v5.4/media/kapi/v4l2-common.html#c.v4l2_ioctl_ops
+
+struct v4l2_ioctl_ops {
+  int (*vidioc_querycap)(struct file *file, void *fh, struct v4l2_capability *cap);
+  int (*vidioc_enum_fmt_vid_cap)(struct file *file, void *fh, struct v4l2_fmtdesc *f);
+  int (*vidioc_enum_fmt_vid_overlay)(struct file *file, void *fh, struct v4l2_fmtdesc *f);
+  int (*vidioc_enum_fmt_vid_out)(struct file *file, void *fh, struct v4l2_fmtdesc *f);
+  int (*vidioc_enum_fmt_sdr_cap)(struct file *file, void *fh, struct v4l2_fmtdesc *f);
+  int (*vidioc_enum_fmt_sdr_out)(struct file *file, void *fh, struct v4l2_fmtdesc *f);
+  int (*vidioc_enum_fmt_meta_cap)(struct file *file, void *fh, struct v4l2_fmtdesc *f);
+  int (*vidioc_enum_fmt_meta_out)(struct file *file, void *fh, struct v4l2_fmtdesc *f);
+  int (*vidioc_g_fmt_vid_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_vid_overlay)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_vid_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_vid_out_overlay)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_vbi_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_vbi_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_sliced_vbi_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_sliced_vbi_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_vid_cap_mplane)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_sdr_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_sdr_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_meta_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_g_fmt_meta_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_vid_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_vid_overlay)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_vid_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_vid_out_overlay)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_vbi_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_vbi_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_sliced_vbi_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_sliced_vbi_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_vid_cap_mplane)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_sdr_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_sdr_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_meta_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_s_fmt_meta_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_vid_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_vid_overlay)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_vid_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_vid_out_overlay)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_vbi_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_vbi_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_sliced_vbi_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_sliced_vbi_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_vid_cap_mplane)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_sdr_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_sdr_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_meta_cap)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_try_fmt_meta_out)(struct file *file, void *fh, struct v4l2_format *f);
+  int (*vidioc_reqbufs)(struct file *file, void *fh, struct v4l2_requestbuffers *b);
+  int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
+  int (*vidioc_qbuf)(struct file *file, void *fh, struct v4l2_buffer *b);
+  int (*vidioc_expbuf)(struct file *file, void *fh, struct v4l2_exportbuffer *e);
+  int (*vidioc_dqbuf)(struct file *file, void *fh, struct v4l2_buffer *b);
+  int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
+  int (*vidioc_prepare_buf)(struct file *file, void *fh, struct v4l2_buffer *b);
+  int (*vidioc_overlay)(struct file *file, void *fh, unsigned int i);
+  int (*vidioc_g_fbuf)(struct file *file, void *fh, struct v4l2_framebuffer *a);
+  int (*vidioc_s_fbuf)(struct file *file, void *fh, const struct v4l2_framebuffer *a);
+  int (*vidioc_streamon)(struct file *file, void *fh, enum v4l2_buf_type i);
+  int (*vidioc_streamoff)(struct file *file, void *fh, enum v4l2_buf_type i);
+  int (*vidioc_g_std)(struct file *file, void *fh, v4l2_std_id *norm);
+  int (*vidioc_s_std)(struct file *file, void *fh, v4l2_std_id norm);
+  int (*vidioc_querystd)(struct file *file, void *fh, v4l2_std_id *a);
+  int (*vidioc_enum_input)(struct file *file, void *fh, struct v4l2_input *inp);
+  int (*vidioc_g_input)(struct file *file, void *fh, unsigned int *i);
+  int (*vidioc_s_input)(struct file *file, void *fh, unsigned int i);
+  int (*vidioc_enum_output)(struct file *file, void *fh, struct v4l2_output *a);
+  int (*vidioc_g_output)(struct file *file, void *fh, unsigned int *i);
+  int (*vidioc_s_output)(struct file *file, void *fh, unsigned int i);
+  int (*vidioc_queryctrl)(struct file *file, void *fh, struct v4l2_queryctrl *a);
+  int (*vidioc_query_ext_ctrl)(struct file *file, void *fh, struct v4l2_query_ext_ctrl *a);
+  int (*vidioc_g_ctrl)(struct file *file, void *fh, struct v4l2_control *a);
+  int (*vidioc_s_ctrl)(struct file *file, void *fh, struct v4l2_control *a);
+  int (*vidioc_g_ext_ctrls)(struct file *file, void *fh, struct v4l2_ext_controls *a);
+  int (*vidioc_s_ext_ctrls)(struct file *file, void *fh, struct v4l2_ext_controls *a);
+  int (*vidioc_try_ext_ctrls)(struct file *file, void *fh, struct v4l2_ext_controls *a);
+  int (*vidioc_querymenu)(struct file *file, void *fh, struct v4l2_querymenu *a);
+  int (*vidioc_enumaudio)(struct file *file, void *fh, struct v4l2_audio *a);
+  int (*vidioc_g_audio)(struct file *file, void *fh, struct v4l2_audio *a);
+  int (*vidioc_s_audio)(struct file *file, void *fh, const struct v4l2_audio *a);
+  int (*vidioc_enumaudout)(struct file *file, void *fh, struct v4l2_audioout *a);
+  int (*vidioc_g_audout)(struct file *file, void *fh, struct v4l2_audioout *a);
+  int (*vidioc_s_audout)(struct file *file, void *fh, const struct v4l2_audioout *a);
+  int (*vidioc_g_modulator)(struct file *file, void *fh, struct v4l2_modulator *a);
+  int (*vidioc_s_modulator)(struct file *file, void *fh, const struct v4l2_modulator *a);
+  int (*vidioc_g_pixelaspect)(struct file *file, void *fh, int buf_type, struct v4l2_fract *aspect);
+  int (*vidioc_g_selection)(struct file *file, void *fh, struct v4l2_selection *s);
+  int (*vidioc_s_selection)(struct file *file, void *fh, struct v4l2_selection *s);
+  int (*vidioc_g_jpegcomp)(struct file *file, void *fh, struct v4l2_jpegcompression *a);
+  int (*vidioc_s_jpegcomp)(struct file *file, void *fh, const struct v4l2_jpegcompression *a);
+  int (*vidioc_g_enc_index)(struct file *file, void *fh, struct v4l2_enc_idx *a);
+  int (*vidioc_encoder_cmd)(struct file *file, void *fh, struct v4l2_encoder_cmd *a);
+  int (*vidioc_try_encoder_cmd)(struct file *file, void *fh, struct v4l2_encoder_cmd *a);
+  int (*vidioc_decoder_cmd)(struct file *file, void *fh, struct v4l2_decoder_cmd *a);
+  int (*vidioc_try_decoder_cmd)(struct file *file, void *fh, struct v4l2_decoder_cmd *a);
+  int (*vidioc_g_parm)(struct file *file, void *fh, struct v4l2_streamparm *a);
+  int (*vidioc_s_parm)(struct file *file, void *fh, struct v4l2_streamparm *a);
+  int (*vidioc_g_tuner)(struct file *file, void *fh, struct v4l2_tuner *a);
+  int (*vidioc_s_tuner)(struct file *file, void *fh, const struct v4l2_tuner *a);
+  int (*vidioc_g_frequency)(struct file *file, void *fh, struct v4l2_frequency *a);
+  int (*vidioc_s_frequency)(struct file *file, void *fh, const struct v4l2_frequency *a);
+  int (*vidioc_enum_freq_bands)(struct file *file, void *fh, struct v4l2_frequency_band *band);
+  int (*vidioc_g_sliced_vbi_cap)(struct file *file, void *fh, struct v4l2_sliced_vbi_cap *a);
+  int (*vidioc_log_status)(struct file *file, void *fh);
+  int (*vidioc_s_hw_freq_seek)(struct file *file, void *fh, const struct v4l2_hw_freq_seek *a);
+#ifdef CONFIG_VIDEO_ADV_DEBUG;
+  int (*vidioc_g_register)(struct file *file, void *fh, struct v4l2_dbg_register *reg);
+  int (*vidioc_s_register)(struct file *file, void *fh, const struct v4l2_dbg_register *reg);
+  int (*vidioc_g_chip_info)(struct file *file, void *fh, struct v4l2_dbg_chip_info *chip);
+#endif;
+  int (*vidioc_enum_framesizes)(struct file *file, void *fh, struct v4l2_frmsizeenum *fsize);
+  int (*vidioc_enum_frameintervals)(struct file *file, void *fh, struct v4l2_frmivalenum *fival);
+  int (*vidioc_s_dv_timings)(struct file *file, void *fh, struct v4l2_dv_timings *timings);
+  int (*vidioc_g_dv_timings)(struct file *file, void *fh, struct v4l2_dv_timings *timings);
+  int (*vidioc_query_dv_timings)(struct file *file, void *fh, struct v4l2_dv_timings *timings);
+  int (*vidioc_enum_dv_timings)(struct file *file, void *fh, struct v4l2_enum_dv_timings *timings);
+  int (*vidioc_dv_timings_cap)(struct file *file, void *fh, struct v4l2_dv_timings_cap *cap);
+  int (*vidioc_g_edid)(struct file *file, void *fh, struct v4l2_edid *edid);
+  int (*vidioc_s_edid)(struct file *file, void *fh, struct v4l2_edid *edid);
+  int (*vidioc_subscribe_event)(struct v4l2_fh *fh, const struct v4l2_event_subscription *sub);
+  int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh, const struct v4l2_event_subscription *sub);
+  long (*vidioc_default)(struct file *file, void *fh, bool valid_prio, unsigned int cmd, void *arg);
+};
+
+
+11 - struct v4l2_file_operations:   https://www.kernel.org/doc/html/v5.4/media/kapi/v4l2-dev.html?highlight=v4l2_file_operations#c.v4l2_file_operations
+
+
+struct v4l2_file_operations {
+  struct module *owner;
+  ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+  ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+  __poll_t (*poll) (struct file *, struct poll_table_struct *);
+  long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+#ifdef CONFIG_COMPAT;
+  long (*compat_ioctl32) (struct file *, unsigned int, unsigned long);
+#endif;
+  unsigned long (*get_unmapped_area) (struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
+  int (*mmap) (struct file *, struct vm_area_struct *);
+  int (*open) (struct file *);
+  int (*release) (struct file *);
+};
+
+
+*/
+
+

@@ -1,0 +1,354 @@
+ChangeLog for the SN9C1xx PC Camera Controller Driver For Linux
+---------------------------------------------------------------
+
+Changes: + new, - removed, * cleanup, @ bugfix, = sync with kernels
+
+
+1:1.50 (17 January 2008)
+------------------------
+@ Fix poll() system call
++ Allow multiple opens
+
+
+1:1.49 (7 July 2007)
+--------------------
+* Generic cleanups
+* OV7630, OV7648 Color fixes
++ Add MT9V111 image sensor support
+@ Fix MI0360 and HV7131R colors
+@ Fix HV7131R detection
+@ Postpone video_set_drvdata() after the video device registration
+@ Reset the image pipe before transferring video data
+
+
+1:1.48 (12 June 2007)
+---------------------
+@ Fix possible deadlock in open()
++ Add INSTALL_MOD_PATH=${DESTDIR} flag to modules_install in the Makefile
++ Add support for pair SN9C105/20+OV7648 image sensor
+
+
+1:1.47 (8 June 2007)
+--------------------
+@ Fix open()
+
+
+1:1.46 (6 June 2007)
+--------------------
+* Locking schema rewritten
+
+
+1:1.45 (21 May 2007)
+--------------------
++ Add support for pair OV7630+SN9C120
+
+
+1:1.44 (22 April 2007)
+----------------------
++ Add support for pair MI0360+SN9C120
+@ Fix MI0343 and MI0360 detection
+
+
+1:1.43 (10 April 2007)
+----------------------
+* Default color improvements to the OV7660
+
+
+1:1.42 (2 April 2007)
+---------------------
+@ Fix sn9c102_write_reg()
+
+
+1:1.41 (29 March 2007)
+----------------------
+@ Fix sn9c102_write_regs() as buffers cannot be allocated on the stack
+
+
+1:1.40 (29 March 2007)
+----------------------
+* Replace groups of sn9c102_write_reg() with a single sn9c102_write_const_regs()
+= sysfs file creation
+@ Fix sn9c102_i2c_try_raw_read()
+@ Fix MI-0343
+
+
+1:1.39 (22 February 2007)
+-------------------------
+@ Don't assume that SOF headers can't cross packets boundaries
+@ Fix compression quality selection
+* Documentation updates
+* The /sysfs interface is enabled by default overriding the kernel
+  configuration (see file Kbuild to disable it)
+
+
+1:1.38 (14 February 2007)
+-------------------------
++ Add support for MI-0360 image sensor
+
+
+1:1.37 (13 February 2007)
+-------------------------
+@ Fix sysfs
+@ MI0343 rewritten
+* HV7131R color fixes and add new ABLC control
+
+
+1:1.36 (01 February 2007)
+-------------------------
+@ Don't return an error if no input buffers are enqueued yet on VIDIOC_STREAMON
+* Add informations about colorspaces
+* More appropriate error codes in case of failure of some system calls
+* More precise hardware detection
+* Add more informations about supported hardware in the documentation
++ More supported devices
++ Add support for HV7131R image sensor
+
+
+1:1.35 (25 January 2007)
+------------------------
+* Rename the archive from "sn9c102" to "sn9c1xx"
+* fix typos
+* better support for TAS5110D
+@ fix /sysfs
+@ fix OV7630 wrong colors
+
+
+1:1.34 (1 January 2007)
+-----------------------
++ Add support for SN9C105 and SN9C120
++ Add some more USB device identifiers
++ Add support for OV7660
++ Implement audio ioctl's and VIDIOC_ENUM_FRAMESIZES
++ Add preliminary support for 0x0c45/0x6007
+- Remove VIDIOC_*_OLD ioctl's
+* Documentation updates
+* Generic improvements
+
+
+1:1.32 (17 May 2006)
+--------------------
+@ Fix 64-bit ioctl() compatibility thanks to compat_ioctl32 kernel module.
+@ Fix I2C Read under SN9C103
+* OV7630 plugin rewritten
+* SN9C103+PAS202 fixed
+
+
+1:1.31 (9 May 2006)
+-------------------
+* OV7630 cleanups
+* PAS202BCA fixes
++ Support for 0x0c45/0x60b0 again (OV7630)
+
+
+1:1.30 (8 May 2006)
+-------------------
+* Cosmetic changes
+
+
+1:1.29 (6 May 2006)
+-------------------
+@ Fix frame_timeout module parameter
+* Documentation updates
++ Add a function returning a pointer to the attached sensor struct
++ Add support for 0x0c45/0x608f webcams. The way the OV7630 image sensor
+  is assambled may vary, and the image quality is not perfect for some of them.
+
+
+1:1.28 (1 March 2006)
+---------------------
+@ Fix OV7630 image sensor support
+* Cosmetic changes
+* Remove OV7630 from 0x0c45/0x608f and 0x0c45/0x60b0
+* Use wait_event_interruptible() when frame_timeout = 0
++ Support for 0x0c45/0x6019, 0x0c45/0x602a and 0x0c45/0x6024
+
+
+1:1.27 (26 January 2006)
+------------------------
+@ Fix stream_interrupt()
+@ Fix vidioc_enum_input() and split vidioc_gs_input()
+@ Need usb_get|put_dev() when disconnecting, if the device is open
+* Use wait_event_interruptible_timeout() instead of wait_event_interruptible()
+  when waiting for video frames
+* replace wake_up_interruptible(&wait_stream) with wake_up(&wait_stream)
+* Cleanups and updates in the documentation
++ Use per-device sensor structures
++ Add support for PAS202BCA image sensors
++ Add frame_timeout module parameter
+
+
+1:1.26 (6 January 2006)
+-----------------------
+@ fix poll()
+@ Remove bad get_ctrl()'s
+* Reduce ioctl stack usage
+* Remove final ";" from some macro definitions
+* Better support for SN9C103
+= Synchronize with USB API and VM changes
++ Add sn9c102_write_regs()
++ Add 0x0c45/0x602d to the list of SN9C10x based devices
++ Add support for OV7630 image sensors
++ Provide support for the built-in microphone interface of the SN9C103
++ Documentation updates
++ Add 0x0c45/0x602e to the list of SN9C10x based devices
+= sync with kernel changes
+
+
+1:1.24 (20 January 2005)
+------------------------
+@ Use correct image size in urb_complete()
+
+
+1:1.23 (15 January 2005)
+------------------------
+@ Allocate the correct number of buffer memory bytes for read()
+* Wakeup interruptible events on DEV_MISCONFIGURED status
+* Allocate the exact number of buffers (nreadbuffers) in poll() 
+* Documentation updates
+
+
+1:1.22 (8 January 2005)
+-----------------------
+= sync with kernel changes
+
+
+1:1.21 (7 December 2004)
+------------------------
+@ Fix the sysfs interface
+@ Fix allocated minor number after device detection
++ Add "force_munmap" module parameter
++ Documentation updates
++ Add support for old VIDIOC_S_PARM_OLD and VIDIOC_S_CTRL_OLD ioctl's
+
+
+1:1.20 (8 November 2004)
+------------------------
+* SN9C10x system clock fine-tuning when switching from native to compressed
+  format and viceversa for each image sensor
++ Add sn9c102_i2c_try_raw_read()
++ Frame header available from sysfs interface
++ Documentation updates: new "Video frame formats" paragraph, new entries in
+  "Credits" and frame header description
++ Support for HV7131D and MI-0343 image sensors
+
+
+1:1.19 (4 November 2004) - in Linux kernel only
+-----------------------------------------------
+- Remove SN9C10x pixelformat definition, since it is now included in the kernel
+- Remove "DAC sign" controls for PAS106B and PAS202BCB image sensors
+* Use V4L2_CTRL_TYPE_BOOLEAN type for "DAC sign" of PAS106B and PAS202BCB
+  sensor controls
+* Documentation updates
+* Replace wait_event_interruptible() with wait_event_timeout()
+* Use msecs_to_jiffies() for timeouts in jiffies
+
+
+1:1.17 (2 November 2004)
+------------------------
+@ Fix VIDIOC_ENUM_FMT ioctl
+@ Get ride of next SOF header at the end of a compressed frame
+@ read() returns buf.bytesused instead of buf.length on success
+* Use usb_make_path() on VIDIOC_QUERYCAP for device path in the usb tree
+
+
+1:1.16 (22 October 2004)
+------------------------
+@ Add VM_IO flag to vma before memory mapping
+@ Fix VIDIOC_TRY_FMT ioctl
+= Memory management updates
+= module_param_array() updates
+* Documentation updates
++ Add DAC magnitude, DAC sign, green balance and exposure controls for PAS106B
+  and PAS202BCB image sensors
++ Add an additional pixel format for compressed video: V4L2_PIX_FMT_SN9C10X
++ VIDIOC_S_JPEGCOMP and VIDIOC_G_JPEGCOMP are used to set or get the current
+  compression quality
++ New documentation note in "Notes for V4L2 application developers" paragraph
+  about video formats and compressed data.
++ Add documentation on how to define the initial pixel format and compression
+  quality in "sn9c102_sensor.h" (see the comments under the "pix_format"
+  structure)
+
+
+1:1.15 (21 October 2004)
+------------------------
+@ Fix a compilation problem due to recent changes in kernel API not being
+  included in stable versions yet
+
+
+1:1.14 (16 October 2004)
+------------------------
+@ Fix SOF/EOF problems with TAS5130D1B image sensor
++ Add informations about supported image sensor control settings (shown when
+  the module is loaded with 'debug=3' option)
+
+
+1:1.13 (15 September 2004)
+--------------------------
+* Documentation updates
++ Implement VIDIOC_G_PARM and VIDIOC_S_PARM ioctl's
+- Remove brightness control from PAS106B and PAS202BCB, since it has no effect
+  on the active pixel area (it's just for window border lines)
+= Memory management updates
+
+
+1:1.12 (5 September 2004)
+-------------------------
+* Color fixes for PAS202BCB - from its maintainer -
+
+
+1:1.11 (30 August 2004)
+-----------------------
+@ Create correct red,green,blue entries under /sys according to the detected
+  bridge
+* Add and use defined symbols for I2C slave ids of TAS5110C1B and TAS51130D1B
+
+
+1:1.10 (21 August 2004)
+-----------------------
++ Add SN9C103 based devices. The audio capability is not supported.
++ Implement VIDIOC_G_CTRL for TAS5110C1B and TAS51130D1B
++ Replace "SN9C10[12]" with "SN9C10x"
++ Add red, green, blue gain controls to the SN9C103
+
+
+1:1.09 (18 August 2004)
+-----------------------
+* Memory offsets are now page-aligned
+* Fix typos in the documentation
+* Setting bounds are checked by the core module
++ Add exposure control for TAS51130D1B
+
+
+1:1.08 (11 August 2004)
+-----------------------
+@ Delete the correct entry in the outgoing queue during DQBUF
+* Implement correct image downscaling selection through VIDIOC_S_[CROP|FTM]
+* Replace darkness controls with brightness (simple swapping) for PAS106B and
+  PAS202BCB
++ Implement gain control for TAS5110C1B and TAS5130D1B
++ Add a note to the documentation about correct image downscaling selection
+
+
+1:1.07 (6 August 2004)
+----------------------
+@ Correct R,G,B origin calculation: it should result in better image quality
+* Global gain fixes for PAS106B and PAS202BCB due to the above bug
+
+
+1:1.06 (31 July 2004) - in Linux kernel only
+--------------------------------------------
+* Exposure time fixes for PAS106B - Default is specific for office light
+* Color fix for TAS5110C1B
+
+
+1:1.05 (29 July 2004)
+---------------------
+@ Fix PAS202BCB clock divider: 1 fps is the max safe rate
+@ Fix TAS5110C1B darkness related problems and SOF/EOF warnings
+* Color adjustements for PAS106B
+
+
+1:1.04 (28 July 2004)
+---------------------
++ First stable release after some experimental releases
