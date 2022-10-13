@@ -1,0 +1,1 @@
+cmd_/media/josemar/DEV/PROJECTS/sn9c103/gspca/aio/gspca_sonixb_aio.mod := { echo  /media/josemar/DEV/PROJECTS/sn9c103/gspca/aio/sonixb_aio.o;  echo; } > /media/josemar/DEV/PROJECTS/sn9c103/gspca/aio/gspca_sonixb_aio.mod

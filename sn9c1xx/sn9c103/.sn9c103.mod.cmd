@@ -1,0 +1,1 @@
+cmd_/media/josemar/DEV/PROJECTS/sn9c103/sn9c1xx/sn9c103/sn9c103.mod := { echo  /media/josemar/DEV/PROJECTS/sn9c103/sn9c1xx/sn9c103/sn9c103.o;  echo; } > /media/josemar/DEV/PROJECTS/sn9c103/sn9c1xx/sn9c103/sn9c103.mod

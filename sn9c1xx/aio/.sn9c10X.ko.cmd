@@ -1,0 +1,1 @@
+cmd_/media/josemar/DEV/PROJECTS/sn9c103/sn9c1xx/aio/sn9c10X.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000  --build-id  -T ./scripts/module-common.lds -o /media/josemar/DEV/PROJECTS/sn9c103/sn9c1xx/aio/sn9c10X.ko /media/josemar/DEV/PROJECTS/sn9c103/sn9c1xx/aio/sn9c10X.o /media/josemar/DEV/PROJECTS/sn9c103/sn9c1xx/aio/sn9c10X.mod.o;  true
