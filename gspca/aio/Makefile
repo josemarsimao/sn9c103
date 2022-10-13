@@ -10,7 +10,7 @@ gspca_sonixb_aio-objs     := sonixb_aio.o
 KVERSION := $(shell uname -r)
 KDIR := /lib/modules/$(KVERSION)/build
 PWD := $(shell pwd)
-INSTALL_MOD_DIR := kernel/drivers/media/usb/elgin
+INSTALL_MOD_DIR := kernel/drivers/media/usb/gspca
 
 default: modules
 

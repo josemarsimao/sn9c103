@@ -5790,13 +5790,13 @@ static const struct v4l2_file_operations sn9c102_fops = {
 	.read = sn9c102_read,
 	.mmap = sn9c102_mmap,
 	.poll = sn9c102_poll,
-/*
+
 #ifdef CONFIG_COMPAT
     .compat_ioctl32 = 0,
 #endif
 	.get_unmapped_area = 0,
 	.write = 0,
-*/
+
 };
 
 /*****************************************************************************/

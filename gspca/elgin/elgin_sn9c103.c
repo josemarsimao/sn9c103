@@ -1,5 +1,5 @@
 /* Define the driver name return by v4l2 function */
-#define MODULE_NAME "Elgin SN9C103"
+#define MODULE_NAME "gspca_elgin_sn9c103"
 
 #include <linux/init.h>
 #include <linux/fs.h>
@@ -30,9 +30,6 @@
 #include <media/videobuf2-v4l2.h>
 #include <media/videobuf2-vmalloc.h>
 #include <linux/mutex.h>
-
-
-
 
 
 /* GSPCA debug codes */
@@ -171,15 +168,6 @@ struct gspca_dev {
 
 
 
-
-
-
-
-
-
-
-
-
 /* subdriver operations */
 typedef int (*cam_op) (struct gspca_dev *);
 typedef void (*cam_v_op) (struct gspca_dev *);
@@ -250,23 +238,6 @@ enum gspca_packet_type {
 	INTER_PACKET,
 	LAST_PACKET
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -950,28 +921,6 @@ static void destroy_urbs(struct gspca_dev *gspca_dev)
 		usb_free_urb(urb);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 static int gspca_set_alt0(struct gspca_dev *gspca_dev)
@@ -1893,7 +1842,6 @@ static const struct v4l2_ioctl_ops dev_ioctl_ops = {
 	.vidioc_s_parm		= vidioc_s_parm,
 	.vidioc_enum_framesizes = vidioc_enum_framesizes,
 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
-
 	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
 	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
 	.vidioc_querybuf	= vb2_ioctl_querybuf,
@@ -2087,6 +2035,7 @@ out:
 	return ret;
 }
 
+
 /* same function as the previous one, but check the interface */
 int gspca_dev_probe(struct usb_interface *intf,	const struct usb_device_id *id,	const struct sd_desc *sd_desc, int dev_size, struct module *module) {
 
@@ -2103,6 +2052,7 @@ int gspca_dev_probe(struct usb_interface *intf,	const struct usb_device_id *id,	
 
 	return gspca_dev_probe2(intf, id, sd_desc, dev_size, module);
 }
+
 
 /*
  * USB disconnection
@@ -2142,6 +2092,7 @@ void gspca_disconnect(struct usb_interface *intf) {
 	/* (this will call gspca_release() immediately or on last close) */
 	v4l2_device_put(&gspca_dev->v4l2_dev);
 }
+
 
 #ifdef CONFIG_PM
 int gspca_suspend(struct usb_interface *intf, pm_message_t message)
@@ -2593,15 +2544,15 @@ static const __u8 tas5130_sensor_init[][8] = {
 
 
 static const struct sensor_data sensor_data[] = {
-	SENS(initHv7131d, hv7131d_sensor_init, 0, 0),
-	SENS(initHv7131r, hv7131r_sensor_init, 0, 0),
-	SENS(initOv6650, ov6650_sensor_init, F_SIF, 0x60),
+	//SENS(initHv7131d, hv7131d_sensor_init, 0, 0),
+	//SENS(initHv7131r, hv7131r_sensor_init, 0, 0),
+	//SENS(initOv6650, ov6650_sensor_init, F_SIF, 0x60),
 	SENS(initOv7630, ov7630_sensor_init, 0, 0x21),
-	SENS(initPas106, pas106_sensor_init, F_SIF, 0),
-	SENS(initPas202, pas202_sensor_init, 0, 0),
-	SENS(initTas5110c, tas5110c_sensor_init, F_SIF, 0),
-	SENS(initTas5110d, tas5110d_sensor_init, F_SIF, 0),
-	SENS(initTas5130, tas5130_sensor_init, 0, 0),
+	//SENS(initPas106, pas106_sensor_init, F_SIF, 0),
+	//SENS(initPas202, pas202_sensor_init, 0, 0),
+	//SENS(initTas5110c, tas5110c_sensor_init, F_SIF, 0),
+	//SENS(initTas5110d, tas5110d_sensor_init, F_SIF, 0),
+	//SENS(initTas5130, tas5130_sensor_init, 0, 0),
 };
 
 
@@ -2866,6 +2817,17 @@ static void setfreq(struct gspca_dev *gspca_dev)
 	}
 }
 
+
+
+
+
+
+
+
+/*************************************/
+/* INICIO DA DEFINIÇÃO DO SUB-DRIVER */
+/*************************************/
+
 static void do_autogain(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -2906,7 +2868,6 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 }
 
 
-
 /* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev, const struct usb_device_id *id) {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -2933,6 +2894,7 @@ static int sd_config(struct gspca_dev *gspca_dev, const struct usb_device_id *id
 	return 0;
 }
 
+
 /* this function is called at probe and resume time */
 static int sd_init(struct gspca_dev *gspca_dev) {
 	const __u8 stop = 0x09; /* Disable stream turn of LED */
@@ -2941,6 +2903,7 @@ static int sd_init(struct gspca_dev *gspca_dev) {
 
 	return gspca_dev->usb_err;
 }
+
 
 static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 {
@@ -2983,11 +2946,9 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 }
 
 
-
 static const struct v4l2_ctrl_ops sd_ctrl_ops = {
 	.s_ctrl = sd_s_ctrl,
 };
-
 
 
 /* this function is called at probe time */
@@ -3186,10 +3147,12 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	return gspca_dev->usb_err;
 }
 
+
 static void sd_stopN(struct gspca_dev *gspca_dev)
 {
 	sd_init(gspca_dev);
 }
+
 
 static u8* find_sof(struct gspca_dev *gspca_dev, u8 *data, int len)
 {
@@ -3260,8 +3223,6 @@ static u8* find_sof(struct gspca_dev *gspca_dev, u8 *data, int len)
 }
 
 
-
-
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 			u8 *data,			/* isoc packet */
 			int len)			/* iso packet length */
@@ -3328,6 +3289,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 	}
 }
 
+
 #if IS_ENABLED(CONFIG_INPUT)
 static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
 			u8 *data,		/* interrupt packet data */
@@ -3348,12 +3310,6 @@ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
 #endif
 
 
-
-
-
-
-
-
 /* sub-driver description */
 static const struct sd_desc sd_desc = {
 	.name = MODULE_NAME,
@@ -3370,15 +3326,11 @@ static const struct sd_desc sd_desc = {
 };
 
 
-/* -- module initialisation -- */
-#define SB(sensor, bridge)    .driver_info = (SENSOR_ ## sensor << 8) | BRIDGE_ ## bridge
+/*************************************/
+/* FIM DA DEFINIÇÃO DO SUB-DRIVER */
+/*************************************/
 
 
-static const struct usb_device_id device_table[] = {
-	{USB_DEVICE(0x0c45, 0x608f), SB(OV7630, 103)},
-	{}
-};
-MODULE_DEVICE_TABLE(usb, device_table);
 
 
 
@@ -3388,6 +3340,15 @@ static int eg_probe(struct usb_interface *intf,	const struct usb_device_id *id)
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd), THIS_MODULE);
 }
 
+
+
+/* -- module initialisation -- */
+#define SB(sensor, bridge)    .driver_info = (SENSOR_ ## sensor << 8) | BRIDGE_ ## bridge
+static const struct usb_device_id device_table[] = {
+	{USB_DEVICE(0x0c45, 0x608f), SB(OV7630, 103)},
+	{}
+};
+MODULE_DEVICE_TABLE(usb, device_table);
 
 
 
@@ -3405,27 +3366,7 @@ static struct usb_driver eg_driver = {
 
 
 
-static int __init usb_elgin_init(void)
-{
-        int result;
-
-        /* register this driver with the USB subsystem */
-        result = usb_register(&eg_driver);
-        if (result < 0) {
-                pr_err("usb_register failed for the %s driver. Error number %d\n", eg_driver.name, result);
-                return -1;
-        }
-
-        return 0;
-}
-
-static void __exit usb_elgin_exit(void)
-{
-        /* deregister this driver with the USB subsystem */
-        usb_deregister(&eg_driver);
-}
-
-
-
-module_init(usb_elgin_init);
-module_exit(usb_elgin_exit);
+// ATENÇÃO:     ESTA OPÇÃO "module_usb_driver(sd_driver)" PERMITIU O LINK ENTRE OUTROS MÓDULOS DE DRIVER AUTOMATICAMENTE
+/**************************/
+module_usb_driver(eg_driver);
+/**************************/

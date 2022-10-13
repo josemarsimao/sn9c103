@@ -588,18 +588,26 @@ static DEFINE_MUTEX(sn9c102_sysfs_lock);
 static DEFINE_MUTEX(sn9c102_dev_lock);
 
 struct sn9c102_device {
+	// Ambos
 	struct video_device* v4ldev;
 
 	enum sn9c102_bridge bridge;
 	struct sn9c102_sensor sensor;
 
+	// Ambos
 	struct usb_device* usbdev;
+
+	// Ambos
 	struct urb* urb[SN9C102_URBS];
+
 	void* transfer_buffer[SN9C102_URBS];
 	u8* control_buffer;
 
 	struct sn9c102_frame_t *frame_current, frame[SN9C102_MAX_FRAMES];
+
+	// Ambos
 	struct list_head inqueue, outqueue;
+
 	u32 frame_count, nbuffers, nreadbuffers;
 
 	enum sn9c102_io_method io;
@@ -619,7 +627,10 @@ struct sn9c102_device {
 	u8 users;
 
 	struct completion probe;
+
+	// Ambos
 	struct mutex fileop_mutex;
+
 	spinlock_t queue_lock;
 	wait_queue_head_t wait_open, wait_frame, wait_stream;
 };
@@ -8859,11 +8870,83 @@ static void sn9c102_usb_disconnect(struct usb_interface* intf)
 }
 
 
+
+
+#ifdef CONFIG_PM
+int sn9c102_suspend(struct usb_interface *intf, pm_message_t message)
+{
+	/*
+	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
+
+	gspca_input_destroy_urb(gspca_dev);
+
+	if (!vb2_start_streaming_called(&gspca_dev->queue))
+		return 0;
+
+	mutex_lock(&gspca_dev->usb_lock);
+	gspca_dev->frozen = 1;		// avoid urb error messages
+	gspca_dev->usb_err = 0;
+	if (gspca_dev->sd_desc->stopN)
+		gspca_dev->sd_desc->stopN(gspca_dev);
+	destroy_urbs(gspca_dev);
+	gspca_set_alt0(gspca_dev);
+	if (gspca_dev->sd_desc->stop0)
+		gspca_dev->sd_desc->stop0(gspca_dev);
+	mutex_unlock(&gspca_dev->usb_lock);
+
+	return 0;
+    */
+
+	return 0;
+
+}
+
+
+int sn9c102_resume(struct usb_interface *intf)
+{
+	/*
+	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
+	int streaming, ret = 0;
+
+	mutex_lock(&gspca_dev->usb_lock);
+	gspca_dev->frozen = 0;
+	gspca_dev->usb_err = 0;
+	gspca_dev->sd_desc->init(gspca_dev);
+	*/
+	/*
+	 * Most subdrivers send all ctrl values on sd_start and thus
+	 * only write to the device registers on s_ctrl when streaming ->
+	 * Clear streaming to avoid setting all ctrls twice.
+	 */
+	/*
+	streaming = vb2_start_streaming_called(&gspca_dev->queue);
+	if (streaming)
+		ret = gspca_init_transfer(gspca_dev);
+	else
+		gspca_input_create_urb(gspca_dev);
+	mutex_unlock(&gspca_dev->usb_lock);
+
+	return ret;
+	*/
+	return 0;
+}
+
+#endif
+
+
+
+
+
 static struct usb_driver sn9c102_usb_driver = {
 	.name = "sn9c102",
 	.id_table = sn9c102_id_table,
 	.probe = sn9c102_usb_probe,
 	.disconnect = sn9c102_usb_disconnect,
+#ifdef CONFIG_PM
+	.suspend = sn9c102_suspend,
+	.resume = sn9c102_resume,
+	.reset_resume = sn9c102_resume,
+#endif
 };
 
 /*****************************************************************************/

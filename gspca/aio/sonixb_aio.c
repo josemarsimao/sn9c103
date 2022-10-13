@@ -1,4 +1,4 @@
-#define MODULE_NAME "sonixb"
+#define MODULE_NAME "gspca_sonixb_aio"
 
 #include <linux/init.h>
 #include <linux/fs.h>
@@ -101,9 +101,14 @@ static inline struct gspca_buffer *to_gspca_buffer(struct vb2_buffer *vb2)
 }
 
 struct gspca_dev {
+
+	// Ambos
 	struct video_device vdev;	/* !! must be the first item */
+
 	struct module *module;		/* subdriver handling the device */
 	struct v4l2_device v4l2_dev;
+
+	// Ambos
 	struct usb_device *dev;
 
 #if IS_ENABLED(CONFIG_INPUT)
@@ -126,7 +131,10 @@ struct gspca_dev {
 
 #define USB_BUF_SZ 64
 	__u8 *usb_buf;				/* buffer for USB exchanges */
+
+	// Ambos
 	struct urb *urb[MAX_NURBS];
+
 #if IS_ENABLED(CONFIG_INPUT)
 	struct urb *int_urb;
 #endif
@@ -144,10 +152,15 @@ struct gspca_dev {
 	struct vb2_queue queue;
 
 	spinlock_t qlock;
+
+	// Ambos
 	struct list_head buf_list;
 
 	wait_queue_head_t wq;		/* wait queue */
+
+	// Ambos
 	struct mutex usb_lock;		/* usb exchange protection */
+
 	int usb_err;			/* USB error - protected by usb_lock */
 	u16 pkt_size;			/* ISOC packet size */
 #ifdef CONFIG_PM
@@ -164,18 +177,6 @@ struct gspca_dev {
 	   that is any code setting them is holding *both*, which means that
 	   any code getting them needs to hold at least one of them */
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -249,23 +250,6 @@ enum gspca_packet_type {
 	INTER_PACKET,
 	LAST_PACKET
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -481,7 +465,7 @@ int gspca_coarse_grained_expo_autogain(
  * Copyright (C) 2009-2010 Márton Németh <nm127@freemail.hu>
  */
 
-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+//#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 
 #define GSPCA_VERSION	"2.14.0"
@@ -500,8 +484,12 @@ int gspca_coarse_grained_expo_autogain(
 #endif
 
 
+MODULE_AUTHOR("Jean-François Moine <http://moinejf.free.fr>");
+MODULE_DESCRIPTION("GSPCA USB Camera Driver");
+MODULE_LICENSE("GPL");
+MODULE_VERSION(GSPCA_VERSION);
 
-
+int gspca_debug;
 
 
 static void PDEBUG_MODE(struct gspca_dev *gspca_dev, int debug, char *txt,
@@ -943,25 +931,6 @@ static void destroy_urbs(struct gspca_dev *gspca_dev)
 		usb_free_urb(urb);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1886,7 +1855,6 @@ static const struct v4l2_ioctl_ops dev_ioctl_ops = {
 	.vidioc_s_parm		= vidioc_s_parm,
 	.vidioc_enum_framesizes = vidioc_enum_framesizes,
 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
-
 	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
 	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
 	.vidioc_querybuf	= vb2_ioctl_querybuf,
@@ -3643,30 +3611,15 @@ static struct usb_driver sd_driver = {
 };
 
 
-static int __init usb_skel_init(void)
-{
-        int result;
 
-        /* register this driver with the USB subsystem */
-        result = usb_register(&sd_driver);
-        if (result < 0) {
-                pr_err("usb_register failed for the %s driver. Error number %d\n", sd_driver.name, result);
-                return -1;
-        }
 
-        return 0;
-}
-
-static void __exit usb_skel_exit(void)
-{
-        /* deregister this driver with the USB subsystem */
-        usb_deregister(&sd_driver);
-}
+module_param_named(debug, gspca_debug, int, 0644);
+MODULE_PARM_DESC(debug, "1:probe 2:config 3:stream 4:frame 5:packet 6:usbi 7:usbo");
 
 
 
-module_init(usb_skel_init);
-module_exit(usb_skel_exit);
+// ATENÇÃO:     ESTA OPÇÃO "module_usb_driver(sd_driver)" PERMITIU O LINK ENTRE OUTROS MÓDULOS DE DRIVER AUTOMATICAMENTE
+/**************************/
+module_usb_driver(sd_driver);
+/**************************/
 
-
-//module_usb_driver(sd_driver);
