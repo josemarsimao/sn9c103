@@ -1267,8 +1267,7 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 
 		/* clear the bulk endpoint */
 		if (gspca_dev->cam.bulk)
-			usb_clear_halt(gspca_dev->dev,
-					gspca_dev->urb[0]->pipe);
+			usb_clear_halt(gspca_dev->dev, gspca_dev->urb[0]->pipe);
 
 		/* start the cam */
 		ret = gspca_dev->sd_desc->start(gspca_dev);
@@ -2848,7 +2847,7 @@ static void setexposure(struct gspca_dev *gspca_dev)
 		   unstable (the bridge goes into a higher compression mode
 		   which we have not reverse engineered yet). */
 		if (gspca_dev->pixfmt.width == 640 && reg11 < 4)
-			reg11 = 1;  // teste josemar valor original 4, porém framerate ficava 8. Porém, se setado para 1,FR = 30
+			reg11 = 1;  // josemar: valor original 4, porém framerate ficava 8. Porém, se setado para 1,FR = 30
 
 		/* frame exposure time in ms = 1000 * reg11 / 30    ->
 		reg10 = (gspca_dev->exposure->val / 2) * reg10_max
@@ -3180,7 +3179,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam = &gspca_dev->cam;
 	int i, mode;
-	__u8 regs[0x31];
+	__u8 regs[0x31]; // josemar: Em sn9n102.pdf tem a descricao de 0x1Fh registradores. Sugere que regs pertence ao controlador sn9c102/103
 
 	mode = cam->cam_mode[gspca_dev->curr_mode].priv & 0x07;
 	/* Copy registers 0x01 - 0x19 from the template */
@@ -3263,7 +3262,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	/* reg 0x17 SensorClk enable inv Clk 0x60 */
 	reg_w(gspca_dev, 0x17, &regs[0x17], 1);
 	/* Set the registers from the template */
-	reg_w(gspca_dev, 0x01, &regs[0x01], (sd->bridge == BRIDGE_103) ? 0x30 : 0x1f);
+	reg_w(gspca_dev, 0x01, &regs[0x01], (sd->bridge == BRIDGE_103) ? 0x30 : 0x1f); // josemar tamanho da tabela de registradores: 0x1F = SN9C102 e 0x30 = SN9C103
 
 	/* Init the sensor */
 	i2c_w_vector(gspca_dev, sensor_data[sd->sensor].sensor_init, sensor_data[sd->sensor].sensor_init_size);
@@ -3271,8 +3270,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	/* Mode / bridge specific sensor setup */
 	switch (sd->sensor) {
 	case SENSOR_PAS202: {
-		const __u8 i2cpclockdiv[] =
-			{0xa0, 0x40, 0x02, 0x03, 0x00, 0x00, 0x00, 0x10};
+		const __u8 i2cpclockdiv[] = {0xa0, 0x40, 0x02, 0x03, 0x00, 0x00, 0x00, 0x10};
 		/* clockdiv from 4 to 3 (7.5 -> 10 fps) when in low res mode */
 		if (mode)
 			i2c_w(gspca_dev, i2cpclockdiv);
@@ -3282,8 +3280,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 		/* FIXME / TESTME We should be able to handle this identical
 		   for the 101/102 and the 103 case */
 		if (sd->bridge == BRIDGE_103) {
-			const __u8 i2c[] = { 0xa0, 0x21, 0x13,
-					     0x80, 0x00, 0x00, 0x00, 0x10 };
+			const __u8 i2c[] = { 0xa0, 0x21, 0x13, 0x80, 0x00, 0x00, 0x00, 0x10 };
 			i2c_w(gspca_dev, i2c);
 		}
 		break;
