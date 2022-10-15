@@ -1,1 +1,0 @@
-cmd_/media/josemar/DEV/PROJECTS/sn9c103/gspca/elgin/gspca_elgin_sn9c103.mod := { echo  /media/josemar/DEV/PROJECTS/sn9c103/gspca/elgin/elgin_sn9c103.o;  echo; } > /media/josemar/DEV/PROJECTS/sn9c103/gspca/elgin/gspca_elgin_sn9c103.mod

@@ -1,1 +1,0 @@
-cmd_/media/josemar/DEV/PROJECTS/sn9c103/gspca/aio/gspca_sonixb_aio.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000  --build-id  -T ./scripts/module-common.lds -o /media/josemar/DEV/PROJECTS/sn9c103/gspca/aio/gspca_sonixb_aio.ko /media/josemar/DEV/PROJECTS/sn9c103/gspca/aio/gspca_sonixb_aio.o /media/josemar/DEV/PROJECTS/sn9c103/gspca/aio/gspca_sonixb_aio.mod.o;  true

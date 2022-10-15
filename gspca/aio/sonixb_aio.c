@@ -2870,7 +2870,7 @@ static void setexposure(struct gspca_dev *gspca_dev)
 		   unstable (the bridge goes into a higher compression mode
 		   which we have not reverse engineered yet). */
 		if (gspca_dev->pixfmt.width == 640 && reg11 < 4)
-			reg11 = 4;
+			reg11 = 1;  // teste josemar valor original 4, porém framerate ficava 8. Porém, se setado para 1,FR = 30
 
 		/* frame exposure time in ms = 1000 * reg11 / 30    ->
 		reg10 = (gspca_dev->exposure->val / 2) * reg10_max
