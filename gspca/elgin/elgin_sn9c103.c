@@ -1,4 +1,4 @@
-#define MODULE_NAME "gspca_sonixb_aio"
+#define MODULE_NAME "gspca_elgin_sn9c103"
 
 #include <linux/init.h>
 #include <linux/fs.h>
@@ -31,6 +31,19 @@
 #include <linux/mutex.h>
 
 
+// Josemar:
+// ********************************************************************************
+#define DEBUG_103 1
+#if DEBUG_103
+
+    int elgcnt = 0;
+    #define KDBG(func, fmt, args...) do { pr_info("Elgin_sn9c103: " func fmt "\n", ## args); elgcnt++; } while(0);
+
+#else
+
+    #define KDBG(func, fmt, args...)
+
+#endif // DEBUG_103
 
 
 
@@ -97,6 +110,8 @@ struct gspca_buffer {
 
 static inline struct gspca_buffer *to_gspca_buffer(struct vb2_buffer *vb2)
 {
+    KDBG("to_gspca_buffer"," - %d",elgcnt)
+
 	return container_of(vb2, struct gspca_buffer, vb.vb2_buf);
 }
 
@@ -249,14 +264,10 @@ enum gspca_packet_type {
 
    Returns 0 if no changes were made, 1 if the gain and or exposure settings
    where changed. */
-int gspca_expo_autogain(
-			struct gspca_dev *gspca_dev,
-			int avg_lum,
-			int desired_avg_lum,
-			int deadzone,
-			int gain_knee,
-			int exposure_knee)
+int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_avg_lum, int deadzone, int gain_knee, int exposure_knee)
 {
+    KDBG("gspca_expo_autogain"," - %d",elgcnt)
+
 /*
 	s32 gain, orig_gain, exposure, orig_exposure;
 	int i, steps, retval = 0;
@@ -367,12 +378,9 @@ int gspca_expo_autogain(
 
    Returns 0 if no changes were made, 1 if the gain and or exposure settings
    where changed. */
-int gspca_coarse_grained_expo_autogain(
-			struct gspca_dev *gspca_dev,
-			int avg_lum,
-			int desired_avg_lum,
-			int deadzone)
+int gspca_coarse_grained_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_avg_lum, int deadzone)
 {
+    KDBG("gspca_coarse_grained_expo_autogain"," - %d",elgcnt)
 /*
 
 	s32 gain_low, gain_high, gain, orig_gain, exposure, orig_exposure;
@@ -480,9 +488,10 @@ MODULE_VERSION(GSPCA_VERSION);
 int gspca_debug;
 
 
-static void PDEBUG_MODE(struct gspca_dev *gspca_dev, int debug, char *txt,
-			__u32 pixfmt, int w, int h)
+static void PDEBUG_MODE(struct gspca_dev *gspca_dev, int debug, char *txt, __u32 pixfmt, int w, int h)
 {
+    KDBG("PDEBUG_MODE"," - %d",elgcnt)
+
 	if ((pixfmt >> 24) >= '0' && (pixfmt >> 24) <= 'z') {
 		gspca_dbg(gspca_dev, debug, "%s %c%c%c%c %dx%d\n",
 			  txt,
@@ -509,6 +518,8 @@ static void PDEBUG_MODE(struct gspca_dev *gspca_dev, int debug, char *txt,
 #if IS_ENABLED(CONFIG_INPUT)
 static void int_irq(struct urb *urb)
 {
+    KDBG("int_irq"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
 	int ret;
 
@@ -544,8 +555,11 @@ static void int_irq(struct urb *urb)
 	}
 }
 
+// DEVICE PLUGGEDED - 12
 static int gspca_input_connect(struct gspca_dev *dev)
 {
+    KDBG("gspca_input_connect"," - %d",elgcnt)
+
 	struct input_dev *input_dev;
 	int err = 0;
 
@@ -581,8 +595,11 @@ static int gspca_input_connect(struct gspca_dev *dev)
 	return err;
 }
 
+// DEVICE PLUGGEDED - 14
 static int alloc_and_submit_int_urb(struct gspca_dev *gspca_dev, struct usb_endpoint_descriptor *ep)
 {
+    KDBG("alloc_and_submit_int_urb"," - %d",elgcnt)
+
 	unsigned int buffer_len;
 	int interval;
 	struct urb *urb;
@@ -634,8 +651,11 @@ error:
 	return ret;
 }
 
+// DEVICE PLUGGEDED - 13
 static void gspca_input_create_urb(struct gspca_dev *gspca_dev)
 {
+    KDBG("gspca_input_create_urb"," - %d",elgcnt)
+
 	struct usb_interface *intf;
 	struct usb_host_interface *intf_desc;
 	struct usb_endpoint_descriptor *ep;
@@ -658,6 +678,8 @@ static void gspca_input_create_urb(struct gspca_dev *gspca_dev)
 
 static void gspca_input_destroy_urb(struct gspca_dev *gspca_dev)
 {
+    KDBG("gspca_input_destroy_urb"," - %d",elgcnt)
+
 	struct urb *urb;
 
 	urb = gspca_dev->int_urb;
@@ -691,6 +713,8 @@ static inline int gspca_input_connect(struct gspca_dev *dev)
  */
 static void fill_frame(struct gspca_dev *gspca_dev,	struct urb *urb)
 {
+    KDBG("fill_frame"," - %d",elgcnt)
+
 	u8 *data;		/* address of data in the iso message */
 	int i, len, st;
 	cam_pkt_op pkt_scan;
@@ -748,6 +772,8 @@ resubmit:
  */
 static void isoc_irq(struct urb *urb)
 {
+    KDBG("isoc_irq"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
 
 	gspca_dbg(gspca_dev, D_PACK, "isoc irq\n");
@@ -761,6 +787,8 @@ static void isoc_irq(struct urb *urb)
  */
 static void bulk_irq(struct urb *urb)
 {
+    KDBG("bulk_irq"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
 	int st;
 
@@ -809,11 +837,10 @@ resubmit:
  *	- one LAST_PACKET
  * DISCARD_PACKET invalidates the whole frame.
  */
-void gspca_frame_add(struct gspca_dev *gspca_dev,
-			enum gspca_packet_type packet_type,
-			const u8 *data,
-			int len)
+void gspca_frame_add(struct gspca_dev *gspca_dev, enum gspca_packet_type packet_type, const u8 *data, int len)
 {
+    KDBG("gspca_frame_add"," - %d",elgcnt)
+
 	struct gspca_buffer *buf;
 	unsigned long flags;
 
@@ -892,6 +919,8 @@ void gspca_frame_add(struct gspca_dev *gspca_dev,
 
 static void destroy_urbs(struct gspca_dev *gspca_dev)
 {
+    KDBG("destroy_urbs"," - %d",elgcnt)
+
 	struct urb *urb;
 	unsigned int i;
 
@@ -924,6 +953,8 @@ static void destroy_urbs(struct gspca_dev *gspca_dev)
 
 static int gspca_set_alt0(struct gspca_dev *gspca_dev)
 {
+    KDBG("gspca_set_alt0"," - %d",elgcnt)
+
 	int ret;
 
 	if (gspca_dev->alt == 0)
@@ -940,9 +971,10 @@ static int gspca_set_alt0(struct gspca_dev *gspca_dev)
  * If xfer_ep is invalid, return the first valid ep found, otherwise
  * look for exactly the ep with address equal to xfer_ep.
  */
-static struct usb_host_endpoint *alt_xfer(struct usb_host_interface *alt,
-					  int xfer, int xfer_ep)
+static struct usb_host_endpoint *alt_xfer(struct usb_host_interface *alt, int xfer, int xfer_ep)
 {
+    KDBG("usb_host_endpoint"," - %d",elgcnt)
+
 	struct usb_host_endpoint *ep;
 	int i, attr;
 
@@ -961,6 +993,8 @@ static struct usb_host_endpoint *alt_xfer(struct usb_host_interface *alt,
 /* compute the minimum bandwidth for the current transfer */
 static u32 which_bandwidth(struct gspca_dev *gspca_dev)
 {
+    KDBG("which_bandwidth"," - %d",elgcnt)
+
 	u32 bandwidth;
 
 	/* get the (max) image size */
@@ -1006,10 +1040,10 @@ struct ep_tb_s {
  * build the table of the endpoints
  * and compute the minimum bandwidth for the image transfer
  */
-static int build_isoc_ep_tb(struct gspca_dev *gspca_dev,
-			struct usb_interface *intf,
-			struct ep_tb_s *ep_tb)
+static int build_isoc_ep_tb(struct gspca_dev *gspca_dev, struct usb_interface *intf, struct ep_tb_s *ep_tb)
 {
+    KDBG("build_isoc_ep_tb"," - %d",elgcnt)
+
 	struct usb_host_endpoint *ep;
 	int i, j, nbalt, psize, found;
 	u32 bandwidth, last_bw;
@@ -1090,9 +1124,10 @@ static int build_isoc_ep_tb(struct gspca_dev *gspca_dev,
 /*
  * create the URBs for image transfer
  */
-static int create_urbs(struct gspca_dev *gspca_dev,
-			struct usb_host_endpoint *ep)
+static int create_urbs(struct gspca_dev *gspca_dev, struct usb_host_endpoint *ep)
 {
+    KDBG("create_urbs"," - %d",elgcnt)
+
 	struct urb *urb;
 	int n, nurbs, i, psize, npkt, bsize;
 
@@ -1168,6 +1203,8 @@ static int create_urbs(struct gspca_dev *gspca_dev,
 /* Note: both the queue and the usb locks should be held when calling this */
 static void gspca_stream_off(struct gspca_dev *gspca_dev)
 {
+    KDBG("gspca_stream_off"," - %d",elgcnt)
+
 	gspca_dev->streaming = false;
 	gspca_dev->usb_err = 0;
 	if (gspca_dev->sd_desc->stopN)
@@ -1187,6 +1224,8 @@ static void gspca_stream_off(struct gspca_dev *gspca_dev)
  */
 static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 {
+    KDBG("gspca_init_transfer"," - %d",elgcnt)
+
 	struct usb_interface *intf;
 	struct usb_host_endpoint *ep;
 	struct urb *urb;
@@ -1327,8 +1366,11 @@ out:
 	return ret;
 }
 
+// DEVICE PLUGGEDED - 8
 static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
 {
+    KDBG("gspca_set_default_mode"," - %d",elgcnt)
+
 	int i;
 
 	i = gspca_dev->cam.nmodes - 1;	/* take the highest mode */
@@ -1339,9 +1381,10 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
 	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
 }
 
-static int wxh_to_mode(struct gspca_dev *gspca_dev,
-			int width, int height, u32 pixelformat)
+static int wxh_to_mode(struct gspca_dev *gspca_dev,	int width, int height, u32 pixelformat)
 {
+    KDBG("wxh_to_mode"," - %d",elgcnt)
+
 	int i;
 
 	for (i = 0; i < gspca_dev->cam.nmodes; i++) {
@@ -1353,9 +1396,10 @@ static int wxh_to_mode(struct gspca_dev *gspca_dev,
 	return -EINVAL;
 }
 
-static int wxh_to_nearest_mode(struct gspca_dev *gspca_dev,
-			int width, int height, u32 pixelformat)
+static int wxh_to_nearest_mode(struct gspca_dev *gspca_dev,	int width, int height, u32 pixelformat)
 {
+    KDBG("wxh_to_nearest_mode"," - %d",elgcnt)
+
 	int i;
 
 	for (i = gspca_dev->cam.nmodes; --i >= 0; ) {
@@ -1375,10 +1419,10 @@ static int wxh_to_nearest_mode(struct gspca_dev *gspca_dev,
 /*
  * search a mode with the right pixel format
  */
-static int gspca_get_mode(struct gspca_dev *gspca_dev,
-			int mode,
-			int pixfmt)
+static int gspca_get_mode(struct gspca_dev *gspca_dev, int mode, int pixfmt)
 {
+    KDBG("gspca_get_mode"," - %d",elgcnt)
+
 	int modeU, modeD;
 
 	modeU = modeD = mode;
@@ -1398,9 +1442,10 @@ static int gspca_get_mode(struct gspca_dev *gspca_dev,
 }
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
-static int vidioc_g_chip_info(struct file *file, void *priv,
-				struct v4l2_dbg_chip_info *chip)
+static int vidioc_g_chip_info(struct file *file, void *priv, struct v4l2_dbg_chip_info *chip)
 {
+    KDBG("vidioc_g_chip_info"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 
 	gspca_dev->usb_err = 0;
@@ -1409,18 +1454,20 @@ static int vidioc_g_chip_info(struct file *file, void *priv,
 	return chip->match.addr ? -EINVAL : 0;
 }
 
-static int vidioc_g_register(struct file *file, void *priv,
-		struct v4l2_dbg_register *reg)
+static int vidioc_g_register(struct file *file, void *priv,	struct v4l2_dbg_register *reg)
 {
+    KDBG("vidioc_g_register"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 
 	gspca_dev->usb_err = 0;
 	return gspca_dev->sd_desc->get_register(gspca_dev, reg);
 }
 
-static int vidioc_s_register(struct file *file, void *priv,
-		const struct v4l2_dbg_register *reg)
+static int vidioc_s_register(struct file *file, void *priv,	const struct v4l2_dbg_register *reg)
 {
+    KDBG("vidioc_s_register"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 
 	gspca_dev->usb_err = 0;
@@ -1428,9 +1475,10 @@ static int vidioc_s_register(struct file *file, void *priv,
 }
 #endif
 
-static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
-				struct v4l2_fmtdesc *fmtdesc)
+static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv, struct v4l2_fmtdesc *fmtdesc)
 {
+    KDBG("vidioc_enum_fmt_vid_cap"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 	int i, j, index;
 	__u32 fmt_tb[8];
@@ -1462,6 +1510,8 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
 
 static int vidioc_g_fmt_vid_cap(struct file *file, void *_priv,	struct v4l2_format *fmt)
 {
+    KDBG("vidioc_g_fmt_vid_cap"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 	u32 priv = fmt->fmt.pix.priv;
 
@@ -1471,9 +1521,10 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *_priv,	struct v4l2_form
 	return 0;
 }
 
-static int try_fmt_vid_cap(struct gspca_dev *gspca_dev,
-			struct v4l2_format *fmt)
+static int try_fmt_vid_cap(struct gspca_dev *gspca_dev, struct v4l2_format *fmt)
 {
+    KDBG("try_fmt_vid_cap"," - %d",elgcnt)
+
 	int w, h, mode, mode2;
 
 	w = fmt->fmt.pix.width;
@@ -1505,9 +1556,10 @@ static int try_fmt_vid_cap(struct gspca_dev *gspca_dev,
 	return mode;			/* used when s_fmt */
 }
 
-static int vidioc_try_fmt_vid_cap(struct file *file, void *_priv,
-				  struct v4l2_format *fmt)
+static int vidioc_try_fmt_vid_cap(struct file *file, void *_priv, struct v4l2_format *fmt)
 {
+    KDBG("vidioc_try_fmt_vid_cap"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 	u32 priv = fmt->fmt.pix.priv;
 
@@ -1518,9 +1570,10 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *_priv,
 	return 0;
 }
 
-static int vidioc_s_fmt_vid_cap(struct file *file, void *_priv,
-				struct v4l2_format *fmt)
+static int vidioc_s_fmt_vid_cap(struct file *file, void *_priv, struct v4l2_format *fmt)
 {
+    KDBG("vidioc_s_fmt_vid_cap"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 	u32 priv = fmt->fmt.pix.priv;
 	int mode;
@@ -1543,9 +1596,10 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *_priv,
 	return 0;
 }
 
-static int vidioc_enum_framesizes(struct file *file, void *priv,
-				  struct v4l2_frmsizeenum *fsize)
+static int vidioc_enum_framesizes(struct file *file, void *priv, struct v4l2_frmsizeenum *fsize)
 {
+    KDBG("vidioc_enum_framesizes"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 	int i;
 	__u32 index = 0;
@@ -1572,9 +1626,10 @@ static int vidioc_enum_framesizes(struct file *file, void *priv,
 	return -EINVAL;
 }
 
-static int vidioc_enum_frameintervals(struct file *filp, void *priv,
-				      struct v4l2_frmivalenum *fival)
+static int vidioc_enum_frameintervals(struct file *filp, void *priv, struct v4l2_frmivalenum *fival)
 {
+    KDBG("vidioc_enum_frameintervals"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(filp);
 	int mode;
 	__u32 i;
@@ -1607,8 +1662,9 @@ static int vidioc_enum_frameintervals(struct file *filp, void *priv,
 
 static void gspca_release(struct v4l2_device *v4l2_device)
 {
-	struct gspca_dev *gspca_dev =
-		container_of(v4l2_device, struct gspca_dev, v4l2_dev);
+    KDBG("gspca_release"," - %d",elgcnt)
+
+	struct gspca_dev *gspca_dev = container_of(v4l2_device, struct gspca_dev, v4l2_dev);
 
 	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
 	v4l2_device_unregister(&gspca_dev->v4l2_dev);
@@ -1616,9 +1672,11 @@ static void gspca_release(struct v4l2_device *v4l2_device)
 	kfree(gspca_dev);
 }
 
-static int vidioc_querycap(struct file *file, void  *priv,
-			   struct v4l2_capability *cap)
+// DEVICE PLUGGEDED - 15
+static int vidioc_querycap(struct file *file, void  *priv, struct v4l2_capability *cap)
 {
+    KDBG("vidioc_querycap"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 
 	strscpy((char *)cap->driver, gspca_dev->sd_desc->name,
@@ -1637,9 +1695,10 @@ static int vidioc_querycap(struct file *file, void  *priv,
 	return 0;
 }
 
-static int vidioc_enum_input(struct file *file, void *priv,
-				struct v4l2_input *input)
+static int vidioc_enum_input(struct file *file, void *priv,	struct v4l2_input *input)
 {
+    KDBG("vidioc_enum_input"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 
 	if (input->index != 0)
@@ -1653,38 +1712,45 @@ static int vidioc_enum_input(struct file *file, void *priv,
 
 static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
 {
+    KDBG("vidioc_g_input"," - %d",elgcnt)
+
 	*i = 0;
 	return 0;
 }
 
 static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
 {
+    KDBG("vidioc_s_input"," - %d",elgcnt)
+
 	if (i > 0)
 		return -EINVAL;
 	return 0;
 }
 
-static int vidioc_g_jpegcomp(struct file *file, void *priv,
-			struct v4l2_jpegcompression *jpegcomp)
+static int vidioc_g_jpegcomp(struct file *file, void *priv, struct v4l2_jpegcompression *jpegcomp)
 {
+    KDBG("vidioc_g_jpegcomp"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 
 	gspca_dev->usb_err = 0;
 	return gspca_dev->sd_desc->get_jcomp(gspca_dev, jpegcomp);
 }
 
-static int vidioc_s_jpegcomp(struct file *file, void *priv,
-			const struct v4l2_jpegcompression *jpegcomp)
+static int vidioc_s_jpegcomp(struct file *file, void *priv, const struct v4l2_jpegcompression *jpegcomp)
 {
+    KDBG("vidioc_s_jpegcomp"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 
 	gspca_dev->usb_err = 0;
 	return gspca_dev->sd_desc->set_jcomp(gspca_dev, jpegcomp);
 }
 
-static int vidioc_g_parm(struct file *filp, void *priv,
-			struct v4l2_streamparm *parm)
+static int vidioc_g_parm(struct file *filp, void *priv,	struct v4l2_streamparm *parm)
 {
+    KDBG("vidioc_g_parm"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(filp);
 
 	parm->parm.capture.readbuffers = gspca_dev->queue.min_buffers_needed;
@@ -1698,9 +1764,10 @@ static int vidioc_g_parm(struct file *filp, void *priv,
 	return gspca_dev->usb_err;
 }
 
-static int vidioc_s_parm(struct file *filp, void *priv,
-			struct v4l2_streamparm *parm)
+static int vidioc_s_parm(struct file *filp, void *priv, struct v4l2_streamparm *parm)
 {
+    KDBG("vidioc_s_parm"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = video_drvdata(filp);
 
 	parm->parm.capture.readbuffers = gspca_dev->queue.min_buffers_needed;
@@ -1716,10 +1783,10 @@ static int vidioc_s_parm(struct file *filp, void *priv,
 	return gspca_dev->usb_err;
 }
 
-static int gspca_queue_setup(struct vb2_queue *vq,
-			     unsigned int *nbuffers, unsigned int *nplanes,
-			     unsigned int sizes[], struct device *alloc_devs[])
+static int gspca_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers, unsigned int *nplanes, unsigned int sizes[], struct device *alloc_devs[])
 {
+    KDBG("gspca_queue_setup"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vq);
 	unsigned int size = PAGE_ALIGN(gspca_dev->pixfmt.sizeimage);
 
@@ -1732,6 +1799,8 @@ static int gspca_queue_setup(struct vb2_queue *vq,
 
 static int gspca_buffer_prepare(struct vb2_buffer *vb)
 {
+    KDBG("gspca_buffer_prepare"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vb->vb2_queue);
 	unsigned long size = PAGE_ALIGN(gspca_dev->pixfmt.sizeimage);
 
@@ -1745,6 +1814,8 @@ static int gspca_buffer_prepare(struct vb2_buffer *vb)
 
 static void gspca_buffer_finish(struct vb2_buffer *vb)
 {
+    KDBG("gspca_buffer_finish"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vb->vb2_queue);
 
 	if (!gspca_dev->sd_desc->dq_callback)
@@ -1757,6 +1828,8 @@ static void gspca_buffer_finish(struct vb2_buffer *vb)
 
 static void gspca_buffer_queue(struct vb2_buffer *vb)
 {
+    KDBG("gspca_buffer_queue"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vb->vb2_queue);
 	struct gspca_buffer *buf = to_gspca_buffer(vb);
 	unsigned long flags;
@@ -1766,9 +1839,10 @@ static void gspca_buffer_queue(struct vb2_buffer *vb)
 	spin_unlock_irqrestore(&gspca_dev->qlock, flags);
 }
 
-static void gspca_return_all_buffers(struct gspca_dev *gspca_dev,
-				     enum vb2_buffer_state state)
+static void gspca_return_all_buffers(struct gspca_dev *gspca_dev, enum vb2_buffer_state state)
 {
+    KDBG("gspca_return_all_buffers"," - %d",elgcnt)
+
 	struct gspca_buffer *buf, *node;
 	unsigned long flags;
 
@@ -1782,6 +1856,8 @@ static void gspca_return_all_buffers(struct gspca_dev *gspca_dev,
 
 static int gspca_start_streaming(struct vb2_queue *vq, unsigned int count)
 {
+    KDBG("gspca_start_streaming"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vq);
 	int ret;
 
@@ -1795,6 +1871,8 @@ static int gspca_start_streaming(struct vb2_queue *vq, unsigned int count)
 
 static void gspca_stop_streaming(struct vb2_queue *vq)
 {
+    KDBG("gspca_stop_streaming"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vq);
 
 	gspca_stream_off(gspca_dev);
@@ -1870,8 +1948,11 @@ static const struct video_device gspca_template = {
  * This function must be called by the sub-driver when it is
  * called for probing a new device.
  */
+ // DEVICE PLUGGEDED - 2
 int gspca_dev_probe2(struct usb_interface *intf, const struct usb_device_id *id, const struct sd_desc *sd_desc,	int dev_size, struct module *module)
 {
+    KDBG("gspca_dev_probe2"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev;
 	struct usb_device *dev = interface_to_usbdev(intf);
 	struct vb2_queue *q;
@@ -2029,7 +2110,10 @@ out:
 }
 
 /* same function as the previous one, but check the interface */
+// DEVICE PLUGGEDED - 1
 int gspca_dev_probe(struct usb_interface *intf,	const struct usb_device_id *id,	const struct sd_desc *sd_desc, int dev_size, struct module *module) {
+
+    KDBG("gspca_dev_probe"," - %d",elgcnt)
 
 	struct usb_device *dev = interface_to_usbdev(intf);
 	/* we don't handle multi-config cameras */
@@ -2052,6 +2136,8 @@ int gspca_dev_probe(struct usb_interface *intf,	const struct usb_device_id *id,	
  * when the device disconnects, after the specific resources are freed.
  */
 void gspca_disconnect(struct usb_interface *intf) {
+
+    KDBG("gspca_disconnect"," - %d",elgcnt)
 
 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
 #if IS_ENABLED(CONFIG_INPUT)
@@ -2087,6 +2173,8 @@ void gspca_disconnect(struct usb_interface *intf) {
 #ifdef CONFIG_PM
 int gspca_suspend(struct usb_interface *intf, pm_message_t message)
 {
+    KDBG("gspca_suspend"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
 
 	gspca_input_destroy_urb(gspca_dev);
@@ -2111,6 +2199,8 @@ int gspca_suspend(struct usb_interface *intf, pm_message_t message)
 
 int gspca_resume(struct usb_interface *intf)
 {
+    KDBG("gspca_resume"," - %d",elgcnt)
+
 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
 	int streaming, ret = 0;
 
@@ -2548,7 +2638,11 @@ static const struct sensor_data sensor_data[] = {
 
 
 /* get one byte in gspca_dev->usb_buf */
+// DEVICE PLUGGEDED - 4
 static void reg_r(struct gspca_dev *gspca_dev,  __u16 value) {
+
+    KDBG("reg_r"," - %d",elgcnt)
+
 	int res;
 
 	if (gspca_dev->usb_err < 0)
@@ -2575,7 +2669,11 @@ static void reg_r(struct gspca_dev *gspca_dev,  __u16 value) {
 	}
 }
 
+// DEVICE PLUGGEDED - 6
 static void reg_w(struct gspca_dev *gspca_dev, __u16 value, const __u8 *buffer, int len) {
+
+    KDBG("reg_w"," - %d",elgcnt)
+
 	int res;
 
 	if (gspca_dev->usb_err < 0)
@@ -2598,6 +2696,9 @@ static void reg_w(struct gspca_dev *gspca_dev, __u16 value, const __u8 *buffer, 
 }
 
 static void i2c_w(struct gspca_dev *gspca_dev, const u8 *buf) {
+
+    KDBG("i2c_w"," - %d",elgcnt)
+
 	int retry = 60;
 
 	if (gspca_dev->usb_err < 0)
@@ -2624,6 +2725,9 @@ static void i2c_w(struct gspca_dev *gspca_dev, const u8 *buf) {
 }
 
 static void i2c_w_vector(struct gspca_dev *gspca_dev, const __u8 buffer[][8], int len) {
+
+    KDBG("i2c_w_vector"," - %d",elgcnt)
+
 	for (;;) {
 		if (gspca_dev->usb_err < 0)
 			return;
@@ -2637,6 +2741,8 @@ static void i2c_w_vector(struct gspca_dev *gspca_dev, const __u8 buffer[][8], in
 
 static void setbrightness(struct gspca_dev *gspca_dev)
 {
+    KDBG("setbrightness"," - %d",elgcnt)
+
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	switch (sd->sensor) {
@@ -2683,6 +2789,8 @@ static void setbrightness(struct gspca_dev *gspca_dev)
 
 static void setgain(struct gspca_dev *gspca_dev)
 {
+    KDBG("setgain"," - %d",elgcnt)
+
 	struct sd *sd = (struct sd *) gspca_dev;
 	u8 gain = gspca_dev->gain->val;
 
@@ -2780,6 +2888,8 @@ static void setgain(struct gspca_dev *gspca_dev)
 
 static void setexposure(struct gspca_dev *gspca_dev)
 {
+    KDBG("setexposure"," - %d",elgcnt)
+
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	switch (sd->sensor) {
@@ -2951,6 +3061,8 @@ static void setexposure(struct gspca_dev *gspca_dev)
 
 static void setfreq(struct gspca_dev *gspca_dev)
 {
+    KDBG("setfreq"," - %d",elgcnt)
+
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	if (sd->sensor == SENSOR_OV6650 || sd->sensor == SENSOR_OV7630) {
@@ -2976,6 +3088,8 @@ static void setfreq(struct gspca_dev *gspca_dev)
 
 static void do_autogain(struct gspca_dev *gspca_dev)
 {
+    KDBG("do_autogain"," - %d",elgcnt)
+
 	struct sd *sd = (struct sd *) gspca_dev;
 	int deadzone, desired_avg_lum, avg_lum;
 
@@ -3015,7 +3129,11 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 
 
 /* this function is called at probe time */
+// DEVICE PLUGGEDED - 3
 static int sd_config(struct gspca_dev *gspca_dev, const struct usb_device_id *id) {
+
+    KDBG("sd_config"," - %d",elgcnt)
+
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam;
 
@@ -3041,7 +3159,11 @@ static int sd_config(struct gspca_dev *gspca_dev, const struct usb_device_id *id
 }
 
 /* this function is called at probe and resume time */
+// DEVICE PLUGGEDED - 5
 static int sd_init(struct gspca_dev *gspca_dev) {
+
+    KDBG("sd_init"," - %d",elgcnt)
+
 	const __u8 stop = 0x09; /* Disable stream turn of LED */
 
 	reg_w(gspca_dev, 0x01, &stop, 1);
@@ -3049,10 +3171,12 @@ static int sd_init(struct gspca_dev *gspca_dev) {
 	return gspca_dev->usb_err;
 }
 
+// DEVICE PLUGGEDED - 9 - 11
 static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 {
-	struct gspca_dev *gspca_dev =
-		container_of(ctrl->handler, struct gspca_dev, ctrl_handler);
+    KDBG("sd_s_ctrl"," - %d",elgcnt)
+
+	struct gspca_dev *gspca_dev = container_of(ctrl->handler, struct gspca_dev, ctrl_handler);
 	struct sd *sd = (struct sd *)gspca_dev;
 
 	gspca_dev->usb_err = 0;
@@ -3098,8 +3222,11 @@ static const struct v4l2_ctrl_ops sd_ctrl_ops = {
 
 
 /* this function is called at probe time */
+// DEVICE PLUGGEDED - 7
 static int sd_init_controls(struct gspca_dev *gspca_dev)
 {
+    KDBG("sd_init_controls"," - %d",elgcnt)
+
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct v4l2_ctrl_handler *hdl = &gspca_dev->ctrl_handler;
 
@@ -3176,6 +3303,8 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 /* -- start the camera -- */
 static int sd_start(struct gspca_dev *gspca_dev)
 {
+    KDBG("sd_start"," - %d",elgcnt)
+
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam = &gspca_dev->cam;
 	int i, mode;
@@ -3323,11 +3452,15 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 static void sd_stopN(struct gspca_dev *gspca_dev)
 {
+    KDBG("sd_stopN"," - %d",elgcnt)
+
 	sd_init(gspca_dev);
 }
 
 static u8* find_sof(struct gspca_dev *gspca_dev, u8 *data, int len)
 {
+    KDBG("find_sof"," - %d",elgcnt)
+
 	struct sd *sd = (struct sd *) gspca_dev;
 	int i, header_size = (sd->bridge == BRIDGE_103) ? 18 : 12;
 
@@ -3401,6 +3534,8 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 			u8 *data,			/* isoc packet */
 			int len)			/* iso packet length */
 {
+    KDBG("sd_pkt_scan"," - %d",elgcnt)
+
 	int fr_h_sz = 0, lum_offset = 0, len_after_sof = 0;
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam = &gspca_dev->cam;
@@ -3467,6 +3602,8 @@ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
 			u8 *data,		/* interrupt packet data */
 			int len)		/* interrupt packet length */
 {
+    KDBG("sd_int_pkt_scan"," - %d",elgcnt)
+
 	int ret = -EINVAL;
 
 	if (len == 1 && data[0] == 1) {
@@ -3514,8 +3651,11 @@ MODULE_DEVICE_TABLE(usb, device_table);
 
 
 /* -- device connect -- */
+// DEVICE PLUGGEDED - 0
 static int sd_probe(struct usb_interface *intf,	const struct usb_device_id *id)
 {
+    KDBG("sd_probe"," - %d",elgcnt)
+
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd), THIS_MODULE);
 }
 
@@ -3547,3 +3687,32 @@ MODULE_PARM_DESC(debug, "1:probe 2:config 3:stream 4:frame 5:packet 6:usbi 7:usb
 module_usb_driver(sd_driver);
 /**************************/
 
+
+
+
+/*     OBSERVAÇOES   */
+/*
+
+
+[ 5828.218070] Elgin_sn9c103: sd_probe - 0
+[ 5828.218072] Elgin_sn9c103: gspca_dev_probe - 1
+[ 5828.218072] Elgin_sn9c103: gspca_dev_probe2 - 2
+[ 5828.218076] Elgin_sn9c103: sd_config - 3
+[ 5828.218077] Elgin_sn9c103: reg_r - 4
+[ 5828.218871] Elgin_sn9c103: sd_init - 5
+[ 5828.218873] Elgin_sn9c103: reg_w - 6
+[ 5828.218967] Elgin_sn9c103: sd_init_controls - 7
+[ 5828.218977] Elgin_sn9c103: gspca_set_default_mode - 8
+[ 5828.218978] Elgin_sn9c103: sd_s_ctrl - 9
+[ 5828.218979] Elgin_sn9c103: sd_s_ctrl - 10
+[ 5828.218980] Elgin_sn9c103: sd_s_ctrl - 11
+[ 5828.218981] Elgin_sn9c103: gspca_input_connect - 12
+[ 5828.219880] Elgin_sn9c103: gspca_input_create_urb - 13
+[ 5828.219882] Elgin_sn9c103: alloc_and_submit_int_urb - 14
+[ 5828.249934] Elgin_sn9c103: vidioc_querycap - 15
+
+
+
+
+
+*/
