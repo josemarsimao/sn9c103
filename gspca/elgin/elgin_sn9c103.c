@@ -583,8 +583,7 @@ static int gspca_input_connect(struct gspca_dev *dev)
 
 		err = input_register_device(input_dev);
 		if (err) {
-			pr_err("Input device registration failed with error %i\n",
-			       err);
+			pr_err("Input device registration failed with error %i\n", err);
 			input_dev->dev.parent = NULL;
 			input_free_device(input_dev);
 		} else {
@@ -1375,7 +1374,7 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
 
 	i = gspca_dev->cam.nmodes - 1;	/* take the highest mode */
 	gspca_dev->curr_mode = i;
-	gspca_dev->pixfmt = gspca_dev->cam.cam_mode[i];
+	gspca_dev->pixfmt = gspca_dev->cam.cam_mode[i]; // josemar: Escolher o modo padrão a aprtir dos modo incluídos na tabela.
 
 	/* does nothing if ctrl_handler == NULL */
 	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
@@ -1679,19 +1678,16 @@ static int vidioc_querycap(struct file *file, void  *priv, struct v4l2_capabilit
 
 	struct gspca_dev *gspca_dev = video_drvdata(file);
 
-	strscpy((char *)cap->driver, gspca_dev->sd_desc->name,
-		sizeof(cap->driver));
+	strscpy((char *)cap->driver, gspca_dev->sd_desc->name, sizeof(cap->driver));
+
 	if (gspca_dev->dev->product != NULL) {
-		strscpy((char *)cap->card, gspca_dev->dev->product,
-			sizeof(cap->card));
+		strscpy((char *)cap->card, gspca_dev->dev->product, sizeof(cap->card));
 	} else {
-		snprintf((char *) cap->card, sizeof cap->card,
-			"USB Camera (%04x:%04x)",
-			le16_to_cpu(gspca_dev->dev->descriptor.idVendor),
-			le16_to_cpu(gspca_dev->dev->descriptor.idProduct));
+		snprintf((char *) cap->card, sizeof cap->card, "USB Camera (%04x:%04x)", le16_to_cpu(gspca_dev->dev->descriptor.idVendor), le16_to_cpu(gspca_dev->dev->descriptor.idProduct));
 	}
-	usb_make_path(gspca_dev->dev, (char *) cap->bus_info,
-			sizeof(cap->bus_info));
+
+	usb_make_path(gspca_dev->dev, (char *) cap->bus_info, sizeof(cap->bus_info));
+
 	return 0;
 }
 
@@ -1705,8 +1701,7 @@ static int vidioc_enum_input(struct file *file, void *priv,	struct v4l2_input *i
 		return -EINVAL;
 	input->type = V4L2_INPUT_TYPE_CAMERA;
 	input->status = gspca_dev->cam.input_flags;
-	strscpy(input->name, gspca_dev->sd_desc->name,
-		sizeof input->name);
+	strscpy(input->name, gspca_dev->sd_desc->name, sizeof input->name);
 	return 0;
 }
 
@@ -2317,11 +2312,28 @@ struct sensor_data {
 
 
 static const struct v4l2_pix_format vga_mode[] = {
+//josemar: Novos modos podem ser adicionados aqui. O ".priv" é utilizado para definir a resolução no registro 0x18h. Preciso entender melhor como é formado o tamanho da imagem
+// josemar: Lembrando que CIF(Common Intermediate Format) é referente a um padrão de tamanho de imagem (PAL/NTSC) correspondente a 352x288 pixels e seus multiplos:  QCIF, 2CIF, 4CIF, 16CIF
+    {80,   60, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,        // josemar: Adicionado por mim
+		.bytesperline = 80,
+		.sizeimage = 80 * 60,
+		.colorspace = V4L2_COLORSPACE_SRGB,
+		.priv = 0 | MODE_RAW},
 	{160, 120, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
 		.bytesperline = 160,
 		.sizeimage = 160 * 120,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 2 | MODE_RAW},
+    {320, 240, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,        // josemar: Adicionado por mim
+		.bytesperline = 320,
+		.sizeimage = 320 * 240,
+		.colorspace = V4L2_COLORSPACE_SRGB,
+		.priv = 1 | MODE_RAW},
+    {640, 480, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,        // josemar: Adicionado por mim
+		.bytesperline = 640,
+		.sizeimage = 640 * 480,
+		.colorspace = V4L2_COLORSPACE_SRGB,
+		.priv = 0 | MODE_RAW},
 	{160, 120, V4L2_PIX_FMT_SN9C10X, V4L2_FIELD_NONE,
 		.bytesperline = 160,
 		.sizeimage = 160 * 120 * 5 / 4,
@@ -2623,6 +2635,7 @@ static const __u8 tas5130_sensor_init[][8] = {
 };
 
 
+// josemar: A ponte "bridge" será inicializada de diferentes formas dependendo do sensor utilizazdo. Além disso, ainda há a inicialização do sensor.
 static const struct sensor_data sensor_data[] = {
 	SENS(initHv7131d, hv7131d_sensor_init, 0, 0),
 	SENS(initHv7131r, hv7131r_sensor_init, 0, 0),
@@ -3138,10 +3151,10 @@ static int sd_config(struct gspca_dev *gspca_dev, const struct usb_device_id *id
 	struct cam *cam;
 
 	reg_r(gspca_dev, 0x00);
-	if (gspca_dev->usb_buf[0] != 0x10)
+	if (gspca_dev->usb_buf[0] != 0x10)  // josemar: no endereço 00h tem um Sonix PC Cam chip ID = 10h
 		return -ENODEV;
 
-	/* copy the webcam info from the device id */
+	/* copy the webcam info from the device id */ // josemar: proveniente da tabela dos dispositivos aceitos pelo driver
 	sd->sensor = id->driver_info >> 8;
 	sd->bridge = id->driver_info & 0xff;
 
@@ -3166,7 +3179,7 @@ static int sd_init(struct gspca_dev *gspca_dev) {
 
 	const __u8 stop = 0x09; /* Disable stream turn of LED */
 
-	reg_w(gspca_dev, 0x01, &stop, 1);
+	reg_w(gspca_dev, 0x01, &stop, 1);  // josemar: bit0 = 1: desliga o sensor; bit3 é o output do led
 
 	return gspca_dev->usb_err;
 }
@@ -3232,6 +3245,10 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 
 	gspca_dev->vdev.ctrl_handler = hdl;
 	v4l2_ctrl_handler_init(hdl, 5);
+
+	// josemar - Definition ****
+	/// struct v4l2_ctrl * v4l2_ctrl_new_std(struct v4l2_ctrl_handler * hdl, const struct v4l2_ctrl_ops * ops, u32 id, s64 min, s64 max, u64 step, s64 def)
+	// ***************
 
 	if (sd->sensor == SENSOR_OV6650 || sd->sensor == SENSOR_OV7630 || sd->sensor == SENSOR_PAS106 || sd->sensor == SENSOR_PAS202)
 		sd->brightness = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_BRIGHTNESS, 0, 255, 1, 127);
@@ -3311,6 +3328,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	__u8 regs[0x31]; // josemar: Em sn9n102.pdf tem a descricao de 0x1Fh registradores. Sugere que regs pertence ao controlador sn9c102/103
 
 	mode = cam->cam_mode[gspca_dev->curr_mode].priv & 0x07;
+
 	/* Copy registers 0x01 - 0x19 from the template */
 	memcpy(&regs[0x01], sensor_data[sd->sensor].bridge_init, 0x19);
 	/* Set the mode */
