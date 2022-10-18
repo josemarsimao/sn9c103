@@ -60,6 +60,12 @@
 
 int gspca_debug;
 
+static void i2c_r(struct gspca_dev *gspca_dev, u8 reg, int len);
+static void reg_r(struct gspca_dev *gspca_dev,  __u16 value);
+static void reg_w(struct gspca_dev *gspca_dev, __u16 value, const __u8 *buffer, int len);
+
+
+
 #define gspca_dbg(gspca_dev, level, fmt, ...)			\
 	v4l2_dbg(level, gspca_debug, &(gspca_dev)->v4l2_dev,	\
 		 fmt, ##__VA_ARGS__)
@@ -2063,6 +2069,18 @@ int gspca_dev_probe2(struct usb_interface *intf, const struct usb_device_id *id,
 	gspca_set_default_mode(gspca_dev);
 
 	ret = gspca_input_connect(gspca_dev);
+
+	// josemar: Leitura do ID do sensor
+	//i2c_r(gspca_dev, 0x0A, 1);
+	//reg_r(gspca_dev, 0x0A);
+
+	//KDBG("gspca: SendorID: "," - %X",gspca_dev->usb_buf[0]);
+
+	//i2c_r(gspca_dev, 0x0B, 1);
+	//reg_r(gspca_dev, 0x0A);
+
+	//KDBG("gspca: SendorID: "," - %X",gspca_dev->usb_buf[0]);
+
 	if (ret)
 		goto out;
 
@@ -2509,6 +2527,7 @@ static const __u8 initOv7630[] = {
 };
 
 static const __u8 ov7630_sensor_init[][8] = {
+//  {i2cC, slID, addr,   D0,   D1,   D2,   D3,   }
 	{0xa0, 0x21, 0x12, 0x80, 0x00, 0x00, 0x00, 0x10},
 	{0xb0, 0x21, 0x01, 0x77, 0x3a, 0x00, 0x00, 0x10},
 /*	{0xd0, 0x21, 0x12, 0x7c, 0x01, 0x80, 0x34, 0x10},	   jfm */
@@ -2757,6 +2776,32 @@ static void reg_w(struct gspca_dev *gspca_dev, __u16 value, const __u8 *buffer, 
 		gspca_dev->usb_err = res;
 	}
 }
+/*
+static void i2c_r(struct gspca_dev *gspca_dev, u8 reg, int len){
+
+	struct sd *sd = (struct sd *) gspca_dev;
+	u8 mode[8];
+
+    // josemar: primeiro faz uma escrita para somente um registro
+    //          que é o endereço
+    //          depois faz uma leitura de até cinco registros
+	mode[0] = 0x80 | 0x10; // i2c command = a0 (100 kHz)
+	mode[1] = sensor_data[sd->sensor].sensor_addr;
+	mode[2] = reg;
+	mode[3] = 0;
+	mode[4] = 0;
+	mode[5] = 0;
+	mode[6] = 0;
+	mode[7] = 0x10;
+	i2c_w(gspca_dev, mode);
+	msleep(2);
+	mode[0] = (mode[0] & 0x81) | (len << 4) | 0x02;
+	mode[2] = 0;
+	i2c_w(gspca_dev, mode);
+	msleep(2);
+	//reg_r(gspca_dev, 0x0a, 5);
+}
+*/
 
 static void i2c_w(struct gspca_dev *gspca_dev, const u8 *buf) {
 
@@ -3020,7 +3065,9 @@ static void setexposure(struct gspca_dev *gspca_dev)
 		   unstable (the bridge goes into a higher compression mode
 		   which we have not reverse engineered yet). */
 		if (gspca_dev->pixfmt.width == 640 && reg11 < 4)
+            //***************************************************************
 			reg11 = 1;  // josemar: valor original 4, porém framerate ficava 8. Porém, se setado para 1,FR = 30
+            //***************************************************************
 
 		/* frame exposure time in ms = 1000 * reg11 / 30    ->
 		reg10 = (gspca_dev->exposure->val / 2) * reg10_max
@@ -3201,7 +3248,7 @@ static int sd_config(struct gspca_dev *gspca_dev, const struct usb_device_id *id
 	struct cam *cam;
 
 	reg_r(gspca_dev, 0x00);
-	if (gspca_dev->usb_buf[0] != 0x10)  // josemar: no endereço 00h tem um Sonix PC Cam chip ID = 10h
+	if (gspca_dev->usb_buf[0] != 0x10)  // josemar: no endereço 00h do controlador tem um Sonix PC Cam chip ID = 10h
 		return -ENODEV;
 
 	/* copy the webcam info from the device id */ // josemar: proveniente da tabela dos dispositivos aceitos pelo driver
