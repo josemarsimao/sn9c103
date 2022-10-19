@@ -60,9 +60,6 @@
 
 int gspca_debug;
 
-static void i2c_r(struct gspca_dev *gspca_dev, u8 reg, int len);
-static void reg_r(struct gspca_dev *gspca_dev,  __u16 value);
-static void reg_w(struct gspca_dev *gspca_dev, __u16 value, const __u8 *buffer, int len);
 
 
 
@@ -116,7 +113,7 @@ struct gspca_buffer {
 
 static inline struct gspca_buffer *to_gspca_buffer(struct vb2_buffer *vb2)
 {
-    KDBG("to_gspca_buffer"," - %d",elgcnt)
+    //KDBG("to_gspca_buffer"," - %d",elgcnt)
 
 	return container_of(vb2, struct gspca_buffer, vb.vb2_buf);
 }
@@ -272,7 +269,7 @@ enum gspca_packet_type {
    where changed. */
 int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_avg_lum, int deadzone, int gain_knee, int exposure_knee)
 {
-    KDBG("gspca_expo_autogain"," - %d",elgcnt)
+    //KDBG("gspca_expo_autogain"," - %d",elgcnt)
 
 /*
 	s32 gain, orig_gain, exposure, orig_exposure;
@@ -844,7 +841,7 @@ resubmit:
  */
 void gspca_frame_add(struct gspca_dev *gspca_dev, enum gspca_packet_type packet_type, const u8 *data, int len)
 {
-    KDBG("gspca_frame_add"," - %d",elgcnt)
+    //KDBG("gspca_frame_add"," - %d",elgcnt)
 
 	struct gspca_buffer *buf;
 	unsigned long flags;
@@ -1314,7 +1311,7 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 			usb_clear_halt(gspca_dev->dev, gspca_dev->urb[0]->pipe);
 
 		/* start the cam */
-		ret = gspca_dev->sd_desc->start(gspca_dev);
+		ret = gspca_dev->sd_desc->start(gspca_dev);     // josemar: start
 		if (ret < 0) {
 			destroy_urbs(gspca_dev);
 			goto out;
@@ -1786,7 +1783,7 @@ static int vidioc_s_parm(struct file *filp, void *priv, struct v4l2_streamparm *
 
 static int gspca_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers, unsigned int *nplanes, unsigned int sizes[], struct device *alloc_devs[])
 {
-    KDBG("gspca_queue_setup"," - %d",elgcnt)
+    //KDBG("gspca_queue_setup"," - %d",elgcnt)
 
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vq);
 	unsigned int size = PAGE_ALIGN(gspca_dev->pixfmt.sizeimage);
@@ -1800,7 +1797,7 @@ static int gspca_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers, unsig
 
 static int gspca_buffer_prepare(struct vb2_buffer *vb)
 {
-    KDBG("gspca_buffer_prepare"," - %d",elgcnt)
+    //KDBG("gspca_buffer_prepare"," - %d",elgcnt)
 
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vb->vb2_queue);
 	unsigned long size = PAGE_ALIGN(gspca_dev->pixfmt.sizeimage);
@@ -1815,7 +1812,7 @@ static int gspca_buffer_prepare(struct vb2_buffer *vb)
 
 static void gspca_buffer_finish(struct vb2_buffer *vb)
 {
-    KDBG("gspca_buffer_finish"," - %d",elgcnt)
+    //KDBG("gspca_buffer_finish"," - %d",elgcnt)
 
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vb->vb2_queue);
 
@@ -1829,7 +1826,7 @@ static void gspca_buffer_finish(struct vb2_buffer *vb)
 
 static void gspca_buffer_queue(struct vb2_buffer *vb)
 {
-    KDBG("gspca_buffer_queue"," - %d",elgcnt)
+    //KDBG("gspca_buffer_queue"," - %d",elgcnt)
 
 	struct gspca_dev *gspca_dev = vb2_get_drv_priv(vb->vb2_queue);
 	struct gspca_buffer *buf = to_gspca_buffer(vb);
@@ -1942,6 +1939,13 @@ static const struct video_device gspca_template = {
 	.ioctl_ops = &dev_ioctl_ops,
 	.release = video_device_release_empty, /* We use v4l2_dev.release */
 };
+
+
+static void reg_rm(struct gspca_dev *gspca_dev,  __u16 value, int len);
+static void reg_r(struct gspca_dev *gspca_dev,  __u16 value);
+static void reg_w(struct gspca_dev *gspca_dev, __u16 value, const __u8 *buffer, int len);
+static void i2c_r(struct gspca_dev *gspca_dev, u8 reg, int len);
+
 
 /*
  * probe and create a new gspca device
@@ -2070,17 +2074,6 @@ int gspca_dev_probe2(struct usb_interface *intf, const struct usb_device_id *id,
 
 	ret = gspca_input_connect(gspca_dev);
 
-	// josemar: Leitura do ID do sensor
-	//i2c_r(gspca_dev, 0x0A, 1);
-	//reg_r(gspca_dev, 0x0A);
-
-	//KDBG("gspca: SendorID: "," - %X",gspca_dev->usb_buf[0]);
-
-	//i2c_r(gspca_dev, 0x0B, 1);
-	//reg_r(gspca_dev, 0x0A);
-
-	//KDBG("gspca: SendorID: "," - %X",gspca_dev->usb_buf[0]);
-
 	if (ret)
 		goto out;
 
@@ -2106,6 +2099,26 @@ int gspca_dev_probe2(struct usb_interface *intf, const struct usb_device_id *id,
 	gspca_dbg(gspca_dev, D_PROBE, "%s created\n", video_device_node_name(&gspca_dev->vdev));
 
 	gspca_input_create_urb(gspca_dev);
+
+
+
+
+	// josemar:
+	// josemar: Leitura do ID do sensor
+
+	i2c_r(gspca_dev, 0x0C, 5);
+	//reg_rm(gspca_dev, 0x0A, 2);
+	reg_r(gspca_dev, 0x08);
+
+	KDBG("gspca: Sensor - PID: "," - %X",gspca_dev->usb_buf[0]);
+	KDBG("gspca: Sensor - VER: "," - %X",gspca_dev->usb_buf[1]);
+
+
+
+
+
+
+
 
 	return 0;
 out:
@@ -2514,14 +2527,14 @@ static const __u8 initOv7630[] = {
 	0x00,   // r0D
 	0x00,   // r0E
 	0x00,   // r0F
-	0x03,   // r10
+	0x00,   // r10
 	0x00,   // r11
 	0x01,   // r12
 	0x01,   // r13
 	0x0a,   // r14
 	0x28,   // r15
 	0x1e,   // r16 			//  H & V sizes     r15 .. r16
-	0x60,   // r17
+	0x68,   // r17
 	0x8f,   // r18
 	MCK_INIT1,   // r19
 };
@@ -2719,6 +2732,38 @@ static const struct sensor_data sensor_data[] = {
 
 
 
+static void reg_rm(struct gspca_dev *gspca_dev,  __u16 value, int len) {
+
+
+
+	int res;
+
+	KDBG("reg_rm"," - %d",elgcnt)
+
+
+	if (gspca_dev->usb_err < 0)
+		return;
+
+	res = usb_control_msg(gspca_dev->dev,
+			usb_rcvctrlpipe(gspca_dev->dev, 0),
+			0,			/* request */
+			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+			value,
+			0,			/* index */
+			gspca_dev->usb_buf, len,
+			500);
+
+	if (res < 0) {
+		dev_err(gspca_dev->v4l2_dev.dev, "Error reading register %02x: %d\n", value, res);
+		gspca_dev->usb_err = res;
+		/*
+		 * Make sure the result is zeroed to avoid uninitialized
+		 * values.
+		 */
+		gspca_dev->usb_buf[0] = 0;
+	}
+}
+
 /* get one byte in gspca_dev->usb_buf */
 // DEVICE PLUGGEDED - 4
 static void reg_r(struct gspca_dev *gspca_dev,  __u16 value) {
@@ -2740,8 +2785,7 @@ static void reg_r(struct gspca_dev *gspca_dev,  __u16 value) {
 			500);
 
 	if (res < 0) {
-		dev_err(gspca_dev->v4l2_dev.dev,
-			"Error reading register %02x: %d\n", value, res);
+		dev_err(gspca_dev->v4l2_dev.dev, "Error reading register %02x: %d\n", value, res);
 		gspca_dev->usb_err = res;
 		/*
 		 * Make sure the result is zeroed to avoid uninitialized
@@ -2776,32 +2820,6 @@ static void reg_w(struct gspca_dev *gspca_dev, __u16 value, const __u8 *buffer, 
 		gspca_dev->usb_err = res;
 	}
 }
-/*
-static void i2c_r(struct gspca_dev *gspca_dev, u8 reg, int len){
-
-	struct sd *sd = (struct sd *) gspca_dev;
-	u8 mode[8];
-
-    // josemar: primeiro faz uma escrita para somente um registro
-    //          que é o endereço
-    //          depois faz uma leitura de até cinco registros
-	mode[0] = 0x80 | 0x10; // i2c command = a0 (100 kHz)
-	mode[1] = sensor_data[sd->sensor].sensor_addr;
-	mode[2] = reg;
-	mode[3] = 0;
-	mode[4] = 0;
-	mode[5] = 0;
-	mode[6] = 0;
-	mode[7] = 0x10;
-	i2c_w(gspca_dev, mode);
-	msleep(2);
-	mode[0] = (mode[0] & 0x81) | (len << 4) | 0x02;
-	mode[2] = 0;
-	i2c_w(gspca_dev, mode);
-	msleep(2);
-	//reg_r(gspca_dev, 0x0a, 5);
-}
-*/
 
 static void i2c_w(struct gspca_dev *gspca_dev, const u8 *buf) {
 
@@ -2830,6 +2848,36 @@ static void i2c_w(struct gspca_dev *gspca_dev, const u8 *buf) {
 
 	dev_err(gspca_dev->v4l2_dev.dev, "i2c write timeout\n");
 	gspca_dev->usb_err = -EIO;
+}
+
+
+static void i2c_r(struct gspca_dev *gspca_dev, u8 reg, int len){
+
+
+
+	struct sd *sd = (struct sd *) gspca_dev;
+	u8 mode[8];
+
+	KDBG("i2c_r"," - %d",elgcnt)
+
+    // josemar: primeiro faz uma escrita para somente um registro
+    //          que é o endereço
+    //          depois faz uma leitura de até cinco registros
+	mode[0] = 0x80 | 0x10; // i2c command = a0 (100 kHz)
+	mode[1] = sensor_data[sd->sensor].sensor_addr;
+	mode[2] = reg;
+	mode[3] = 0;
+	mode[4] = 0;
+	mode[5] = 0;
+	mode[6] = 0;
+	mode[7] = 0x10;
+	i2c_w(gspca_dev, mode);
+	msleep(10);
+	mode[0] = (0x80 | (len << 4)) | 0x02;
+	mode[2] = 0;
+	i2c_w(gspca_dev, mode);
+	msleep(10);
+	//reg_r(gspca_dev, 0x0a, 5);
 }
 
 static void i2c_w_vector(struct gspca_dev *gspca_dev, const __u8 buffer[][8], int len) {
@@ -3417,12 +3465,17 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 /* -- start the camera -- */
 static int sd_start(struct gspca_dev *gspca_dev)
 {
-    KDBG("sd_start"," - %d",elgcnt)
+
 
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam = &gspca_dev->cam;
 	int i, mode;
 	__u8 regs[0x31]; // josemar: Em sn9n102.pdf tem a descricao de 0x1Fh registradores. Sugere que regs pertence ao controlador sn9c102/103
+
+
+
+	KDBG("sd_start"," - %d",elgcnt)
+
 
 	mode = cam->cam_mode[gspca_dev->curr_mode].priv & 0x07;
 
