@@ -2295,6 +2295,8 @@ struct sd {
 #define SENSOR_TAS5110C 6
 #define SENSOR_TAS5110D 7
 #define SENSOR_TAS5130CXX 8
+#define SENSOR_OV7631 9
+
 	__u8 reg11;
 };
 
@@ -2417,70 +2419,7 @@ static const struct v4l2_pix_format sif_mode[] = {
 };
 
 
-static const __u8 initHv7131d[] = {
-	0x04, 0x03, 0x00, 0x04, 0x00, 0x00, 0x00, 0x80, 0x11, 0x00, 0x00, 0x00,
-	0x00, 0x00,
-	0x00, 0x00, 0x00, 0x02, 0x02, 0x00,
-	0x28, 0x1e, 0x60, 0x8e, 0x42,
-};
-static const __u8 hv7131d_sensor_init[][8] = {
-	{0xa0, 0x11, 0x01, 0x04, 0x00, 0x00, 0x00, 0x17},
-	{0xa0, 0x11, 0x02, 0x00, 0x00, 0x00, 0x00, 0x17},
-	{0xa0, 0x11, 0x28, 0x00, 0x00, 0x00, 0x00, 0x17},
-	{0xa0, 0x11, 0x30, 0x30, 0x00, 0x00, 0x00, 0x17}, /* reset level */
-	{0xa0, 0x11, 0x34, 0x02, 0x00, 0x00, 0x00, 0x17}, /* pixel bias volt */
-};
 
-static const __u8 initHv7131r[] = {
-	0x46, 0x77, 0x00, 0x04, 0x00, 0x00, 0x00, 0x80, 0x11, 0x00, 0x00, 0x00,
-	0x00, 0x00,
-	0x00, 0x00, 0x00, 0x02, 0x01, 0x00,
-	0x28, 0x1e, 0x60, 0x8a, 0x20,
-};
-static const __u8 hv7131r_sensor_init[][8] = {
-	{0xc0, 0x11, 0x31, 0x38, 0x2a, 0x2e, 0x00, 0x10},
-	{0xa0, 0x11, 0x01, 0x08, 0x2a, 0x2e, 0x00, 0x10},
-	{0xb0, 0x11, 0x20, 0x00, 0xd0, 0x2e, 0x00, 0x10},
-	{0xc0, 0x11, 0x25, 0x03, 0x0e, 0x28, 0x00, 0x16},
-	{0xa0, 0x11, 0x30, 0x10, 0x0e, 0x28, 0x00, 0x15},
-};
-static const __u8 initOv6650[] = {
-	0x44, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
-	0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x01, 0x01, 0x0a, 0x16, 0x12, 0x68, 0x8b,
-	0x10,
-};
-static const __u8 ov6650_sensor_init[][8] = {
-	/* Bright, contrast, etc are set through SCBB interface.
-	 * AVCAP on win2 do not send any data on this controls. */
-	/* Anyway, some registers appears to alter bright and constrat */
-
-	/* Reset sensor */
-	{0xa0, 0x60, 0x12, 0x80, 0x00, 0x00, 0x00, 0x10},
-	/* Set clock register 0x11 low nibble is clock divider */
-	{0xd0, 0x60, 0x11, 0xc0, 0x1b, 0x18, 0xc1, 0x10},
-	/* Next some unknown stuff */
-	{0xb0, 0x60, 0x15, 0x00, 0x02, 0x18, 0xc1, 0x10},
-/*	{0xa0, 0x60, 0x1b, 0x01, 0x02, 0x18, 0xc1, 0x10},
-		 * THIS SET GREEN SCREEN
-		 * (pixels could be innverted in decode kind of "brg",
-		 * but blue wont be there. Avoid this data ... */
-	{0xd0, 0x60, 0x26, 0x01, 0x14, 0xd8, 0xa4, 0x10}, /* format out? */
-	{0xd0, 0x60, 0x26, 0x01, 0x14, 0xd8, 0xa4, 0x10},
-	{0xa0, 0x60, 0x30, 0x3d, 0x0a, 0xd8, 0xa4, 0x10},
-	/* Enable rgb brightness control */
-	{0xa0, 0x60, 0x61, 0x08, 0x00, 0x00, 0x00, 0x10},
-	/* HDG: Note windows uses the line below, which sets both register 0x60
-	   and 0x61 I believe these registers of the ov6650 are identical as
-	   those of the ov7630, because if this is true the windows settings
-	   add a bit additional red gain and a lot additional blue gain, which
-	   matches my findings that the windows settings make blue much too
-	   blue and red a little too red.
-	{0xb0, 0x60, 0x60, 0x66, 0x68, 0xd8, 0xa4, 0x10}, */
-	/* Some more unknown stuff */
-	{0xa0, 0x60, 0x68, 0x04, 0x68, 0xd8, 0xa4, 0x10},
-	{0xd0, 0x60, 0x17, 0x24, 0xd6, 0x04, 0x94, 0x10}, /* Clipreg */
-};
 /*
 static const __u8 initOv7630[] = {
 	0x04,   // r01
@@ -2562,172 +2501,12 @@ static const __u8 ov7630_sensor_init[][8] = {
 	{0xd0, 0x21, 0x17, 0x1c, 0xbd, 0x06, 0xf6, 0x10},
 };
 
-static const __u8 initPas106[] = {
-	0x04, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x81, 0x40, 0x00, 0x00, 0x00,
-	0x00, 0x00,
-	0x00, 0x00, 0x00, 0x04, 0x01, 0x00,
-	0x16, 0x12, 0x24, COMP1, MCK_INIT1,
-};
-/* compression 0x86 mckinit1 0x2b */
-
-/* "Known" PAS106B registers:
-  0x02 clock divider
-  0x03 Variable framerate bits 4-11
-  0x04 Var framerate bits 0-3, one must leave the 4 msb's at 0 !!
-       The variable framerate control must never be set lower then 300,
-       which sets the framerate at 90 / reg02, otherwise vsync is lost.
-  0x05 Shutter Time Line Offset, this can be used as an exposure control:
-       0 = use full frame time, 255 = no exposure at all
-       Note this may never be larger then "var-framerate control" / 2 - 2.
-       When var-framerate control is < 514, no exposure is reached at the max
-       allowed value for the framerate control value, rather then at 255.
-  0x06 Shutter Time Pixel Offset, like reg05 this influences exposure, but
-       only a very little bit, leave at 0xcd
-  0x07 offset sign bit (bit0 1 > negative offset)
-  0x08 offset
-  0x09 Blue Gain
-  0x0a Green1 Gain
-  0x0b Green2 Gain
-  0x0c Red Gain
-  0x0e Global gain
-  0x13 Write 1 to commit settings to sensor
-*/
-
-static const __u8 pas106_sensor_init[][8] = {
-	/* Pixel Clock Divider 6 */
-	{ 0xa1, 0x40, 0x02, 0x04, 0x00, 0x00, 0x00, 0x14 },
-	/* Frame Time MSB (also seen as 0x12) */
-	{ 0xa1, 0x40, 0x03, 0x13, 0x00, 0x00, 0x00, 0x14 },
-	/* Frame Time LSB (also seen as 0x05) */
-	{ 0xa1, 0x40, 0x04, 0x06, 0x00, 0x00, 0x00, 0x14 },
-	/* Shutter Time Line Offset (also seen as 0x6d) */
-	{ 0xa1, 0x40, 0x05, 0x65, 0x00, 0x00, 0x00, 0x14 },
-	/* Shutter Time Pixel Offset (also seen as 0xb1) */
-	{ 0xa1, 0x40, 0x06, 0xcd, 0x00, 0x00, 0x00, 0x14 },
-	/* Black Level Subtract Sign (also seen 0x00) */
-	{ 0xa1, 0x40, 0x07, 0xc1, 0x00, 0x00, 0x00, 0x14 },
-	/* Black Level Subtract Level (also seen 0x01) */
-	{ 0xa1, 0x40, 0x08, 0x06, 0x00, 0x00, 0x00, 0x14 },
-	{ 0xa1, 0x40, 0x08, 0x06, 0x00, 0x00, 0x00, 0x14 },
-	/* Color Gain B Pixel 5 a */
-	{ 0xa1, 0x40, 0x09, 0x05, 0x00, 0x00, 0x00, 0x14 },
-	/* Color Gain G1 Pixel 1 5 */
-	{ 0xa1, 0x40, 0x0a, 0x04, 0x00, 0x00, 0x00, 0x14 },
-	/* Color Gain G2 Pixel 1 0 5 */
-	{ 0xa1, 0x40, 0x0b, 0x04, 0x00, 0x00, 0x00, 0x14 },
-	/* Color Gain R Pixel 3 1 */
-	{ 0xa1, 0x40, 0x0c, 0x05, 0x00, 0x00, 0x00, 0x14 },
-	/* Color GainH  Pixel */
-	{ 0xa1, 0x40, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x14 },
-	/* Global Gain */
-	{ 0xa1, 0x40, 0x0e, 0x0e, 0x00, 0x00, 0x00, 0x14 },
-	/* Contrast */
-	{ 0xa1, 0x40, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x14 },
-	/* H&V synchro polarity */
-	{ 0xa1, 0x40, 0x10, 0x06, 0x00, 0x00, 0x00, 0x14 },
-	/* ?default */
-	{ 0xa1, 0x40, 0x11, 0x06, 0x00, 0x00, 0x00, 0x14 },
-	/* DAC scale */
-	{ 0xa1, 0x40, 0x12, 0x06, 0x00, 0x00, 0x00, 0x14 },
-	/* ?default */
-	{ 0xa1, 0x40, 0x14, 0x02, 0x00, 0x00, 0x00, 0x14 },
-	/* Validate Settings */
-	{ 0xa1, 0x40, 0x13, 0x01, 0x00, 0x00, 0x00, 0x14 },
-};
-
-static const __u8 initPas202[] = {
-	0x44, 0x44, 0x21, 0x30, 0x00, 0x00, 0x00, 0x80, 0x40, 0x00, 0x00, 0x00,
-	0x00, 0x00,
-	0x00, 0x00, 0x00, 0x06, 0x03, 0x0a,
-	0x28, 0x1e, 0x20, 0x89, 0x20,
-};
-
-/* "Known" PAS202BCB registers:
-  0x02 clock divider
-  0x04 Variable framerate bits 6-11 (*)
-  0x05 Var framerate  bits 0-5, one must leave the 2 msb's at 0 !!
-  0x07 Blue Gain
-  0x08 Green Gain
-  0x09 Red Gain
-  0x0b offset sign bit (bit0 1 > negative offset)
-  0x0c offset
-  0x0e Unknown image is slightly brighter when bit 0 is 0, if reg0f is 0 too,
-       leave at 1 otherwise we get a jump in our exposure control
-  0x0f Exposure 0-255, 0 = use full frame time, 255 = no exposure at all
-  0x10 Master gain 0 - 31
-  0x11 write 1 to apply changes
-  (*) The variable framerate control must never be set lower then 500
-      which sets the framerate at 30 / reg02, otherwise vsync is lost.
-*/
-static const __u8 pas202_sensor_init[][8] = {
-	/* Set the clock divider to 4 -> 30 / 4 = 7.5 fps, we would like
-	   to set it lower, but for some reason the bridge starts missing
-	   vsync's then */
-	{0xa0, 0x40, 0x02, 0x04, 0x00, 0x00, 0x00, 0x10},
-	{0xd0, 0x40, 0x04, 0x07, 0x34, 0x00, 0x09, 0x10},
-	{0xd0, 0x40, 0x08, 0x01, 0x00, 0x00, 0x01, 0x10},
-	{0xd0, 0x40, 0x0c, 0x00, 0x0c, 0x01, 0x32, 0x10},
-	{0xd0, 0x40, 0x10, 0x00, 0x01, 0x00, 0x63, 0x10},
-	{0xa0, 0x40, 0x15, 0x70, 0x01, 0x00, 0x63, 0x10},
-	{0xa0, 0x40, 0x18, 0x00, 0x01, 0x00, 0x63, 0x10},
-	{0xa0, 0x40, 0x11, 0x01, 0x01, 0x00, 0x63, 0x10},
-	{0xa0, 0x40, 0x03, 0x56, 0x01, 0x00, 0x63, 0x10},
-	{0xa0, 0x40, 0x11, 0x01, 0x01, 0x00, 0x63, 0x10},
-};
-
-static const __u8 initTas5110c[] = {
-	0x44, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x11, 0x00, 0x00, 0x00,
-	0x00, 0x00,
-	0x00, 0x00, 0x00, 0x45, 0x09, 0x0a,
-	0x16, 0x12, 0x60, 0x86, 0x2b,
-};
-/* Same as above, except a different hstart */
-static const __u8 initTas5110d[] = {
-	0x44, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x11, 0x00, 0x00, 0x00,
-	0x00, 0x00,
-	0x00, 0x00, 0x00, 0x41, 0x09, 0x0a,
-	0x16, 0x12, 0x60, 0x86, 0x2b,
-};
-/* tas5110c is 3 wire, tas5110d is 2 wire (regular i2c) */
-static const __u8 tas5110c_sensor_init[][8] = {
-	{0x30, 0x11, 0x00, 0x00, 0x0c, 0x00, 0x00, 0x10},
-	{0x30, 0x11, 0x02, 0x20, 0xa9, 0x00, 0x00, 0x10},
-};
-/* Known TAS5110D registers
- * reg02: gain, bit order reversed!! 0 == max gain, 255 == min gain
- * reg03: bit3: vflip, bit4: ~hflip, bit7: ~gainboost (~ == inverted)
- *        Note: writing reg03 seems to only work when written together with 02
- */
-static const __u8 tas5110d_sensor_init[][8] = {
-	{0xa0, 0x61, 0x9a, 0xca, 0x00, 0x00, 0x00, 0x17}, /* reset */
-};
-
-static const __u8 initTas5130[] = {
-	0x04, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x11, 0x00, 0x00, 0x00,
-	0x00, 0x00,
-	0x00, 0x00, 0x00, 0x68, 0x0c, 0x0a,
-	0x28, 0x1e, 0x60, COMP, MCK_INIT,
-};
-static const __u8 tas5130_sensor_init[][8] = {
-/*	{0x30, 0x11, 0x00, 0x40, 0x47, 0x00, 0x00, 0x10},
-					* shutter 0x47 short exposure? */
-	{0x30, 0x11, 0x00, 0x40, 0x01, 0x00, 0x00, 0x10},
-					/* shutter 0x01 long exposure */
-	{0x30, 0x11, 0x02, 0x20, 0x70, 0x00, 0x00, 0x10},
-};
 
 
 // josemar: A ponte "bridge" será inicializada de diferentes formas dependendo do sensor utilizazdo. Além disso, ainda há a inicialização do sensor.
 static const struct sensor_data sensor_data[] = {
-	SENS(initHv7131d, hv7131d_sensor_init, 0, 0),
-	SENS(initHv7131r, hv7131r_sensor_init, 0, 0),
-	SENS(initOv6650, ov6650_sensor_init, F_SIF, 0x60),
 	SENS(initOv7630, ov7630_sensor_init, 0, 0x21),
-	SENS(initPas106, pas106_sensor_init, F_SIF, 0),
-	SENS(initPas202, pas202_sensor_init, 0, 0),
-	SENS(initTas5110c, tas5110c_sensor_init, F_SIF, 0),
-	SENS(initTas5110d, tas5110d_sensor_init, F_SIF, 0),
-	SENS(initTas5130, tas5130_sensor_init, 0, 0),
+
 };
 
 
@@ -2902,7 +2681,7 @@ static void setbrightness(struct gspca_dev *gspca_dev)
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	switch (sd->sensor) {
-	case  SENSOR_OV6650:
+
 	case  SENSOR_OV7630: {
 		__u8 i2cOV[] =
 			{0xa0, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x10};
@@ -2913,31 +2692,9 @@ static void setbrightness(struct gspca_dev *gspca_dev)
 		i2c_w(gspca_dev, i2cOV);
 		break;
 	}
-	case SENSOR_PAS106:
-	case SENSOR_PAS202: {
-		__u8 i2cpbright[] =
-			{0xb0, 0x40, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x16};
-		__u8 i2cpdoit[] =
-			{0xa0, 0x40, 0x11, 0x01, 0x00, 0x00, 0x00, 0x16};
+	case SENSOR_OV7631:
+        break;
 
-		/* PAS106 uses reg 7 and 8 instead of b and c */
-		if (sd->sensor == SENSOR_PAS106) {
-			i2cpbright[2] = 7;
-			i2cpdoit[2] = 0x13;
-		}
-
-		if (sd->brightness->val < 127) {
-			/* change reg 0x0b, signreg */
-			i2cpbright[3] = 0x01;
-			/* set reg 0x0c, offset */
-			i2cpbright[4] = 127 - sd->brightness->val;
-		} else
-			i2cpbright[4] = sd->brightness->val - 127;
-
-		i2c_w(gspca_dev, i2cpbright);
-		i2c_w(gspca_dev, i2cpdoit);
-		break;
-	}
 	default:
 		break;
 	}
@@ -2951,41 +2708,7 @@ static void setgain(struct gspca_dev *gspca_dev)
 	u8 gain = gspca_dev->gain->val;
 
 	switch (sd->sensor) {
-	case SENSOR_HV7131D: {
-		__u8 i2c[] = {0xc0, 0x11, 0x31, 0x00, 0x00, 0x00, 0x00, 0x17};
 
-		i2c[3] = 0x3f - gain;
-		i2c[4] = 0x3f - gain;
-		i2c[5] = 0x3f - gain;
-
-		i2c_w(gspca_dev, i2c);
-		break;
-	}
-	case SENSOR_TAS5110C:
-	case SENSOR_TAS5130CXX: {
-		__u8 i2c[] = {0x30, 0x11, 0x02, 0x20, 0x70, 0x00, 0x00, 0x10};
-
-		i2c[4] = 255 - gain;
-		i2c_w(gspca_dev, i2c);
-		break;
-	}
-	case SENSOR_TAS5110D: {
-		__u8 i2c[] = {
-			0xb0, 0x61, 0x02, 0x00, 0x10, 0x00, 0x00, 0x17 };
-		gain = 255 - gain;
-		/* The bits in the register are the wrong way around!! */
-		i2c[3] |= (gain & 0x80) >> 7;
-		i2c[3] |= (gain & 0x40) >> 5;
-		i2c[3] |= (gain & 0x20) >> 3;
-		i2c[3] |= (gain & 0x10) >> 1;
-		i2c[3] |= (gain & 0x08) << 1;
-		i2c[3] |= (gain & 0x04) << 3;
-		i2c[3] |= (gain & 0x02) << 5;
-		i2c[3] |= (gain & 0x01) << 7;
-		i2c_w(gspca_dev, i2c);
-		break;
-	}
-	case SENSOR_OV6650:
 	case SENSOR_OV7630: {
 		__u8 i2c[] = {0xa0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10};
 
@@ -3020,34 +2743,10 @@ static void setgain(struct gspca_dev *gspca_dev)
 
 		break;
 	}
-	case SENSOR_PAS106:
-	case SENSOR_PAS202: {
-		__u8 i2cpgain[] =
-			{0xa0, 0x40, 0x10, 0x00, 0x00, 0x00, 0x00, 0x15};
-		__u8 i2cpcolorgain[] =
-			{0xc0, 0x40, 0x07, 0x00, 0x00, 0x00, 0x00, 0x15};
-		__u8 i2cpdoit[] =
-			{0xa0, 0x40, 0x11, 0x01, 0x00, 0x00, 0x00, 0x16};
 
-		/* PAS106 uses different regs (and has split green gains) */
-		if (sd->sensor == SENSOR_PAS106) {
-			i2cpgain[2] = 0x0e;
-			i2cpcolorgain[0] = 0xd0;
-			i2cpcolorgain[2] = 0x09;
-			i2cpdoit[2] = 0x13;
-		}
+	case SENSOR_OV7631:
+        break;
 
-		i2cpgain[3] = gain;
-		i2cpcolorgain[3] = gain >> 1;
-		i2cpcolorgain[4] = gain >> 1;
-		i2cpcolorgain[5] = gain >> 1;
-		i2cpcolorgain[6] = gain >> 1;
-
-		i2c_w(gspca_dev, i2cpgain);
-		i2c_w(gspca_dev, i2cpcolorgain);
-		i2c_w(gspca_dev, i2cpdoit);
-		break;
-	}
 	default:
 		if (sd->bridge == BRIDGE_103) {
 			u8 buf[3] = { gain, gain, gain }; /* R, G, B */
@@ -3068,29 +2767,7 @@ static void setexposure(struct gspca_dev *gspca_dev)
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	switch (sd->sensor) {
-	case SENSOR_HV7131D: {
-		/* Note the datasheet wrongly says line mode exposure uses reg
-		   0x26 and 0x27, testing has shown 0x25 + 0x26 */
-		__u8 i2c[] = {0xc0, 0x11, 0x25, 0x00, 0x00, 0x00, 0x00, 0x17};
-		u16 reg = gspca_dev->exposure->val;
 
-		i2c[3] = reg >> 8;
-		i2c[4] = reg & 0xff;
-		i2c_w(gspca_dev, i2c);
-		break;
-	}
-	case SENSOR_TAS5110C:
-	case SENSOR_TAS5110D: {
-		/* register 19's high nibble contains the sn9c10x clock divider
-		   The high nibble configures the no fps according to the
-		   formula: 60 / high_nibble. With a maximum of 30 fps */
-		u8 reg = gspca_dev->exposure->val;
-
-		reg = (reg << 4) | 0x0b;
-		reg_w(gspca_dev, 0x19, &reg, 1);
-		break;
-	}
-	case SENSOR_OV6650:
 	case SENSOR_OV7630: {
 		/* The ov6650 / ov7630 have 2 registers which both influence
 		   exposure, register 11, whose low nibble sets the nr off fps
@@ -3165,72 +2842,9 @@ static void setexposure(struct gspca_dev *gspca_dev)
 			sd->reg11 = reg11;
 		break;
 	}
-	case SENSOR_PAS202: {
-		__u8 i2cpframerate[] =
-			{0xb0, 0x40, 0x04, 0x00, 0x00, 0x00, 0x00, 0x16};
-		__u8 i2cpexpo[] =
-			{0xa0, 0x40, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x16};
-		const __u8 i2cpdoit[] =
-			{0xa0, 0x40, 0x11, 0x01, 0x00, 0x00, 0x00, 0x16};
-		int framerate_ctrl;
+	case SENSOR_OV7631:
+        break;
 
-		/* The exposure knee for the autogain algorithm is 200
-		   (100 ms / 10 fps on other sensors), for values below this
-		   use the control for setting the partial frame expose time,
-		   above that use variable framerate. This way we run at max
-		   framerate (640x480@7.5 fps, 320x240@10fps) until the knee
-		   is reached. Using the variable framerate control above 200
-		   is better then playing around with both clockdiv + partial
-		   frame exposure times (like we are doing with the ov chips),
-		   as that sometimes leads to jumps in the exposure control,
-		   which are bad for auto exposure. */
-		if (gspca_dev->exposure->val < 200) {
-			i2cpexpo[3] = 255 - (gspca_dev->exposure->val * 255)
-						/ 200;
-			framerate_ctrl = 500;
-		} else {
-			/* The PAS202's exposure control goes from 0 - 4095,
-			   but anything below 500 causes vsync issues, so scale
-			   our 200-1023 to 500-4095 */
-			framerate_ctrl = (gspca_dev->exposure->val - 200)
-							* 1000 / 229 +  500;
-		}
-
-		i2cpframerate[3] = framerate_ctrl >> 6;
-		i2cpframerate[4] = framerate_ctrl & 0x3f;
-		i2c_w(gspca_dev, i2cpframerate);
-		i2c_w(gspca_dev, i2cpexpo);
-		i2c_w(gspca_dev, i2cpdoit);
-		break;
-	}
-	case SENSOR_PAS106: {
-		__u8 i2cpframerate[] =
-			{0xb1, 0x40, 0x03, 0x00, 0x00, 0x00, 0x00, 0x14};
-		__u8 i2cpexpo[] =
-			{0xa1, 0x40, 0x05, 0x00, 0x00, 0x00, 0x00, 0x14};
-		const __u8 i2cpdoit[] =
-			{0xa1, 0x40, 0x13, 0x01, 0x00, 0x00, 0x00, 0x14};
-		int framerate_ctrl;
-
-		/* For values below 150 use partial frame exposure, above
-		   that use framerate ctrl */
-		if (gspca_dev->exposure->val < 150) {
-			i2cpexpo[3] = 150 - gspca_dev->exposure->val;
-			framerate_ctrl = 300;
-		} else {
-			/* The PAS106's exposure control goes from 0 - 4095,
-			   but anything below 300 causes vsync issues, so scale
-			   our 150-1023 to 300-4095 */
-			framerate_ctrl = (gspca_dev->exposure->val - 150) * 1000 / 230 + 300;
-		}
-
-		i2cpframerate[3] = framerate_ctrl >> 4;
-		i2cpframerate[4] = framerate_ctrl & 0x0f;
-		i2c_w(gspca_dev, i2cpframerate);
-		i2c_w(gspca_dev, i2cpexpo);
-		i2c_w(gspca_dev, i2cpdoit);
-		break;
-	}
 	default:
 		break;
 	}
@@ -3419,22 +3033,13 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 
 	/* Gain range is sensor dependent */
 	switch (sd->sensor) {
-	case SENSOR_OV6650:
-	case SENSOR_PAS106:
-	case SENSOR_PAS202:
-		gspca_dev->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_GAIN, 0, 31, 1, 15);
-		break;
+
 	case SENSOR_OV7630:
 		gspca_dev->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_GAIN, 0, 47, 1, 31);
 		break;
-	case SENSOR_HV7131D:
-		gspca_dev->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_GAIN, 0, 63, 1, 31);
-		break;
-	case SENSOR_TAS5110C:
-	case SENSOR_TAS5110D:
-	case SENSOR_TAS5130CXX:
-		gspca_dev->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_GAIN, 0, 255, 1, 127);
-		break;
+	case SENSOR_OV7631:
+        break;
+
 	default:
 		if (sd->bridge == BRIDGE_103) {
 			gspca_dev->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_GAIN, 0, 127, 1, 63);
@@ -3445,21 +3050,13 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 
 	/* Exposure range is sensor dependent, and not all have exposure */
 	switch (sd->sensor) {
-	case SENSOR_HV7131D:
-		gspca_dev->exposure = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_EXPOSURE, 0, 8191, 1, 482);
-		sd->exposure_knee = 964;
-		break;
-	case SENSOR_OV6650:
+
 	case SENSOR_OV7630:
-	case SENSOR_PAS106:
-	case SENSOR_PAS202:
 		gspca_dev->exposure = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_EXPOSURE, 0, 1023, 1, 66);
 		sd->exposure_knee = 200;
 		break;
-	case SENSOR_TAS5110C:
-	case SENSOR_TAS5110D:
-		gspca_dev->exposure = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_EXPOSURE, 2, 15, 1, 2);
-		break;
+	case SENSOR_OV7631:
+        break;
 	}
 
 	if (gspca_dev->exposure) {
@@ -3537,13 +3134,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 	/* Special cases where some regs depend on mode or bridge */
 	switch (sd->sensor) {
-	case SENSOR_TAS5130CXX:
-		/* FIXME / TESTME
-		   probably not mode specific at all most likely the upper
-		   nibble of 0x19 is exposure (clock divider) just as with
-		   the tas5110, we need someone to test this. */
-		regs[0x19] = mode ? 0x23 : 0x43;
-		break;
+
 	case SENSOR_OV7630:
 		/* FIXME / TESTME for some reason with the 101/102 bridge the
 		   clock is set to 12 Mhz (reg1 == 0x04), rather then 24.
@@ -3554,12 +3145,10 @@ static int sd_start(struct gspca_dev *gspca_dev)
 			regs[0x12] = 0x02; /* Set hstart to 2 */
 		}
 		break;
-	case SENSOR_PAS202:
-		/* For some unknown reason we need to increase hstart by 1 on
-		   the sn9c103, otherwise we get wrong colors (bayer shift). */
-		if (sd->bridge == BRIDGE_103)
-			regs[0x12] += 1;
-		break;
+
+    case SENSOR_OV7631:
+        break;
+
 	}
 	/* Disable compression when the raw bayer format has been selected */
 	if (cam->cam_mode[gspca_dev->curr_mode].priv & MODE_RAW)
@@ -3585,13 +3174,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 	/* Mode / bridge specific sensor setup */
 	switch (sd->sensor) {
-	case SENSOR_PAS202: {
-		const __u8 i2cpclockdiv[] = {0xa0, 0x40, 0x02, 0x03, 0x00, 0x00, 0x00, 0x10};
-		/* clockdiv from 4 to 3 (7.5 -> 10 fps) when in low res mode */
-		if (mode)
-			i2c_w(gspca_dev, i2cpclockdiv);
-		break;
-	    }
+
 	case SENSOR_OV7630:
 		/* FIXME / TESTME We should be able to handle this identical
 		   for the 101/102 and the 103 case */
@@ -3600,6 +3183,10 @@ static int sd_start(struct gspca_dev *gspca_dev)
 			i2c_w(gspca_dev, i2c);
 		}
 		break;
+
+    case SENSOR_OV7631:
+        break;
+
 	}
 	/* H_size V_size 0x28, 0x1e -> 640x480. 0x16, 0x12 -> 352x288 */
 	reg_w(gspca_dev, 0x15, &regs[0x15], 2);
