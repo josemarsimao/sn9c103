@@ -29,6 +29,9 @@
 #include <media/v4l2-fh.h>
 #include <media/v4l2-event.h>
 
+
+#include <linux/version.h>
+
 #include "gspca.h"
 
 #if IS_ENABLED(CONFIG_INPUT)

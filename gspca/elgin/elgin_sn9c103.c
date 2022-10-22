@@ -30,6 +30,8 @@
 #include <media/videobuf2-vmalloc.h>
 #include <linux/mutex.h>
 
+#include <linux/version.h>
+
 
 // Josemar:
 // ********************************************************************************
