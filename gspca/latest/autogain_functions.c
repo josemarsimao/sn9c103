@@ -19,7 +19,7 @@ int gspca_expo_autogain(
 			int gain_knee,
 			int exposure_knee)
 {
-/*	s32 gain, orig_gain, exposure, orig_exposure;
+	s32 gain, orig_gain, exposure, orig_exposure;
 	int i, steps, retval = 0;
 
 	if (v4l2_ctrl_g_ctrl(gspca_dev->autogain) == 0)
@@ -27,10 +27,10 @@ int gspca_expo_autogain(
 
 	orig_gain = gain = v4l2_ctrl_g_ctrl(gspca_dev->gain);
 	orig_exposure = exposure = v4l2_ctrl_g_ctrl(gspca_dev->exposure);
-*/
+
 	/* If we are of a multiple of deadzone, do multiple steps to reach the
 	   desired lumination fast (with the risc of a slight overshoot) */
-/*	steps = abs(desired_avg_lum - avg_lum) / deadzone;
+	steps = abs(desired_avg_lum - avg_lum) / deadzone;
 
 	gspca_dbg(gspca_dev, D_FRAM, "autogain: lum: %d, desired: %d, steps: %d\n",
 		  avg_lum, desired_avg_lum, steps);
@@ -78,40 +78,6 @@ int gspca_expo_autogain(
 		gspca_dbg(gspca_dev, D_FRAM, "autogain: changed gain: %d, expo: %d\n",
 			  gain, exposure);
 	return retval;
-*/
-/*
-	int i, steps, retval = 0;
-	s32 gain, orig_gain, exposure, orig_exposure;
-	orig_gain = gain = v4l2_ctrl_g_ctrl(gspca_dev->gain);
-	orig_exposure = exposure = v4l2_ctrl_g_ctrl(gspca_dev->exposure);
-
-
-
-	gain = gain + (gspca_dev->gain->minimum + gspca_dev->gain->maximum)/2;
-	exposure = exposure + (gspca_dev->exposure->minimum + gspca_dev->exposure->maximum)/2;
-
-
-
-	if (gain != orig_gain) {
-		v4l2_ctrl_s_ctrl(gspca_dev->gain, gain);
-		retval = 1;
-	}
-	if (exposure != orig_exposure) {
-		v4l2_ctrl_s_ctrl(gspca_dev->exposure, 210);
-		retval = 1;
-	}
-
-	i = 20;
-
-	steps = i;
-
-	v4l2_ctrl_s_ctrl(gspca_dev->exposure, 10);
-	retval = 1;
-
-	return retval;
-*/
-	return 0;
-
 }
 EXPORT_SYMBOL(gspca_expo_autogain);
 

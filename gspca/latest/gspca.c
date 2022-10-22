@@ -1452,28 +1452,23 @@ int gspca_dev_probe2(struct usb_interface *intf,
 	struct vb2_queue *q;
 	int ret;
 
-	pr_info("%s-" GSPCA_VERSION " probing %04x:%04x\n", sd_desc->name, id->idVendor, id->idProduct);
+	pr_info("%s-" GSPCA_VERSION " probing %04x:%04x\n",
+		sd_desc->name, id->idVendor, id->idProduct);
 
 	/* create the device */
 	if (dev_size < sizeof *gspca_dev)
 		dev_size = sizeof *gspca_dev;
-/// ******************
 	gspca_dev = kzalloc(dev_size, GFP_KERNEL);
 	if (!gspca_dev) {
 		pr_err("couldn't kzalloc gspca struct\n");
 		return -ENOMEM;
 	}
-
-/// ******************
 	gspca_dev->usb_buf = kzalloc(USB_BUF_SZ, GFP_KERNEL);
 	if (!gspca_dev->usb_buf) {
 		pr_err("out of memory\n");
 		ret = -ENOMEM;
 		goto out;
 	}
-
-
-/// ******************
 	gspca_dev->dev = dev;
 	gspca_dev->iface = intf->cur_altsetting->desc.bInterfaceNumber;
 	gspca_dev->xfer_ep = -1;
@@ -1495,31 +1490,18 @@ int gspca_dev_probe2(struct usb_interface *intf,
 		}
 	}
 
-
-/// ******************
 	gspca_dev->v4l2_dev.release = gspca_release;
-
-
-/// ******************
 	ret = v4l2_device_register(&intf->dev, &gspca_dev->v4l2_dev);
 	if (ret)
 		goto out;
 	gspca_dev->present = true;
 	gspca_dev->sd_desc = sd_desc;
 	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
-
-
-
-/// ******************
-	gspca_dev->vdev = gspca_template; /* .name, .fops, .ioctl_ops, .release */
-
-
-
+	gspca_dev->vdev = gspca_template;
 	gspca_dev->vdev.v4l2_dev = &gspca_dev->v4l2_dev;
-	gspca_dev->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
-
+	gspca_dev->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
+				      V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
 	video_set_drvdata(&gspca_dev->vdev, gspca_dev);
-
 	gspca_dev->module = module;
 
 	mutex_init(&gspca_dev->usb_lock);
@@ -1585,7 +1567,8 @@ int gspca_dev_probe2(struct usb_interface *intf,
 	}
 
 	usb_set_intfdata(intf, gspca_dev);
-	gspca_dbg(gspca_dev, D_PROBE, "%s created\n", video_device_node_name(&gspca_dev->vdev));
+	gspca_dbg(gspca_dev, D_PROBE, "%s created\n",
+		  video_device_node_name(&gspca_dev->vdev));
 
 	gspca_input_create_urb(gspca_dev);
 
@@ -1606,17 +1589,24 @@ out:
 EXPORT_SYMBOL(gspca_dev_probe2);
 
 /* same function as the previous one, but check the interface */
-int gspca_dev_probe(struct usb_interface *intf,	const struct usb_device_id *id,	const struct sd_desc *sd_desc, int dev_size, struct module *module) {
-
+int gspca_dev_probe(struct usb_interface *intf,
+		const struct usb_device_id *id,
+		const struct sd_desc *sd_desc,
+		int dev_size,
+		struct module *module)
+{
 	struct usb_device *dev = interface_to_usbdev(intf);
+
 	/* we don't handle multi-config cameras */
 	if (dev->descriptor.bNumConfigurations != 1) {
-		pr_err("%04x:%04x too many config\n", id->idVendor, id->idProduct);
+		pr_err("%04x:%04x too many config\n",
+		       id->idVendor, id->idProduct);
 		return -ENODEV;
 	}
 
 	/* the USB video interface must be the first one */
-	if (dev->actconfig->desc.bNumInterfaces != 1 && intf->cur_altsetting->desc.bInterfaceNumber != 0)
+	if (dev->actconfig->desc.bNumInterfaces != 1
+	 && intf->cur_altsetting->desc.bInterfaceNumber != 0)
 		return -ENODEV;
 
 	return gspca_dev_probe2(intf, id, sd_desc, dev_size, module);
@@ -1629,14 +1619,15 @@ EXPORT_SYMBOL(gspca_dev_probe);
  * This function must be called by the sub-driver
  * when the device disconnects, after the specific resources are freed.
  */
-void gspca_disconnect(struct usb_interface *intf) {
-
+void gspca_disconnect(struct usb_interface *intf)
+{
 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
 #if IS_ENABLED(CONFIG_INPUT)
 	struct input_dev *input_dev;
 #endif
 
-	gspca_dbg(gspca_dev, D_PROBE, "%s disconnect\n", video_device_node_name(&gspca_dev->vdev));
+	gspca_dbg(gspca_dev, D_PROBE, "%s disconnect\n",
+		  video_device_node_name(&gspca_dev->vdev));
 
 	mutex_lock(&gspca_dev->usb_lock);
 	gspca_dev->present = false;

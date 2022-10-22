@@ -2089,7 +2089,11 @@ int gspca_dev_probe2(struct usb_interface *intf, const struct usb_device_id *id,
 		v4l2_disable_ioctl(&gspca_dev->vdev, VIDIOC_S_JPEGCOMP);
 
 	/* init video stuff */
-	ret = video_register_device(&gspca_dev->vdev,  /*VFL_TYPE_VIDEO*/VFL_TYPE_GRABBER, -1);
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(5,6,19)
+    ret = video_register_device(&gspca_dev->vdev, VFL_TYPE_GRABBER, -1);
+#else
+    ret = video_register_device(&gspca_dev->vdev, VFL_TYPE_VIDEO, -1);
+#endif
 	if (ret < 0) {
 		pr_err("video_register_device err %d\n", ret);
 		goto out;
