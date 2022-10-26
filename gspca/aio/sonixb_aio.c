@@ -1,24 +1,7 @@
-#define MODULE_NAME "gspca_sonixb_aio"
+/* SPDX-License-Identifier: GPL-2.0 */
+#ifndef GSPCAV2_H
+#define GSPCAV2_H
 
-#include <linux/init.h>
-#include <linux/fs.h>
-#include <linux/vmalloc.h>
-#include <linux/sched.h>
-#include <linux/slab.h>
-#include <linux/mm.h>
-#include <linux/string.h>
-#include <linux/pagemap.h>
-#include <linux/io.h>
-#include <asm/page.h>
-#include <linux/uaccess.h>
-#include <linux/ktime.h>
-#include <media/v4l2-ioctl.h>
-#include <media/v4l2-ctrls.h>
-#include <media/v4l2-fh.h>
-#include <media/v4l2-event.h>
-
-
-#include <linux/input.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/usb.h>
@@ -29,10 +12,6 @@
 #include <media/videobuf2-v4l2.h>
 #include <media/videobuf2-vmalloc.h>
 #include <linux/mutex.h>
-
-#include <linux/version.h>
-
-
 
 
 
@@ -46,8 +25,8 @@
 #define D_USBI   6
 #define D_USBO   7
 
+extern int gspca_debug;
 
-int gspca_debug;
 
 #define gspca_dbg(gspca_dev, level, fmt, ...)			\
 	v4l2_dbg(level, gspca_debug, &(gspca_dev)->v4l2_dev,	\
@@ -66,7 +45,6 @@ struct framerates {
 	const u8 *rates;
 	int nrates;
 };
-
 
 /* device information - set at probe time */
 struct cam {
@@ -89,98 +67,8 @@ struct cam {
 				 * the max, even when using compression. */
 };
 
-
-
-struct gspca_buffer {
-	struct vb2_v4l2_buffer vb;
-	struct list_head list;
-};
-
-
-static inline struct gspca_buffer *to_gspca_buffer(struct vb2_buffer *vb2)
-{
-	return container_of(vb2, struct gspca_buffer, vb.vb2_buf);
-}
-
-struct gspca_dev {
-
-	// Ambos
-	struct video_device vdev;	/* !! must be the first item */
-
-	struct module *module;		/* subdriver handling the device */
-	struct v4l2_device v4l2_dev;
-
-	// Ambos
-	struct usb_device *dev;
-
-#if IS_ENABLED(CONFIG_INPUT)
-	struct input_dev *input_dev;
-	char phys[64];			/* physical device path */
-#endif
-
-	struct cam cam;				/* device information */
-	const struct sd_desc *sd_desc;		/* subdriver description */
-	struct v4l2_ctrl_handler ctrl_handler;
-
-	/* autogain and exposure or gain control cluster, these are global as
-	   the autogain/exposure functions in autogain_functions.c use them */
-	struct {
-		struct v4l2_ctrl *autogain;
-		struct v4l2_ctrl *exposure;
-		struct v4l2_ctrl *gain;
-		int exp_too_low_cnt, exp_too_high_cnt;
-	};
-
-#define USB_BUF_SZ 64
-	__u8 *usb_buf;				/* buffer for USB exchanges */
-
-	// Ambos
-	struct urb *urb[MAX_NURBS];
-
-#if IS_ENABLED(CONFIG_INPUT)
-	struct urb *int_urb;
-#endif
-
-	u8 *image;				/* image being filled */
-	u32 image_len;				/* current length of image */
-	__u8 last_packet_type;
-	__s8 empty_packet;		/* if (-1) don't check empty packets */
-	bool streaming;
-
-	__u8 curr_mode;			/* current camera mode */
-	struct v4l2_pix_format pixfmt;	/* current mode parameters */
-	__u32 sequence;			/* frame sequence number */
-
-	struct vb2_queue queue;
-
-	spinlock_t qlock;
-
-	// Ambos
-	struct list_head buf_list;
-
-	wait_queue_head_t wq;		/* wait queue */
-
-	// Ambos
-	struct mutex usb_lock;		/* usb exchange protection */
-
-	int usb_err;			/* USB error - protected by usb_lock */
-	u16 pkt_size;			/* ISOC packet size */
-#ifdef CONFIG_PM
-	char frozen;			/* suspend - resume */
-#endif
-	bool present;
-	char memory;			/* memory type (V4L2_MEMORY_xxx) */
-	__u8 iface;			/* USB interface number */
-	__u8 alt;			/* USB alternate setting */
-	int xfer_ep;			/* USB transfer endpoint address */
-	u8 audio;			/* presence of audio device */
-
-	/* (*) These variables are proteced by both usb_lock and queue_lock,
-	   that is any code setting them is holding *both*, which means that
-	   any code getting them needs to hold at least one of them */
-};
-
-
+struct gspca_dev;
+struct gspca_frame;
 
 /* subdriver operations */
 typedef int (*cam_op) (struct gspca_dev *);
@@ -253,10 +141,136 @@ enum gspca_packet_type {
 	LAST_PACKET
 };
 
+struct gspca_buffer {
+	struct vb2_v4l2_buffer vb;
+	struct list_head list;
+};
+
+static inline struct gspca_buffer *to_gspca_buffer(struct vb2_buffer *vb2)
+{
+	return container_of(vb2, struct gspca_buffer, vb.vb2_buf);
+}
+
+struct gspca_dev {
+	struct video_device vdev;	/* !! must be the first item */
+	struct module *module;		/* subdriver handling the device */
+	struct v4l2_device v4l2_dev;
+	struct usb_device *dev;
+
+#if IS_ENABLED(CONFIG_INPUT)
+	struct input_dev *input_dev;
+	char phys[64];			/* physical device path */
+#endif
+
+	struct cam cam;				/* device information */
+	const struct sd_desc *sd_desc;		/* subdriver description */
+	struct v4l2_ctrl_handler ctrl_handler;
+
+	/* autogain and exposure or gain control cluster, these are global as
+	   the autogain/exposure functions in autogain_functions.c use them */
+	struct {
+		struct v4l2_ctrl *autogain;
+		struct v4l2_ctrl *exposure;
+		struct v4l2_ctrl *gain;
+		int exp_too_low_cnt, exp_too_high_cnt;
+	};
+
+#define USB_BUF_SZ 64
+	__u8 *usb_buf;				/* buffer for USB exchanges */
+	struct urb *urb[MAX_NURBS];
+#if IS_ENABLED(CONFIG_INPUT)
+	struct urb *int_urb;
+#endif
+
+	u8 *image;				/* image being filled */
+	u32 image_len;				/* current length of image */
+	__u8 last_packet_type;
+	__s8 empty_packet;		/* if (-1) don't check empty packets */
+	bool streaming;
+
+	__u8 curr_mode;			/* current camera mode */
+	struct v4l2_pix_format pixfmt;	/* current mode parameters */
+	__u32 sequence;			/* frame sequence number */
+
+	struct vb2_queue queue;
+
+	spinlock_t qlock;
+	struct list_head buf_list;
+
+	wait_queue_head_t wq;		/* wait queue */
+	struct mutex usb_lock;		/* usb exchange protection */
+	int usb_err;			/* USB error - protected by usb_lock */
+	u16 pkt_size;			/* ISOC packet size */
+#ifdef CONFIG_PM
+	char frozen;			/* suspend - resume */
+#endif
+	bool present;
+	char memory;			/* memory type (V4L2_MEMORY_xxx) */
+	__u8 iface;			/* USB interface number */
+	__u8 alt;			/* USB alternate setting */
+	int xfer_ep;			/* USB transfer endpoint address */
+	u8 audio;			/* presence of audio device */
+
+	/* (*) These variables are proteced by both usb_lock and queue_lock,
+	   that is any code setting them is holding *both*, which means that
+	   any code getting them needs to hold at least one of them */
+};
+
+int gspca_dev_probe(struct usb_interface *intf,
+		const struct usb_device_id *id,
+		const struct sd_desc *sd_desc,
+		int dev_size,
+		struct module *module);
+int gspca_dev_probe2(struct usb_interface *intf,
+		const struct usb_device_id *id,
+		const struct sd_desc *sd_desc,
+		int dev_size,
+		struct module *module);
+void gspca_disconnect(struct usb_interface *intf);
+void gspca_frame_add(struct gspca_dev *gspca_dev,
+			enum gspca_packet_type packet_type,
+			const u8 *data,
+			int len);
+#ifdef CONFIG_PM
+int gspca_suspend(struct usb_interface *intf, pm_message_t message);
+int gspca_resume(struct usb_interface *intf);
+#endif
+int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum,
+	int desired_avg_lum, int deadzone, int gain_knee, int exposure_knee);
+int gspca_coarse_grained_expo_autogain(struct gspca_dev *gspca_dev,
+	int avg_lum, int desired_avg_lum, int deadzone);
+
+#endif /* GSPCAV2_H */
 
 
 
 
+
+
+
+
+
+
+
+
+///***********************************************************************************************************
+///***********************************************************************************************************
+///***********************************************************************************************************
+
+
+
+
+
+
+
+
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Functions for auto gain.
+ *
+ * Copyright (C) 2010-2012 Hans de Goede <hdegoede@redhat.com>
+ */
+//#include "gspca.h"
 
 /* auto gain and exposure algorithm based on the knee algorithm described here:
    http://ytse.tricolour.net/docs/LowLightOptimization.html
@@ -271,7 +285,6 @@ int gspca_expo_autogain(
 			int gain_knee,
 			int exposure_knee)
 {
-/*
 	s32 gain, orig_gain, exposure, orig_exposure;
 	int i, steps, retval = 0;
 
@@ -280,11 +293,9 @@ int gspca_expo_autogain(
 
 	orig_gain = gain = v4l2_ctrl_g_ctrl(gspca_dev->gain);
 	orig_exposure = exposure = v4l2_ctrl_g_ctrl(gspca_dev->exposure);
-*/
+
 	/* If we are of a multiple of deadzone, do multiple steps to reach the
 	   desired lumination fast (with the risc of a slight overshoot) */
-
-/*
 	steps = abs(desired_avg_lum - avg_lum) / deadzone;
 
 	gspca_dbg(gspca_dev, D_FRAM, "autogain: lum: %d, desired: %d, steps: %d\n",
@@ -333,41 +344,8 @@ int gspca_expo_autogain(
 		gspca_dbg(gspca_dev, D_FRAM, "autogain: changed gain: %d, expo: %d\n",
 			  gain, exposure);
 	return retval;
-*/
-/*
-	int i, steps, retval = 0;
-	s32 gain, orig_gain, exposure, orig_exposure;
-	orig_gain = gain = v4l2_ctrl_g_ctrl(gspca_dev->gain);
-	orig_exposure = exposure = v4l2_ctrl_g_ctrl(gspca_dev->exposure);
-
-
-
-	gain = gain + (gspca_dev->gain->minimum + gspca_dev->gain->maximum)/2;
-	exposure = exposure + (gspca_dev->exposure->minimum + gspca_dev->exposure->maximum)/2;
-
-
-
-	if (gain != orig_gain) {
-		v4l2_ctrl_s_ctrl(gspca_dev->gain, gain);
-		retval = 1;
-	}
-	if (exposure != orig_exposure) {
-		v4l2_ctrl_s_ctrl(gspca_dev->exposure, 210);
-		retval = 1;
-	}
-
-	i = 20;
-
-	steps = i;
-
-	v4l2_ctrl_s_ctrl(gspca_dev->exposure, 10);
-	retval = 1;
-
-	return retval;
-*/
-	return 0;
-
 }
+EXPORT_SYMBOL(gspca_expo_autogain);
 
 /* Autogain + exposure algorithm for cameras with a coarse exposure control
    (usually this means we can only control the clockdiv to change exposure)
@@ -387,8 +365,6 @@ int gspca_coarse_grained_expo_autogain(
 			int desired_avg_lum,
 			int deadzone)
 {
-/*
-
 	s32 gain_low, gain_high, gain, orig_gain, exposure, orig_exposure;
 	int steps, retval = 0;
 
@@ -403,8 +379,8 @@ int gspca_coarse_grained_expo_autogain(
 	gain_high = (s32)(gspca_dev->gain->maximum - gspca_dev->gain->minimum) /
 		    5 * 4 + gspca_dev->gain->minimum;
 
-	// If we are of a multiple of deadzone, do multiple steps to reach the	   desired lumination fast (with the risc of a slight overshoot)
-
+	/* If we are of a multiple of deadzone, do multiple steps to reach the
+	   desired lumination fast (with the risc of a slight overshoot) */
 	steps = (desired_avg_lum - avg_lum) / deadzone;
 
 	gspca_dbg(gspca_dev, D_FRAM, "autogain: lum: %d, desired: %d, steps: %d\n",
@@ -451,13 +427,30 @@ int gspca_coarse_grained_expo_autogain(
 		gspca_dbg(gspca_dev, D_FRAM, "autogain: changed gain: %d, expo: %d\n",
 			  gain, exposure);
 	return retval;
-*/
-    return 0;
 }
+EXPORT_SYMBOL(gspca_coarse_grained_expo_autogain);
 
 
 
 
+
+
+
+
+
+
+///***********************************************************************************************************
+///***********************************************************************************************************
+///***********************************************************************************************************
+
+
+
+
+
+
+
+
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * Main USB camera driver
  *
@@ -469,10 +462,29 @@ int gspca_coarse_grained_expo_autogain(
 
 //#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-
 #define GSPCA_VERSION	"2.14.0"
 
+#include <linux/init.h>
+#include <linux/fs.h>
+#include <linux/vmalloc.h>
+#include <linux/sched.h>
+#include <linux/slab.h>
+#include <linux/mm.h>
+#include <linux/string.h>
+#include <linux/pagemap.h>
+#include <linux/io.h>
+#include <asm/page.h>
+#include <linux/uaccess.h>
+#include <linux/ktime.h>
+#include <media/v4l2-ioctl.h>
+#include <media/v4l2-ctrls.h>
+#include <media/v4l2-fh.h>
+#include <media/v4l2-event.h>
 
+
+#include <linux/version.h>
+
+//#include "gspca.h"
 
 #if IS_ENABLED(CONFIG_INPUT)
 #include <linux/input.h>
@@ -485,14 +497,13 @@ int gspca_coarse_grained_expo_autogain(
 #error "DEF_NURBS too big"
 #endif
 
-
 MODULE_AUTHOR("Jean-François Moine <http://moinejf.free.fr>");
 MODULE_DESCRIPTION("GSPCA USB Camera Driver");
 MODULE_LICENSE("GPL");
 MODULE_VERSION(GSPCA_VERSION);
 
 int gspca_debug;
-
+EXPORT_SYMBOL(gspca_debug);
 
 static void PDEBUG_MODE(struct gspca_dev *gspca_dev, int debug, char *txt,
 			__u32 pixfmt, int w, int h)
@@ -905,6 +916,7 @@ void gspca_frame_add(struct gspca_dev *gspca_dev,
 		gspca_dev->image_len = 0;
 	}
 }
+EXPORT_SYMBOL(gspca_frame_add);
 
 static void destroy_urbs(struct gspca_dev *gspca_dev)
 {
@@ -933,10 +945,6 @@ static void destroy_urbs(struct gspca_dev *gspca_dev)
 		usb_free_urb(urb);
 	}
 }
-
-
-
-
 
 static int gspca_set_alt0(struct gspca_dev *gspca_dev)
 {
@@ -1009,7 +1017,6 @@ static u32 which_bandwidth(struct gspca_dev *gspca_dev)
 	gspca_dbg(gspca_dev, D_STREAM, "min bandwidth: %d\n", bandwidth);
 	return bandwidth;
 }
-
 
 /* endpoint table */
 #define MAX_ALT 16
@@ -1857,6 +1864,7 @@ static const struct v4l2_ioctl_ops dev_ioctl_ops = {
 	.vidioc_s_parm		= vidioc_s_parm,
 	.vidioc_enum_framesizes = vidioc_enum_framesizes,
 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
+
 	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
 	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
 	.vidioc_querybuf	= vb2_ioctl_querybuf,
@@ -1899,32 +1907,24 @@ int gspca_dev_probe2(struct usb_interface *intf,
 	struct vb2_queue *q;
 	int ret;
 
-	pr_info("%s-" GSPCA_VERSION " probing %04x:%04x\n", sd_desc->name, id->idVendor, id->idProduct);
+	pr_info("%s-" GSPCA_VERSION " probing %04x:%04x\n",
+		sd_desc->name, id->idVendor, id->idProduct);
 
 	/* create the device */
 	if (dev_size < sizeof *gspca_dev)
 		dev_size = sizeof *gspca_dev;
-/// ******************
 	gspca_dev = kzalloc(dev_size, GFP_KERNEL);
 	if (!gspca_dev) {
 		pr_err("couldn't kzalloc gspca struct\n");
 		return -ENOMEM;
 	}
-
-/// ******************
 	gspca_dev->usb_buf = kzalloc(USB_BUF_SZ, GFP_KERNEL);
 	if (!gspca_dev->usb_buf) {
 		pr_err("out of memory\n");
 		ret = -ENOMEM;
 		goto out;
 	}
-
-
-/// ******************
 	gspca_dev->dev = dev;
-
-
-
 	gspca_dev->iface = intf->cur_altsetting->desc.bInterfaceNumber;
 	gspca_dev->xfer_ep = -1;
 
@@ -1945,31 +1945,18 @@ int gspca_dev_probe2(struct usb_interface *intf,
 		}
 	}
 
-
-/// ******************
 	gspca_dev->v4l2_dev.release = gspca_release;
-
-
-/// ******************
 	ret = v4l2_device_register(&intf->dev, &gspca_dev->v4l2_dev);
 	if (ret)
 		goto out;
 	gspca_dev->present = true;
 	gspca_dev->sd_desc = sd_desc;
 	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
-
-
-
-/// ******************
-	gspca_dev->vdev = gspca_template; /* .name, .fops, .ioctl_ops, .release */
-
-
-
+	gspca_dev->vdev = gspca_template;
 	gspca_dev->vdev.v4l2_dev = &gspca_dev->v4l2_dev;
-	gspca_dev->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
-
+	gspca_dev->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
+				      V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
 	video_set_drvdata(&gspca_dev->vdev, gspca_dev);
-
 	gspca_dev->module = module;
 
 	mutex_init(&gspca_dev->usb_lock);
@@ -2035,7 +2022,8 @@ int gspca_dev_probe2(struct usb_interface *intf,
 	}
 
 	usb_set_intfdata(intf, gspca_dev);
-	gspca_dbg(gspca_dev, D_PROBE, "%s created\n", video_device_node_name(&gspca_dev->vdev));
+	gspca_dbg(gspca_dev, D_PROBE, "%s created\n",
+		  video_device_node_name(&gspca_dev->vdev));
 
 	gspca_input_create_urb(gspca_dev);
 
@@ -2053,23 +2041,32 @@ out:
 	kfree(gspca_dev);
 	return ret;
 }
+EXPORT_SYMBOL(gspca_dev_probe2);
 
 /* same function as the previous one, but check the interface */
-int gspca_dev_probe(struct usb_interface *intf,	const struct usb_device_id *id,	const struct sd_desc *sd_desc, int dev_size, struct module *module) {
-
+int gspca_dev_probe(struct usb_interface *intf,
+		const struct usb_device_id *id,
+		const struct sd_desc *sd_desc,
+		int dev_size,
+		struct module *module)
+{
 	struct usb_device *dev = interface_to_usbdev(intf);
+
 	/* we don't handle multi-config cameras */
 	if (dev->descriptor.bNumConfigurations != 1) {
-		pr_err("%04x:%04x too many config\n", id->idVendor, id->idProduct);
+		pr_err("%04x:%04x too many config\n",
+		       id->idVendor, id->idProduct);
 		return -ENODEV;
 	}
 
 	/* the USB video interface must be the first one */
-	if (dev->actconfig->desc.bNumInterfaces != 1 && intf->cur_altsetting->desc.bInterfaceNumber != 0)
+	if (dev->actconfig->desc.bNumInterfaces != 1
+	 && intf->cur_altsetting->desc.bInterfaceNumber != 0)
 		return -ENODEV;
 
 	return gspca_dev_probe2(intf, id, sd_desc, dev_size, module);
 }
+EXPORT_SYMBOL(gspca_dev_probe);
 
 /*
  * USB disconnection
@@ -2077,14 +2074,15 @@ int gspca_dev_probe(struct usb_interface *intf,	const struct usb_device_id *id,	
  * This function must be called by the sub-driver
  * when the device disconnects, after the specific resources are freed.
  */
-void gspca_disconnect(struct usb_interface *intf) {
-
+void gspca_disconnect(struct usb_interface *intf)
+{
 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
 #if IS_ENABLED(CONFIG_INPUT)
 	struct input_dev *input_dev;
 #endif
 
-	gspca_dbg(gspca_dev, D_PROBE, "%s disconnect\n", video_device_node_name(&gspca_dev->vdev));
+	gspca_dbg(gspca_dev, D_PROBE, "%s disconnect\n",
+		  video_device_node_name(&gspca_dev->vdev));
 
 	mutex_lock(&gspca_dev->usb_lock);
 	gspca_dev->present = false;
@@ -2109,6 +2107,7 @@ void gspca_disconnect(struct usb_interface *intf) {
 	/* (this will call gspca_release() immediately or on last close) */
 	v4l2_device_put(&gspca_dev->v4l2_dev);
 }
+EXPORT_SYMBOL(gspca_disconnect);
 
 #ifdef CONFIG_PM
 int gspca_suspend(struct usb_interface *intf, pm_message_t message)
@@ -2133,7 +2132,7 @@ int gspca_suspend(struct usb_interface *intf, pm_message_t message)
 
 	return 0;
 }
-
+EXPORT_SYMBOL(gspca_suspend);
 
 int gspca_resume(struct usb_interface *intf)
 {
@@ -2158,9 +2157,27 @@ int gspca_resume(struct usb_interface *intf)
 
 	return ret;
 }
-
+EXPORT_SYMBOL(gspca_resume);
 #endif
 
+/* -- module insert / remove -- */
+/*
+static int __init gspca_init(void)
+{
+	pr_info("v" GSPCA_VERSION " registered\n");
+	return 0;
+}
+static void __exit gspca_exit(void)
+{
+}
+
+module_init(gspca_init);
+module_exit(gspca_exit);
+
+module_param_named(debug, gspca_debug, int, 0644);
+MODULE_PARM_DESC(debug,
+		"1:probe 2:config 3:stream 4:frame 5:packet 6:usbi 7:usbo");
+*/
 
 
 
@@ -2171,8 +2188,57 @@ int gspca_resume(struct usb_interface *intf)
 
 
 
+///***********************************************************************************************************
+///***********************************************************************************************************
+///***********************************************************************************************************
 
 
+
+
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ *		sonix sn9c102 (bayer) library
+ *
+ * Copyright (C) 2009-2011 Jean-François Moine <http://moinejf.free.fr>
+ * Copyright (C) 2003 2004 Michel Xhaard mxhaard@magic.fr
+ * Add Pas106 Stefano Mozzi (C) 2004
+ */
+
+/* Some documentation on known sonixb registers:
+
+Reg	Use
+sn9c101 / sn9c102:
+0x10	high nibble red gain low nibble blue gain
+0x11	low nibble green gain
+sn9c103:
+0x05	red gain 0-127
+0x06	blue gain 0-127
+0x07	green gain 0-127
+all:
+0x08-0x0f i2c / 3wire registers
+0x12	hstart
+0x13	vstart
+0x15	hsize (hsize = register-value * 16)
+0x16	vsize (vsize = register-value * 16)
+0x17	bit 0 toggle compression quality (according to sn9c102 driver)
+0x18	bit 7 enables compression, bit 4-5 set image down scaling:
+	00 scale 1, 01 scale 1/2, 10, scale 1/4
+0x19	high-nibble is sensor clock divider, changes exposure on sensors which
+	use a clock generated by the bridge. Some sensors have their own clock.
+0x1c	auto_exposure area (for avg_lum) startx (startx = register-value * 32)
+0x1d	auto_exposure area (for avg_lum) starty (starty = register-value * 32)
+0x1e	auto_exposure area (for avg_lum) stopx (hsize = (0x1e - 0x1c) * 32)
+0x1f	auto_exposure area (for avg_lum) stopy (vsize = (0x1f - 0x1d) * 32)
+*/
+
+#define MODULE_NAME "gspca_sonixb_aio"
+
+#include <linux/input.h>
+//#include "gspca.h"
+
+MODULE_AUTHOR("Jean-François Moine <http://moinejf.free.fr>");
+MODULE_DESCRIPTION("GSPCA/SN9C102 USB Camera Driver");
+MODULE_LICENSE("GPL");
 
 /* specific webcam descriptor */
 struct sd {
@@ -2208,8 +2274,6 @@ struct sd {
 	__u8 reg11;
 };
 
-
-
 typedef const __u8 sensor_init_t[8];
 
 struct sensor_data {
@@ -2219,7 +2283,6 @@ struct sensor_data {
 	int flags;
 	__u8 sensor_addr;
 };
-
 
 /* sensor_data flags */
 #define F_SIF		0x01	/* sif or vga */
@@ -2234,7 +2297,7 @@ struct sensor_data {
 #define MCK_INIT 0x63
 #define MCK_INIT1 0x20		/*fixme: Bayer - 0x50 for JPEG ??*/
 
-//#define SYS_CLK 0x04
+#define SYS_CLK 0x04
 
 #define SENS(bridge, sensor, _flags, _sensor_addr) \
 { \
@@ -2244,13 +2307,11 @@ struct sensor_data {
 	.flags = _flags, .sensor_addr = _sensor_addr \
 }
 
-
 /* We calculate the autogain at the end of the transfer of a frame, at this
    moment a frame with the old settings is being captured and transmitted. So
    if we adjust the gain or exposure we must ignore at least the next frame for
    the new settings to come into effect before doing any other adjustments. */
 #define AUTOGAIN_IGNORE_FRAMES 1
-
 
 static const struct v4l2_pix_format vga_mode[] = {
 	{160, 120, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
@@ -2274,8 +2335,6 @@ static const struct v4l2_pix_format vga_mode[] = {
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 0},
 };
-
-
 static const struct v4l2_pix_format sif_mode[] = {
 	{160, 120, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
 		.bytesperline = 160,
@@ -2308,7 +2367,6 @@ static const struct v4l2_pix_format sif_mode[] = {
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 0},
 };
-
 
 static const __u8 initHv7131d[] = {
 	0x04, 0x03, 0x00, 0x04, 0x00, 0x00, 0x00, 0x80, 0x11, 0x00, 0x00, 0x00,
@@ -2558,7 +2616,6 @@ static const __u8 tas5130_sensor_init[][8] = {
 	{0x30, 0x11, 0x02, 0x20, 0x70, 0x00, 0x00, 0x10},
 };
 
-
 static const struct sensor_data sensor_data[] = {
 	SENS(initHv7131d, hv7131d_sensor_init, 0, 0),
 	SENS(initHv7131r, hv7131r_sensor_init, 0, 0),
@@ -2571,10 +2628,10 @@ static const struct sensor_data sensor_data[] = {
 	SENS(initTas5130, tas5130_sensor_init, 0, 0),
 };
 
-
-
 /* get one byte in gspca_dev->usb_buf */
-static void reg_r(struct gspca_dev *gspca_dev,  __u16 value) {
+static void reg_r(struct gspca_dev *gspca_dev,
+		  __u16 value)
+{
 	int res;
 
 	if (gspca_dev->usb_err < 0)
@@ -2601,7 +2658,11 @@ static void reg_r(struct gspca_dev *gspca_dev,  __u16 value) {
 	}
 }
 
-static void reg_w(struct gspca_dev *gspca_dev, __u16 value, const __u8 *buffer, int len) {
+static void reg_w(struct gspca_dev *gspca_dev,
+		  __u16 value,
+		  const __u8 *buffer,
+		  int len)
+{
 	int res;
 
 	if (gspca_dev->usb_err < 0)
@@ -2624,7 +2685,8 @@ static void reg_w(struct gspca_dev *gspca_dev, __u16 value, const __u8 *buffer, 
 	}
 }
 
-static void i2c_w(struct gspca_dev *gspca_dev, const u8 *buf) {
+static void i2c_w(struct gspca_dev *gspca_dev, const u8 *buf)
+{
 	int retry = 60;
 
 	if (gspca_dev->usb_err < 0)
@@ -2651,7 +2713,9 @@ static void i2c_w(struct gspca_dev *gspca_dev, const u8 *buf) {
 	gspca_dev->usb_err = -EIO;
 }
 
-static void i2c_w_vector(struct gspca_dev *gspca_dev, const __u8 buffer[][8], int len) {
+static void i2c_w_vector(struct gspca_dev *gspca_dev,
+			const __u8 buffer[][8], int len)
+{
 	for (;;) {
 		if (gspca_dev->usb_err < 0)
 			return;
@@ -2876,7 +2940,7 @@ static void setexposure(struct gspca_dev *gspca_dev)
 		   unstable (the bridge goes into a higher compression mode
 		   which we have not reverse engineered yet). */
 		if (gspca_dev->pixfmt.width == 640 && reg11 < 4)
-			reg11 = 1;  // teste josemar valor original 4, porém framerate ficava 8. Porém, se setado para 1,FR = 30
+			reg11 = 4;
 
 		/* frame exposure time in ms = 1000 * reg11 / 30    ->
 		reg10 = (gspca_dev->exposure->val / 2) * reg10_max
@@ -3007,6 +3071,7 @@ static void setfreq(struct gspca_dev *gspca_dev)
 
 static void do_autogain(struct gspca_dev *gspca_dev)
 {
+/*
 	struct sd *sd = (struct sd *) gspca_dev;
 	int deadzone, desired_avg_lum, avg_lum;
 
@@ -3019,11 +3084,10 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 		return;
 	}
 
-	/* SIF / VGA sensors have a different autoexposure area and thus
-	   different avg_lum values for the same picture brightness */
+	// SIF / VGA sensors have a different autoexposure area and thus different avg_lum values for the same picture brightness
 	if (sensor_data[sd->sensor].flags & F_SIF) {
 		deadzone = 500;
-		/* SIF sensors tend to overexpose, so keep this small */
+		// SIF sensors tend to overexpose, so keep this small
 		desired_avg_lum = 5000;
 	} else {
 		deadzone = 1500;
@@ -3034,7 +3098,8 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 		desired_avg_lum = sd->brightness->val * desired_avg_lum / 127;
 
 	if (gspca_dev->exposure->maximum < 500) {
-		if (gspca_coarse_grained_expo_autogain(gspca_dev, avg_lum, desired_avg_lum, deadzone))
+		if (gspca_coarse_grained_expo_autogain(gspca_dev, avg_lum,
+				desired_avg_lum, deadzone))
 			sd->autogain_ignore_frames = AUTOGAIN_IGNORE_FRAMES;
 	} else {
 		int gain_knee = (s32)gspca_dev->gain->maximum * 9 / 10;
@@ -3042,12 +3107,15 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 				deadzone, gain_knee, sd->exposure_knee))
 			sd->autogain_ignore_frames = AUTOGAIN_IGNORE_FRAMES;
 	}
+
+*/
+
 }
 
-
-
 /* this function is called at probe time */
-static int sd_config(struct gspca_dev *gspca_dev, const struct usb_device_id *id) {
+static int sd_config(struct gspca_dev *gspca_dev,
+			const struct usb_device_id *id)
+{
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam;
 
@@ -3073,7 +3141,8 @@ static int sd_config(struct gspca_dev *gspca_dev, const struct usb_device_id *id
 }
 
 /* this function is called at probe and resume time */
-static int sd_init(struct gspca_dev *gspca_dev) {
+static int sd_init(struct gspca_dev *gspca_dev)
+{
 	const __u8 stop = 0x09; /* Disable stream turn of LED */
 
 	reg_w(gspca_dev, 0x01, &stop, 1);
@@ -3121,13 +3190,9 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	return gspca_dev->usb_err;
 }
 
-
-
 static const struct v4l2_ctrl_ops sd_ctrl_ops = {
 	.s_ctrl = sd_s_ctrl,
 };
-
-
 
 /* this function is called at probe time */
 static int sd_init_controls(struct gspca_dev *gspca_dev)
@@ -3218,7 +3283,6 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 
 	return 0;
 }
-
 
 /* -- start the camera -- */
 static int sd_start(struct gspca_dev *gspca_dev)
@@ -3445,9 +3509,6 @@ static u8* find_sof(struct gspca_dev *gspca_dev, u8 *data, int len)
 	return NULL;
 }
 
-
-
-
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 			u8 *data,			/* isoc packet */
 			int len)			/* iso packet length */
@@ -3533,13 +3594,6 @@ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
 }
 #endif
 
-
-
-
-
-
-
-
 /* sub-driver description */
 static const struct sd_desc sd_desc = {
 	.name = MODULE_NAME,
@@ -3554,7 +3608,6 @@ static const struct sd_desc sd_desc = {
 	.int_pkt_scan = sd_int_pkt_scan,
 #endif
 };
-
 
 /* -- module initialisation -- */
 #define SB(sensor, bridge) \
@@ -3593,16 +3646,13 @@ static const struct usb_device_id device_table[] = {
 };
 MODULE_DEVICE_TABLE(usb, device_table);
 
-
-
 /* -- device connect -- */
-static int sd_probe(struct usb_interface *intf,	const struct usb_device_id *id)
+static int sd_probe(struct usb_interface *intf,
+			const struct usb_device_id *id)
 {
-	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd), THIS_MODULE);
+	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
+				THIS_MODULE);
 }
-
-
-
 
 static struct usb_driver sd_driver = {
 	.name = MODULE_NAME,
@@ -3616,16 +3666,4 @@ static struct usb_driver sd_driver = {
 #endif
 };
 
-
-
-
-module_param_named(debug, gspca_debug, int, 0644);
-MODULE_PARM_DESC(debug, "1:probe 2:config 3:stream 4:frame 5:packet 6:usbi 7:usbo");
-
-
-
-// ATENÇÃO:     ESTA OPÇÃO "module_usb_driver(sd_driver)" PERMITIU O LINK ENTRE OUTROS MÓDULOS DE DRIVER AUTOMATICAMENTE
-/**************************/
 module_usb_driver(sd_driver);
-/**************************/
-
