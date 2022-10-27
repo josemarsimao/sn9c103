@@ -1144,6 +1144,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 	struct ep_tb_s ep_tb[MAX_ALT];
 	int n, ret, xfer, alt, alt_idx;
 
+	KDBG(gspca_dev->v4l2_dev.dev, "gspca_init_transfer"," - %d",elgcnt)
+
 	/* reset the streaming variables */
 	gspca_dev->image = NULL;
 	gspca_dev->image_len = 0;
@@ -1213,8 +1215,10 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 		if (gspca_dev->cam.bulk)
 			usb_clear_halt(gspca_dev->dev, gspca_dev->urb[0]->pipe);
 
-		/* start the cam */
+		/******************* start the cam *************************/
 		ret = gspca_dev->sd_desc->start(gspca_dev);
+		///**********************************************************
+
 		if (ret < 0) {
 			destroy_urbs(gspca_dev);
 			goto out;
