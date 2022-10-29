@@ -22,6 +22,7 @@ modules:
 	@echo '**************************************************************************'
 	@echo
 	$(MAKE) -C $(KDIR) -I $(PWD) M=$(PWD) modules
+	strip --strip-unneeded gspca_main.ko gspca_sonixb.ko
 
 install: modules_install
 

@@ -965,6 +965,7 @@ int sn9c102_probe_hv7131d(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int hv7131r_init(struct sn9c102_device* cam)
 {
@@ -1375,6 +1376,7 @@ int sn9c102_probe_hv7131r(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int mi0343_init(struct sn9c102_device* cam)
 {
@@ -1704,6 +1706,7 @@ int sn9c102_probe_mi0343(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int mi0360_init(struct sn9c102_device* cam)
 {
@@ -2137,6 +2140,7 @@ int sn9c102_probe_mi0360(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int mt9v111_init(struct sn9c102_device* cam)
 {
@@ -2559,6 +2563,7 @@ int sn9c102_probe_mt9v111(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int ov7630_init(struct sn9c102_device* cam)
 {
@@ -2574,32 +2579,32 @@ static int ov7630_init(struct sn9c102_device* cam)
 		err += sn9c102_i2c_write(cam, 0x12, 0x7c);
 		err += sn9c102_i2c_write(cam, 0x11, 0x01);
 		err += sn9c102_i2c_write(cam, 0x13, 0x01);
-		err += sn9c102_i2c_write(cam, 0x15, 0x34);
-		err += sn9c102_i2c_write(cam, 0x16, 0x03);
-		err += sn9c102_i2c_write(cam, 0x17, 0x1c);
-		err += sn9c102_i2c_write(cam, 0x18, 0xbd);
-		err += sn9c102_i2c_write(cam, 0x19, 0x06);
-		err += sn9c102_i2c_write(cam, 0x1a, 0xf6);
-		err += sn9c102_i2c_write(cam, 0x1b, 0x04);
-		err += sn9c102_i2c_write(cam, 0x20, 0x44);
-		err += sn9c102_i2c_write(cam, 0x23, 0xee);
-		err += sn9c102_i2c_write(cam, 0x26, 0xa0);
-		err += sn9c102_i2c_write(cam, 0x27, 0x9a);
-		err += sn9c102_i2c_write(cam, 0x28, 0xa0);
-		err += sn9c102_i2c_write(cam, 0x29, 0x30);
-		err += sn9c102_i2c_write(cam, 0x2f, 0x3d);
-		err += sn9c102_i2c_write(cam, 0x30, 0x24);
-		err += sn9c102_i2c_write(cam, 0x32, 0x86);
-		err += sn9c102_i2c_write(cam, 0x60, 0xa9);
-		err += sn9c102_i2c_write(cam, 0x61, 0x4a);
-		err += sn9c102_i2c_write(cam, 0x65, 0x00);
-		err += sn9c102_i2c_write(cam, 0x69, 0x38);
-		err += sn9c102_i2c_write(cam, 0x6f, 0x88);
-		err += sn9c102_i2c_write(cam, 0x70, 0x0b);
-		err += sn9c102_i2c_write(cam, 0x71, 0x00);
-		err += sn9c102_i2c_write(cam, 0x74, 0x21);
-		err += sn9c102_i2c_write(cam, 0x75, 0x8e);
-		err += sn9c102_i2c_write(cam, 0x7d, 0xf7);
+		err += sn9c102_i2c_write(cam, 0x15, 0x34); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x16, 0x03); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x17, 0x1c); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x18, 0xbd); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x19, 0x06); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x1a, 0xf6); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x1b, 0x04); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x20, 0x44); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x23, 0xee); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x26, 0xa0); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x27, 0x9a); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x28, 0xa0); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x29, 0x30); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x2f, 0x3d); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x30, 0x24); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x32, 0x86); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x60, 0xa9); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x61, 0x4a); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x65, 0x00); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x69, 0x38); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x6f, 0x88); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x70, 0x0b); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x71, 0x00); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x74, 0x21); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x75, 0x8e); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x7d, 0xf7); /*igual*/
 		break;
 	case BRIDGE_SN9C103:
 		err = sn9c102_write_const_regs(cam, {0x46, 0x01},
@@ -2630,28 +2635,28 @@ static int ov7630_init(struct sn9c102_device* cam)
 
 		err += sn9c102_i2c_write(cam, 0x12, 0x8d);
 		err += sn9c102_i2c_write(cam, 0x12, 0x0d);
-		err += sn9c102_i2c_write(cam, 0x15, 0x34);
+		err += sn9c102_i2c_write(cam, 0x15, 0x34); /*igual*/
 		err += sn9c102_i2c_write(cam, 0x11, 0x01);
-		err += sn9c102_i2c_write(cam, 0x1b, 0x04);
-		err += sn9c102_i2c_write(cam, 0x20, 0x44);
-		err += sn9c102_i2c_write(cam, 0x23, 0xee);
-		err += sn9c102_i2c_write(cam, 0x26, 0xa0);
-		err += sn9c102_i2c_write(cam, 0x27, 0x9a);
-		err += sn9c102_i2c_write(cam, 0x28, 0xa0);
-		err += sn9c102_i2c_write(cam, 0x29, 0x30);
-		err += sn9c102_i2c_write(cam, 0x2f, 0x3d);
-		err += sn9c102_i2c_write(cam, 0x30, 0x24);
-		err += sn9c102_i2c_write(cam, 0x32, 0x86);
-		err += sn9c102_i2c_write(cam, 0x60, 0xa9);
-		err += sn9c102_i2c_write(cam, 0x61, 0x4a);
-		err += sn9c102_i2c_write(cam, 0x65, 0x00);
-		err += sn9c102_i2c_write(cam, 0x69, 0x38);
-		err += sn9c102_i2c_write(cam, 0x6f, 0x88);
-		err += sn9c102_i2c_write(cam, 0x70, 0x0b);
-		err += sn9c102_i2c_write(cam, 0x71, 0x00);
-		err += sn9c102_i2c_write(cam, 0x74, 0x21);
-		err += sn9c102_i2c_write(cam, 0x75, 0x8e);
-		err += sn9c102_i2c_write(cam, 0x7d, 0xf7);
+		err += sn9c102_i2c_write(cam, 0x1b, 0x04); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x20, 0x44); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x23, 0xee); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x26, 0xa0); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x27, 0x9a); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x28, 0xa0); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x29, 0x30); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x2f, 0x3d); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x30, 0x24); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x32, 0x86); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x60, 0xa9); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x61, 0x4a); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x65, 0x00); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x69, 0x38); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x6f, 0x88); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x70, 0x0b); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x71, 0x00); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x74, 0x21); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x75, 0x8e); /*igual*/
+		err += sn9c102_i2c_write(cam, 0x7d, 0xf7); /*igual*/
 		break;
 	case BRIDGE_SN9C105:
 	case BRIDGE_SN9C120:
@@ -3214,6 +3219,7 @@ int sn9c102_probe_ov7630(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int ov7648_init(struct sn9c102_device* cam)
 {
@@ -3586,6 +3592,7 @@ int sn9c102_probe_ov7648(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int ov7660_init(struct sn9c102_device* cam)
 {
@@ -4099,6 +4106,7 @@ int sn9c102_probe_ov7660(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int pas106b_init(struct sn9c102_device* cam)
 {
@@ -4377,6 +4385,7 @@ int sn9c102_probe_pas106b(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int pas202bcb_init(struct sn9c102_device* cam)
 {
@@ -4684,6 +4693,7 @@ int sn9c102_probe_pas202bcb(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int tas5110c1b_init(struct sn9c102_device* cam)
 {
@@ -4815,6 +4825,7 @@ int sn9c102_probe_tas5110c1b(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int tas5110d_init(struct sn9c102_device* cam)
 {
@@ -4911,6 +4922,7 @@ int sn9c102_probe_tas5110d(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 static int tas5130d1b_init(struct sn9c102_device* cam)
 {
@@ -5053,6 +5065,7 @@ int sn9c102_probe_tas5130d1b(struct sn9c102_device* cam)
 	return 0;
 }
 
+///******************************************************************************************************
 
 /*
    Add the above entries to this table. Be sure to add the entry in the right

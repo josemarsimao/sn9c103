@@ -1326,13 +1326,11 @@ static int gspca_get_mode(struct gspca_dev *gspca_dev, int mode, int pixfmt)
 	modeU = modeD = mode;
 	while ((modeU < gspca_dev->cam.nmodes) || modeD >= 0) {
 		if (--modeD >= 0) {
-			if (gspca_dev->cam.cam_mode[modeD].pixelformat
-								== pixfmt)
+			if (gspca_dev->cam.cam_mode[modeD].pixelformat == pixfmt)
 				return modeD;
 		}
 		if (++modeU < gspca_dev->cam.nmodes) {
-			if (gspca_dev->cam.cam_mode[modeU].pixelformat
-								== pixfmt)
+			if (gspca_dev->cam.cam_mode[modeU].pixelformat == pixfmt)
 				return modeU;
 		}
 	}
@@ -1506,25 +1504,21 @@ static int vidioc_enum_frameintervals(struct file *filp, void *priv, struct v4l2
 	int mode;
 	__u32 i;
 
-	mode = wxh_to_mode(gspca_dev, fival->width, fival->height,
-			   fival->pixel_format);
+	mode = wxh_to_mode(gspca_dev, fival->width, fival->height, fival->pixel_format);
 	if (mode < 0)
 		return -EINVAL;
 
-	if (gspca_dev->cam.mode_framerates == NULL ||
-			gspca_dev->cam.mode_framerates[mode].nrates == 0)
+	if (gspca_dev->cam.mode_framerates == NULL || gspca_dev->cam.mode_framerates[mode].nrates == 0)
 		return -EINVAL;
 
-	if (fival->pixel_format !=
-			gspca_dev->cam.cam_mode[mode].pixelformat)
+	if (fival->pixel_format != gspca_dev->cam.cam_mode[mode].pixelformat)
 		return -EINVAL;
 
 	for (i = 0; i < gspca_dev->cam.mode_framerates[mode].nrates; i++) {
 		if (fival->index == i) {
 			fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
 			fival->discrete.numerator = 1;
-			fival->discrete.denominator =
-				gspca_dev->cam.mode_framerates[mode].rates[i];
+			fival->discrete.denominator = gspca_dev->cam.mode_framerates[mode].rates[i];
 			return 0;
 		}
 	}
@@ -2159,11 +2153,11 @@ struct sensor_data {
 static const struct v4l2_pix_format vga_mode[] = {
 //josemar: Novos modos podem ser adicionados aqui. O ".priv" é utilizado para definir a resolução no registro 0x18h. Preciso entender melhor como é formado o tamanho da imagem
 // josemar: Lembrando que CIF(Common Intermediate Format) é referente a um padrão de tamanho de imagem (PAL/NTSC) correspondente a 352x288 pixels e seus multiplos:  QCIF, 2CIF, 4CIF, 16CIF
-    {80,   60, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,        // josemar: Adicionado por mim
-		.bytesperline = 80,
-		.sizeimage = 80 * 60,
-		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0 | MODE_RAW},
+//    {80,   60, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,        // josemar: Adicionado por mim
+//		.bytesperline = 80,
+//		.sizeimage = 80 * 60,
+//		.colorspace = V4L2_COLORSPACE_SRGB,
+//		.priv = 0 | MODE_RAW},
 	{160, 120, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
 		.bytesperline = 160,
 		.sizeimage = 160 * 120,
@@ -2179,11 +2173,11 @@ static const struct v4l2_pix_format vga_mode[] = {
 		.sizeimage = 640 * 480,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 0 | MODE_RAW},
-    {80,   60, V4L2_PIX_FMT_SN9C10X, V4L2_FIELD_NONE,        // josemar: Adicionado por mim
-		.bytesperline = 80,
-		.sizeimage = 80 * 60 * 5 / 4,
-		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 1 | MODE_RAW},
+//    {80,   60, V4L2_PIX_FMT_SN9C10X, V4L2_FIELD_NONE,        // josemar: Adicionado por mim
+//		.bytesperline = 80,
+//		.sizeimage = 80 * 60 * 5 / 4,
+//		.colorspace = V4L2_COLORSPACE_SRGB,
+//		.priv = 1 | MODE_RAW},
 	{160, 120, V4L2_PIX_FMT_SN9C10X, V4L2_FIELD_NONE,
 		.bytesperline = 160,
 		.sizeimage = 160 * 120 * 5 / 4,
@@ -2258,7 +2252,7 @@ static const __u8 initOv7630[] = {
 	0x0a,   // r14
 	0x28,   // r15
 	0x1e,   // r16 			//  H & V sizes     r15 .. r16
-	0x68,   // r17
+	0x64,   // r17  [0x17]=0x68
 	0x8f,   // r18
 	MCK_INIT1,   // r19
 };
@@ -2273,6 +2267,8 @@ static const __u8 ov7630_sensor_init[][8] = {
 	{0xa0, 0x21, 0x10, 0x41, 0x00, 0x00, 0x00, 0x10},// josemar: [0x10] = 0x41
 	{0xa0, 0x21, 0x11, 0x00, 0x00, 0x00, 0x00, 0x10},// josemar: [0x11] = 0x00
 	{0xd0, 0x21, 0x12, 0x5c, 0x00, 0x80, 0x34, 0x10},// [0x12]=0x5c; [0x13]=0x00; [0x14]=0x80; [0x15]=0x34
+	{0xa0, 0x21, 0x16, 0x03, 0x00, 0x00, 0x00, 0x10},// josemar: [0x16] = 0x03
+	{0xd0, 0x21, 0x17, 0x1c, 0xbd, 0x06, 0xf6, 0x10},// [0x17]=0x1c; [0x18]=0xbd; [0x19]=0x06; [0x1A]=0xf6
 	{0xa0, 0x21, 0x1b, 0x04, 0x00, 0x80, 0x34, 0x10},
 	{0xa0, 0x21, 0x20, 0x44, 0x00, 0x80, 0x34, 0x10},
 	{0xa0, 0x21, 0x23, 0xee, 0x00, 0x80, 0x34, 0x10},
@@ -2286,7 +2282,7 @@ static const __u8 ov7630_sensor_init[][8] = {
 	{0xc0, 0x21, 0x6f, 0x88, 0x0b, 0x00, 0x30, 0x10},
 	{0xc0, 0x21, 0x74, 0x21, 0x8e, 0x00, 0x30, 0x10},
 	{0xa0, 0x21, 0x7d, 0xf7, 0x8e, 0x00, 0x30, 0x10},
-	{0xd0, 0x21, 0x17, 0x1c, 0xbd, 0x06, 0xf6, 0x10},
+
 };
 /*
 // josemar: configura no sensor

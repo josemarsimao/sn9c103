@@ -20,6 +20,7 @@ modules:
 	@echo '**************************************************************************'
 	@echo
 	$(MAKE) -C $(KDIR) -I $(PWD) M=$(PWD) modules
+	strip --strip-unneeded gspca_sonixb_aio.ko
 
 install: modules_install
 

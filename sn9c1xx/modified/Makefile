@@ -40,6 +40,7 @@ modules:
 	@echo '**************************************************************************'
 	@echo
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
+	strip --strip-unneeded sn9c102.ko
 
 install: modules_install
 

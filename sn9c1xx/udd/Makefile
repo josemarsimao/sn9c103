@@ -50,6 +50,7 @@ modules:
 	@echo '**************************************************************************'
 	@echo
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
+	strip --strip-unneeded udd.ko
 
 install: modules_install
 
