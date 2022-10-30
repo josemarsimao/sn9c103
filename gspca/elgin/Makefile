@@ -20,7 +20,7 @@ modules:
 	@echo '**************************************************************************'
 	@echo
 	$(MAKE) -C $(KDIR) -I $(PWD) M=$(PWD) modules
-	strip --strip-unneeded gspca_main.ko gspca_elgin_sn9c103.ko
+	strip --strip-unneeded gspca_elgin_sn9c103.ko
 
 install: modules_install
 

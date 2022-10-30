@@ -515,7 +515,6 @@ static void int_irq(struct urb *urb)
 	}
 }
 
-// DEVICE PLUGGEDED - 12
 static int gspca_input_connect(struct gspca_dev *dev)
 {
 	struct input_dev *input_dev;
@@ -552,7 +551,6 @@ static int gspca_input_connect(struct gspca_dev *dev)
 	return err;
 }
 
-// DEVICE PLUGGEDED - 14
 static int alloc_and_submit_int_urb(struct gspca_dev *gspca_dev, struct usb_endpoint_descriptor *ep)
 {
 	unsigned int buffer_len;
@@ -606,7 +604,6 @@ error:
 	return ret;
 }
 
-// DEVICE PLUGGEDED - 13
 static void gspca_input_create_urb(struct gspca_dev *gspca_dev)
 {
 	struct usb_interface *intf;
@@ -1009,6 +1006,8 @@ static int build_isoc_ep_tb(struct gspca_dev *gspca_dev, struct usb_interface *i
 		last_bw = ep_tb->bandwidth;
 		i++;
 		ep_tb++;
+
+		KDBG(gspca_dev->v4l2_dev.dev, "bandwidth found: %d"," - %d",last_bw, elgcnt)
 	}
 
 	/*
@@ -1217,7 +1216,7 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
 
 		/******************* start the cam *************************/
 		ret = gspca_dev->sd_desc->start(gspca_dev);
-		///**********************************************************
+		/// *********************************************************
 
 		if (ret < 0) {
 			destroy_urbs(gspca_dev);
@@ -2130,7 +2129,7 @@ struct sensor_data {
 #define COMP1 0xc9		/* 0x89 //0x09 */
 
 #define MCK_INIT 0x63
-#define MCK_INIT1 0x20		/*fixme: Bayer - 0x50 for JPEG ??*/
+
 
 //#define SYS_CLK 0x04
 
@@ -2229,6 +2228,8 @@ static const struct v4l2_pix_format sif_mode[] = {
 		.priv = 0},
 };
 
+#define MCK_INIT1 0x20		/*fixme: Bayer - 0x50 for JPEG ??*/
+
 static const __u8 initOv7630[] = {
 	0x04,   // r01
 	0x44,   // r02
@@ -2313,6 +2314,10 @@ static const struct sensor_data sensor_data[] = {
 	SENS(initOv7630, ov7630_sensor_init, 0, 0x21),
 	SENS(initOv7630, ov7630_sensor_init, 0, 0x21),
 };
+
+/// *************************************************************************************************************
+/// *************************************************************************************************************
+/// *************************************************************************************************************
 
 
 
@@ -2476,6 +2481,10 @@ static void i2c_w_vector(struct gspca_dev *gspca_dev, const __u8 buffer[][8], in
 	}
 }
 
+/// *************************************************************************************************************
+/// *************************************************************************************************************
+/// *************************************************************************************************************
+
 static void setbrightness(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -2611,9 +2620,9 @@ static void setexposure(struct gspca_dev *gspca_dev)
 		   unstable (the bridge goes into a higher compression mode
 		   which we have not reverse engineered yet). */
 		if (gspca_dev->pixfmt.width == 640 && reg11 < 4)
-            //***************************************************************
+            // ***************************************************************
 			reg11 = 4;  // josemar: valor original 4, porém framerate ficava 8. Porém, se setado para 1,FR = 30
-            //***************************************************************
+            // ***************************************************************
 
 		/* frame exposure time in ms = 1000 * reg11 / 30    ->
 		reg10 = (gspca_dev->exposure->val / 2) * reg10_max
@@ -2720,6 +2729,12 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 
 }
 
+/// *************************************************************************************************************
+/// *************************************************************************************************************
+/// *************************************************************************************************************
+
+
+
 
 
 /* this function is called at probe time */
@@ -2752,7 +2767,6 @@ static int sd_config(struct gspca_dev *gspca_dev, const struct usb_device_id *id
 }
 
 /* this function is called at probe and resume time */
-// DEVICE PLUGGEDED - 5
 static int sd_init(struct gspca_dev *gspca_dev)
 {
 	const __u8 stop = 0x09; /* Disable stream turn of LED */
@@ -2764,11 +2778,12 @@ static int sd_init(struct gspca_dev *gspca_dev)
 	return gspca_dev->usb_err;
 }
 
-// DEVICE PLUGGEDED - 9 - 11
 static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct gspca_dev *gspca_dev = container_of(ctrl->handler, struct gspca_dev, ctrl_handler);
 	struct sd *sd = (struct sd *)gspca_dev;
+
+    KDBG(gspca_dev->v4l2_dev.dev, "sd_s_ctrl"," - %d",elgcnt)
 
 	gspca_dev->usb_err = 0;
 
@@ -2788,15 +2803,21 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	switch (ctrl->id) {
 	case V4L2_CID_BRIGHTNESS:
 		setbrightness(gspca_dev);
+		KDBG(gspca_dev->v4l2_dev.dev, "sd_s_ctrl - setbrightness"," - %d",elgcnt)
 		break;
 	case V4L2_CID_AUTOGAIN:
-		if (gspca_dev->exposure->is_new || (ctrl->is_new && ctrl->val))
+		if (gspca_dev->exposure->is_new || (ctrl->is_new && ctrl->val)){
 			setexposure(gspca_dev);
-		if (gspca_dev->gain->is_new || (ctrl->is_new && ctrl->val))
+			KDBG(gspca_dev->v4l2_dev.dev, "sd_s_ctrl - setexposure"," - %d",elgcnt)
+        }
+		if (gspca_dev->gain->is_new || (ctrl->is_new && ctrl->val)){
 			setgain(gspca_dev);
+			KDBG(gspca_dev->v4l2_dev.dev, "sd_s_ctrl - setgain"," - %d",elgcnt)
+        }
 		break;
 	case V4L2_CID_POWER_LINE_FREQUENCY:
 		setfreq(gspca_dev);
+		KDBG(gspca_dev->v4l2_dev.dev, "sd_s_ctrl - setfreq"," - %d",elgcnt)
 		break;
 	default:
 		return -EINVAL;
@@ -2813,7 +2834,6 @@ static const struct v4l2_ctrl_ops sd_ctrl_ops = {
 
 
 /* this function is called at probe time */
-// DEVICE PLUGGEDED - 7
 static int sd_init_controls(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -2886,10 +2906,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	int i, mode;
 	__u8 regs[0x31]; // josemar: Em sn9n102.pdf tem a descricao de 0x1Fh registradores. Sugere que regs pertence ao controlador sn9c102/103
 
-
-
 	KDBG(gspca_dev->v4l2_dev.dev, "sd_start"," - %d",elgcnt)
-
 
 	mode = cam->cam_mode[gspca_dev->curr_mode].priv & 0x07;
 	/* Copy registers 0x01 - 0x19 from the template */
@@ -2899,14 +2916,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	regs[0x18] |= mode << 4;
 
 	/* Set bridge gain to 1.0 */
-	if (sd->bridge == BRIDGE_103) {
-		regs[0x05] = 0x20; /* Red */
-		regs[0x06] = 0x20; /* Green */
-		regs[0x07] = 0x20; /* Blue */
-	} else {
-		regs[0x10] = 0x00; /* Red and blue */
-		regs[0x11] = 0x00; /* Green */
-	}
+	regs[0x05] = 0x20; /* Red */
+	regs[0x06] = 0x20; /* Green */
+	regs[0x07] = 0x20; /* Blue */
 
 	/* Setup pixel numbers and auto exposure window */
 	if (sensor_data[sd->sensor].flags & F_SIF) {
@@ -2931,23 +2943,14 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	regs[0x20 + i] = 255;
 
 	/* Special cases where some regs depend on mode or bridge */
-	switch (sd->sensor) {
+	/* FIXME / TESTME for some reason with the 101/102 bridge the
+	   clock is set to 12 Mhz (reg1 == 0x04), rather then 24.
+	   Also the hstart needs to go from 1 to 2 when using a 103,
+	   which is likely related. This does not seem right. */
+	regs[0x01] = 0x44; /* Select 24 Mhz clock */
+	regs[0x12] = 0x02; /* Set hstart to 2 */
 
-	case SENSOR_OV7630:
-		/* FIXME / TESTME for some reason with the 101/102 bridge the
-		   clock is set to 12 Mhz (reg1 == 0x04), rather then 24.
-		   Also the hstart needs to go from 1 to 2 when using a 103,
-		   which is likely related. This does not seem right. */
-		if (sd->bridge == BRIDGE_103) {
-			regs[0x01] = 0x44; /* Select 24 Mhz clock */
-			regs[0x12] = 0x02; /* Set hstart to 2 */
-		}
-		break;
 
-    case SENSOR_OV7631:
-        break;
-
-	}
 	/* Disable compression when the raw bayer format has been selected */
 	if (cam->cam_mode[gspca_dev->curr_mode].priv & MODE_RAW)
 		regs[0x18] &= ~0x80;
@@ -2975,21 +2978,12 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 
 	/* Mode / bridge specific sensor setup */
-	switch (sd->sensor) {
+	/* FIXME / TESTME We should be able to handle this identical
+	   for the 101/102 and the 103 case */
+	const __u8 i2c[] = { 0xa0, 0x21, 0x13, 0x80, 0x00, 0x00, 0x00, 0x10 };
+	i2c_w(gspca_dev, i2c);
 
-	case SENSOR_OV7630:
-		/* FIXME / TESTME We should be able to handle this identical
-		   for the 101/102 and the 103 case */
-		if (sd->bridge == BRIDGE_103) {
-			const __u8 i2c[] = { 0xa0, 0x21, 0x13, 0x80, 0x00, 0x00, 0x00, 0x10 };
-			i2c_w(gspca_dev, i2c);
-		}
-		break;
 
-    case SENSOR_OV7631:
-        break;
-
-	}
 	/* H_size V_size 0x28, 0x1e -> 640x480. 0x16, 0x12 -> 352x288 */
 	reg_w(gspca_dev, 0x15, &regs[0x15], 2);
 	/* compression register */
@@ -3013,12 +3007,12 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 	sd->reg11 = -1;
 
-/*
+
 	setgain(gspca_dev);
 	setbrightness(gspca_dev);
 	setexposure(gspca_dev);
 	setfreq(gspca_dev);
-*/
+
 	sd->frames_to_drop = 0;
 	sd->autogain_ignore_frames = 0;
 	gspca_dev->exp_too_high_cnt = 0;
@@ -3226,7 +3220,6 @@ MODULE_DEVICE_TABLE(usb, device_table);
 
 
 /* -- device connect -- */
-// DEVICE PLUGGEDED - 0
 static int sd_probe(struct usb_interface *intf,	const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd), THIS_MODULE);
@@ -3266,545 +3259,671 @@ module_usb_driver(sd_driver);
 /*     OBSERVAÇOES   */
 /*
 
+/// *************************************************************************************************************
+/// Quando a camera é conectada ao PC;
 
-josemar@ARAUTO ~/projects/sn9c103/gspca/elgin $ dmesg | grep gspca
-[ 2597.821171] usbcore: registered new interface driver gspca_elgin_sn9c103
-[ 2622.794493] gspca_elgin_sn9c103-2.14.0 probing 0c45:608f
-[ 2622.794511] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_config - 0
-[ 2622.794516] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 1
-[ 2622.794675] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_init - 2
-[ 2622.794678] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 3
-[ 2622.794842] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_init_controls - 4
-[ 2622.794980] input: gspca_elgin_sn9c103 as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.3/input/input21
-[ 2688.202185] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: gspca_start_streaming - 5
-[ 2688.204679] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_start - 6
-[ 2688.204686] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 7
-[ 2688.204856] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 8
-[ 2688.205075] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 9
-[ 2688.205330] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w_vector - 10
-[ 2688.205332] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 11
-[ 2688.205334] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 12
-[ 2688.216126] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 13
-[ 2688.216349] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 14
-[ 2688.216352] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 15
-[ 2688.228194] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 16
-[ 2688.228330] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 17
-[ 2688.228332] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 18
-[ 2688.240090] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 19
-[ 2688.240401] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 20
-[ 2688.240403] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 21
-[ 2688.256098] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 22
-[ 2688.256391] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 23
-[ 2688.256393] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 24
-[ 2688.268091] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 25
-[ 2688.268397] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 26
-[ 2688.268400] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 27
-[ 2688.280128] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 28
-[ 2688.280353] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 29
-[ 2688.280356] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 30
-[ 2688.292049] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 31
-[ 2688.292207] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 32
-[ 2688.292210] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 33
-[ 2688.308038] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 34
-[ 2688.308238] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 35
-[ 2688.308240] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 36
-[ 2688.320081] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 37
-[ 2688.320353] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 38
-[ 2688.320356] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 39
-[ 2688.332058] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 40
-[ 2688.332376] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 41
-[ 2688.332378] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 42
-[ 2688.344050] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 43
-[ 2688.344350] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 44
-[ 2688.344354] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 45
-[ 2688.356048] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 46
-[ 2688.356233] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 47
-[ 2688.356236] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 48
-[ 2688.372056] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 49
-[ 2688.372363] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 50
-[ 2688.372366] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 51
-[ 2688.384049] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 52
-[ 2688.384267] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 53
-[ 2688.384270] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 54
-[ 2688.396033] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 55
-[ 2688.396247] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 56
-[ 2688.396249] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 57
-[ 2688.411999] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 58
-[ 2688.412247] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 59
-[ 2688.412250] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 60
-[ 2688.424004] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 61
-[ 2688.424225] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 62
-[ 2688.424227] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 63
-[ 2688.436000] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 64
-[ 2688.436209] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 65
-[ 2688.436331] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 66
-[ 2688.436488] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 67
-[ 2688.436616] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 68
-[ 2688.436721] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 69
-[ 2688.436850] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 70
-[ 2688.436978] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 71
-[ 2688.437108] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 72
-[ 2688.437343] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 73
-[ 2688.463979] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setgain - 74
-[ 2688.463985] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 75
-[ 2688.463988] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 76
-[ 2688.475956] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 77
-[ 2688.476137] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setbrightness - 78
-[ 2688.476140] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 79
-[ 2688.476142] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 80
-[ 2688.487942] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 81
-[ 2688.488073] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setexposure - 82
-[ 2688.488075] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 83
-[ 2688.488076] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 84
-[ 2688.499986] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 85
-[ 2688.500122] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setfreq - 86
-[ 2688.500125] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 87
-[ 2688.500127] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 88
-[ 2688.511972] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 89
-[ 2688.512260] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_stopN - 90
-[ 2688.512262] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_init - 91
-[ 2688.512264] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 92
-[ 2688.512812] gspca_elgin_sn9c103 2-1.3:1.0: alt 7 - bandwidth not wide enough, trying again
-[ 2688.542428] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_start - 93
-[ 2688.542433] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 94
-[ 2688.542614] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 95
-[ 2688.542727] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 96
-[ 2688.543045] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w_vector - 97
-[ 2688.543059] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 98
-[ 2688.543061] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 99
-[ 2688.551902] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 100
-[ 2688.552130] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 101
-[ 2688.552133] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 102
-[ 2688.563915] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 103
-[ 2688.564115] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 104
-[ 2688.564118] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 105
-[ 2688.579931] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 106
-[ 2688.580106] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 107
-[ 2688.580109] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 108
-[ 2688.591927] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 109
-[ 2688.592105] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 110
-[ 2688.592107] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 111
-[ 2688.603911] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 112
-[ 2688.604104] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 113
-[ 2688.604106] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 114
-[ 2688.619921] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 115
-[ 2688.620118] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 116
-[ 2688.620120] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 117
-[ 2688.631873] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 118
-[ 2688.631964] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 119
-[ 2688.631966] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 120
-[ 2688.643856] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 121
-[ 2688.644142] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 122
-[ 2688.644145] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 123
-[ 2688.655901] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 124
-[ 2688.656174] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 125
-[ 2688.656188] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 126
-[ 2688.667884] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 127
-[ 2688.668120] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 128
-[ 2688.668123] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 129
-[ 2688.679921] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 130
-[ 2688.680091] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 131
-[ 2688.680094] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 132
-[ 2688.691863] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 133
-[ 2688.691994] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 134
-[ 2688.691997] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 135
-[ 2688.703883] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 136
-[ 2688.704115] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 137
-[ 2688.704118] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 138
-[ 2688.719859] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 139
-[ 2688.720148] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 140
-[ 2688.720150] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 141
-[ 2688.731852] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 142
-[ 2688.732014] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 143
-[ 2688.732016] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 144
-[ 2688.743804] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 145
-[ 2688.744030] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 146
-[ 2688.744033] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 147
-[ 2688.755859] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 148
-[ 2688.756085] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 149
-[ 2688.756087] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 150
-[ 2688.767804] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 151
-[ 2688.767972] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 152
-[ 2688.768101] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 153
-[ 2688.768344] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 154
-[ 2688.768451] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 155
-[ 2688.768575] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 156
-[ 2688.768704] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 157
-[ 2688.768834] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 158
-[ 2688.768960] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 159
-[ 2688.769087] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 160
-[ 2688.799902] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setgain - 161
-[ 2688.799908] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 162
-[ 2688.799911] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 163
-[ 2688.815775] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 164
-[ 2688.815967] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setbrightness - 165
-[ 2688.815970] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 166
-[ 2688.815972] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 167
-[ 2688.827752] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 168
-[ 2688.827978] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setexposure - 169
-[ 2688.827980] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 170
-[ 2688.827983] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 171
-[ 2688.839835] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 172
-[ 2688.839974] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setfreq - 173
-[ 2688.839977] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 174
-[ 2688.839979] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 175
-[ 2688.851751] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 176
-[ 2688.852016] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_stopN - 177
-[ 2688.852020] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_init - 178
-[ 2688.852023] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 179
-[ 2688.852633] gspca_elgin_sn9c103 2-1.3:1.0: alt 6 - bandwidth not wide enough, trying again
-[ 2688.886373] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_start - 180
-[ 2688.886392] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 181
-[ 2688.886622] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 182
-[ 2688.886747] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 183
-[ 2688.886976] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w_vector - 184
-[ 2688.886978] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 185
-[ 2688.886980] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 186
-[ 2688.895947] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 187
-[ 2688.896099] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 188
-[ 2688.896102] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 189
-[ 2688.907720] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 190
-[ 2688.907864] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 191
-[ 2688.907866] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 192
-[ 2688.919708] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 193
-[ 2688.919884] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 194
-[ 2688.919900] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 195
-[ 2688.931763] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 196
-[ 2688.931995] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 197
-[ 2688.931998] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 198
-[ 2688.943711] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 199
-[ 2688.943869] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 200
-[ 2688.943871] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 201
-[ 2688.955719] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 202
-[ 2688.955873] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 203
-[ 2688.955875] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 204
-[ 2688.971686] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 205
-[ 2688.971834] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 206
-[ 2688.971836] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 207
-[ 2688.983687] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 208
-[ 2688.983847] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 209
-[ 2688.983849] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 210
-[ 2688.995673] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 211
-[ 2688.995851] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 212
-[ 2688.995867] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 213
-[ 2689.007733] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 214
-[ 2689.008154] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 215
-[ 2689.008157] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 216
-[ 2689.019677] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 217
-[ 2689.019862] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 218
-[ 2689.019865] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 219
-[ 2689.031674] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 220
-[ 2689.031841] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 221
-[ 2689.031843] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 222
-[ 2689.043883] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 223
-[ 2689.044109] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 224
-[ 2689.044113] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 225
-[ 2689.055672] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 226
-[ 2689.055851] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 227
-[ 2689.055855] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 228
-[ 2689.071649] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 229
-[ 2689.071879] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 230
-[ 2689.071882] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 231
-[ 2689.087636] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 232
-[ 2689.087870] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 233
-[ 2689.087873] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 234
-[ 2689.099636] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 235
-[ 2689.099858] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 236
-[ 2689.099862] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 237
-[ 2689.111612] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 238
-[ 2689.111840] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 239
-[ 2689.111978] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 240
-[ 2689.112104] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 241
-[ 2689.112562] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 242
-[ 2689.112818] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 243
-[ 2689.112979] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 244
-[ 2689.113108] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 245
-[ 2689.113349] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 246
-[ 2689.113463] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 247
-[ 2689.139625] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setgain - 248
-[ 2689.139632] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 249
-[ 2689.139647] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 250
-[ 2689.151619] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 251
-[ 2689.151858] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setbrightness - 252
-[ 2689.151862] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 253
-[ 2689.151864] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 254
-[ 2689.167817] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 255
-[ 2689.168468] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setexposure - 256
-[ 2689.168471] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 257
-[ 2689.168473] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 258
-[ 2689.179602] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 259
-[ 2689.179733] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setfreq - 260
-[ 2689.179735] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 261
-[ 2689.179737] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 262
-[ 2689.191585] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 263
-[ 2689.191811] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_stopN - 264
-[ 2689.191814] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_init - 265
-[ 2689.191816] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 266
-[ 2689.192288] gspca_elgin_sn9c103 2-1.3:1.0: alt 5 - bandwidth not wide enough, trying again
-[ 2689.222366] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_start - 267
-[ 2689.222373] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 268
-[ 2689.222693] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 269
-[ 2689.222925] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 270
-[ 2689.223180] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w_vector - 271
-[ 2689.223184] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 272
-[ 2689.223187] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 273
-[ 2689.235570] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 274
-[ 2689.235797] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 275
-[ 2689.235802] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 276
-[ 2689.247556] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 277
-[ 2689.247739] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 278
-[ 2689.247743] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 279
-[ 2689.259594] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 280
-[ 2689.259821] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 281
-[ 2689.259826] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 282
-[ 2689.275567] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 283
-[ 2689.275732] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 284
-[ 2689.275736] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 285
-[ 2689.287560] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 286
-[ 2689.287771] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 287
-[ 2689.287775] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 288
-[ 2689.299522] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 289
-[ 2689.299757] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 290
-[ 2689.299765] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 291
-[ 2689.311562] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 292
-[ 2689.311785] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 293
-[ 2689.311790] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 294
-[ 2689.323518] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 295
-[ 2689.323767] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 296
-[ 2689.323784] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 297
-[ 2689.335537] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 298
-[ 2689.335798] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 299
-[ 2689.335804] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 300
-[ 2689.347527] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 301
-[ 2689.347834] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 302
-[ 2689.347839] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 303
-[ 2689.359603] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 304
-[ 2689.359954] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 305
-[ 2689.359959] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 306
-[ 2689.375523] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 307
-[ 2689.375759] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 308
-[ 2689.375775] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 309
-[ 2689.391499] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 310
-[ 2689.391827] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 311
-[ 2689.391845] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 312
-[ 2689.403525] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 313
-[ 2689.403816] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 314
-[ 2689.403821] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 315
-[ 2689.415473] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 316
-[ 2689.415629] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 317
-[ 2689.415633] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 318
-[ 2689.427530] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 319
-[ 2689.427820] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 320
-[ 2689.427839] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 321
-[ 2689.443435] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 322
-[ 2689.443658] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 323
-[ 2689.443663] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 324
-[ 2689.455458] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 325
-[ 2689.455757] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 326
-[ 2689.455869] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 327
-[ 2689.456008] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 328
-[ 2689.456133] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 329
-[ 2689.456375] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 330
-[ 2689.456484] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 331
-[ 2689.456615] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 332
-[ 2689.456741] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 333
-[ 2689.456890] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 334
-[ 2689.483419] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setgain - 335
-[ 2689.483440] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 336
-[ 2689.483443] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 337
-[ 2689.495450] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 338
-[ 2689.495743] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setbrightness - 339
-[ 2689.495748] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 340
-[ 2689.495752] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 341
-[ 2689.511420] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 342
-[ 2689.511598] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setexposure - 343
-[ 2689.511613] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 344
-[ 2689.511616] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 345
-[ 2689.523433] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 346
-[ 2689.523630] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setfreq - 347
-[ 2689.523634] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 348
-[ 2689.523636] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 349
-[ 2689.535522] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 350
-[ 2689.535816] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_stopN - 351
-[ 2689.535834] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_init - 352
-[ 2689.535836] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 353
-[ 2689.536419] gspca_elgin_sn9c103 2-1.3:1.0: alt 4 - bandwidth not wide enough, trying again
-[ 2689.566034] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_start - 354
-[ 2689.566054] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 355
-[ 2689.566262] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 356
-[ 2689.566370] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 357
-[ 2689.566632] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w_vector - 358
-[ 2689.566649] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 359
-[ 2689.566652] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 360
-[ 2689.575372] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 361
-[ 2689.575523] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 362
-[ 2689.575526] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 363
-[ 2689.587424] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 364
-[ 2689.587692] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 365
-[ 2689.587710] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 366
-[ 2689.599379] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 367
-[ 2689.599558] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 368
-[ 2689.599576] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 369
-[ 2689.611389] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 370
-[ 2689.611643] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 371
-[ 2689.611647] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 372
-[ 2689.623384] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 373
-[ 2689.623638] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 374
-[ 2689.623645] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 375
-[ 2689.635419] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 376
-[ 2689.635733] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 377
-[ 2689.635737] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 378
-[ 2689.647411] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 379
-[ 2689.647686] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 380
-[ 2689.647691] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 381
-[ 2689.659358] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 382
-[ 2689.659480] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 383
-[ 2689.659483] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 384
-[ 2689.671381] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 385
-[ 2689.671671] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 386
-[ 2689.671678] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 387
-[ 2689.683316] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 388
-[ 2689.683519] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 389
-[ 2689.683536] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 390
-[ 2689.695330] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 391
-[ 2689.695545] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 392
-[ 2689.695550] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 393
-[ 2689.707328] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 394
-[ 2689.707524] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 395
-[ 2689.707545] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 396
-[ 2689.719323] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 397
-[ 2689.719719] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 398
-[ 2689.719723] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 399
-[ 2689.731377] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 400
-[ 2689.731571] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 401
-[ 2689.731576] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 402
-[ 2689.743376] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 403
-[ 2689.743647] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 404
-[ 2689.743652] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 405
-[ 2689.755338] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 406
-[ 2689.755588] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 407
-[ 2689.755593] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 408
-[ 2689.771339] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 409
-[ 2689.771568] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 410
-[ 2689.771573] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 411
-[ 2689.783254] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 412
-[ 2689.783558] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 413
-[ 2689.783785] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 414
-[ 2689.784007] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 415
-[ 2689.784130] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 416
-[ 2689.784384] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 417
-[ 2689.784504] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 418
-[ 2689.784630] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 419
-[ 2689.784754] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 420
-[ 2689.784849] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 421
-[ 2689.811339] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setgain - 422
-[ 2689.811361] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 423
-[ 2689.811364] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 424
-[ 2689.827332] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 425
-[ 2689.827591] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setbrightness - 426
-[ 2689.827597] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 427
-[ 2689.827600] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 428
-[ 2689.843224] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 429
-[ 2689.843379] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setexposure - 430
-[ 2689.843384] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 431
-[ 2689.843387] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 432
-[ 2689.855361] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 433
-[ 2689.855531] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setfreq - 434
-[ 2689.855535] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 435
-[ 2689.855538] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 436
-[ 2689.871216] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 437
-[ 2689.871555] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_stopN - 438
-[ 2689.871558] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_init - 439
-[ 2689.871560] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 440
-[ 2689.872090] gspca_elgin_sn9c103 2-1.3:1.0: alt 3 - bandwidth not wide enough, trying again
-[ 2689.901856] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: sd_start - 441
-[ 2689.901876] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 442
-[ 2689.902019] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 443
-[ 2689.902120] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 444
-[ 2689.902374] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w_vector - 445
-[ 2689.902378] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 446
-[ 2689.902381] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 447
-[ 2689.911215] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 448
-[ 2689.911563] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 449
-[ 2689.911579] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 450
-[ 2689.923214] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 451
-[ 2689.923417] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 452
-[ 2689.923421] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 453
-[ 2689.935188] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 454
-[ 2689.935544] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 455
-[ 2689.935559] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 456
-[ 2689.947194] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 457
-[ 2689.947382] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 458
-[ 2689.947384] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 459
-[ 2689.959184] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 460
-[ 2689.959538] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 461
-[ 2689.959540] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 462
-[ 2689.971158] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 463
-[ 2689.971402] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 464
-[ 2689.971405] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 465
-[ 2689.983144] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 466
-[ 2689.983535] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 467
-[ 2689.983538] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 468
-[ 2689.995243] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 469
-[ 2689.995569] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 470
-[ 2689.995574] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 471
-[ 2690.007202] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 472
-[ 2690.007584] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 473
-[ 2690.007591] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 474
-[ 2690.019181] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 475
-[ 2690.019401] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 476
-[ 2690.019406] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 477
-[ 2690.031192] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 478
-[ 2690.031614] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 479
-[ 2690.031620] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 480
-[ 2690.043170] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 481
-[ 2690.043444] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 482
-[ 2690.043449] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 483
-[ 2690.055146] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 484
-[ 2690.055621] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 485
-[ 2690.055639] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 486
-[ 2690.071139] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 487
-[ 2690.071571] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 488
-[ 2690.071575] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 489
-[ 2690.083185] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 490
-[ 2690.083435] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 491
-[ 2690.083440] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 492
-[ 2690.095215] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 493
-[ 2690.095625] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 494
-[ 2690.095631] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 495
-[ 2690.107179] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 496
-[ 2690.107442] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 497
-[ 2690.107447] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 498
-[ 2690.123143] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 499
-[ 2690.123446] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 500
-[ 2690.123691] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 501
-[ 2690.123940] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 502
-[ 2690.124161] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 503
-[ 2690.124410] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 504
-[ 2690.124656] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 505
-[ 2690.124911] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 506
-[ 2690.125158] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 507
-[ 2690.125407] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 508
-[ 2690.151156] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setgain - 509
-[ 2690.151166] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 510
-[ 2690.151170] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 511
-[ 2690.163160] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 512
-[ 2690.163410] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setbrightness - 513
-[ 2690.163427] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 514
-[ 2690.163431] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 515
-[ 2690.175161] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 516
-[ 2690.175535] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setexposure - 517
-[ 2690.175555] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 518
-[ 2690.175558] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 519
-[ 2690.187137] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 520
-[ 2690.187389] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: setfreq - 521
-[ 2690.187392] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: i2c_w - 522
-[ 2690.187394] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_w - 523
-[ 2690.199096] gspca_elgin_sn9c103 2-1.3:1.0: Elgin_sn9c103: reg_r - 524
+[ 6011.498336] gspca_elgin_sn9c103-2.14.0 probing 0c45:608f
+[ 6011.498342] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_config - 0
+[ 6011.498345] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 1
+[ 6011.498464] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_init - 2
+[ 6011.498467] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 3
+[ 6011.498582] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_init_controls - 4
+[ 6011.498592] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 5
+[ 6011.498595] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 6
+[ 6011.498596] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 7
+[ 6011.498653] input: gspca_elgin_sn9c103 as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.7/input/input28
+[ 6011.498794] usbcore: registered new interface driver gspca_elgin_sn9c103
 
+/// *************************************************************************************************************
+/// Quando a o Software é iniciado e acessa a camera:
 
-
-
+[ 7554.369643] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: gspca_start_streaming - 8
+[ 7554.369650] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: gspca_init_transfer - 9
+[ 7554.369656] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: bandwidth found: 128000 - 10
+[ 7554.369660] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: bandwidth found: 256000 - 11
+[ 7554.369664] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: bandwidth found: 384000 - 12
+[ 7554.369668] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: bandwidth found: 512000 - 13
+[ 7554.369672] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: bandwidth found: 680000 - 14
+[ 7554.369675] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: bandwidth found: 800000 - 15
+[ 7554.369679] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: bandwidth found: 900000 - 16
+[ 7554.369683] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: bandwidth found: 1003000 - 17
+[ 7554.369687] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: dev has usb audio, skipping highest alt - 18
+[ 7554.372284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_start - 19
+[ 7554.372292] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 20
+[ 7554.372534] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 21
+[ 7554.372654] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 22
+[ 7554.372775] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w_vector - 23
+[ 7554.372782] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 24
+[ 7554.372785] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 25
+[ 7554.382144] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 26
+[ 7554.382282] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 27
+[ 7554.382284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 28
+[ 7554.394114] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 29
+[ 7554.394283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 30
+[ 7554.394285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 31
+[ 7554.406115] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 32
+[ 7554.406283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 33
+[ 7554.406285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 34
+[ 7554.418116] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 35
+[ 7554.418284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 36
+[ 7554.418286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 37
+[ 7554.430116] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 38
+[ 7554.430283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 39
+[ 7554.430285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 40
+[ 7554.442115] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 41
+[ 7554.442283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 42
+[ 7554.442285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 43
+[ 7554.454117] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 44
+[ 7554.454283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 45
+[ 7554.454285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 46
+[ 7554.466116] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 47
+[ 7554.466284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 48
+[ 7554.466286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 49
+[ 7554.478118] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 50
+[ 7554.478282] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 51
+[ 7554.478285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 52
+[ 7554.490118] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 53
+[ 7554.490284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 54
+[ 7554.490286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 55
+[ 7554.502119] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 56
+[ 7554.502283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 57
+[ 7554.502285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 58
+[ 7554.514122] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 59
+[ 7554.514285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 60
+[ 7554.514287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 61
+[ 7554.526121] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 62
+[ 7554.526283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 63
+[ 7554.526285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 64
+[ 7554.538121] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 65
+[ 7554.538285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 66
+[ 7554.538287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 67
+[ 7554.550121] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 68
+[ 7554.550284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 69
+[ 7554.550286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 70
+[ 7554.562118] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 71
+[ 7554.562285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 72
+[ 7554.562287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 73
+[ 7554.574124] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 74
+[ 7554.574283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 75
+[ 7554.574285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 76
+[ 7554.586121] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 77
+[ 7554.586283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 78
+[ 7554.586285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 79
+[ 7554.598122] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 80
+[ 7554.598286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 81
+[ 7554.598290] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 82
+[ 7554.610119] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 83
+[ 7554.610283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 84
+[ 7554.610286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 85
+[ 7554.622122] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 86
+[ 7554.622283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 87
+[ 7554.622285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 88
+[ 7554.634122] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 89
+[ 7554.634285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 90
+[ 7554.634287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 91
+[ 7554.646123] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 92
+[ 7554.646284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 93
+[ 7554.646534] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 94
+[ 7554.646658] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 95
+[ 7554.646784] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 96
+[ 7554.646908] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 97
+[ 7554.647034] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 98
+[ 7554.647158] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 99
+[ 7554.647260] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 100
+[ 7554.647382] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 101
+[ 7554.674126] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setgain - 102
+[ 7554.674128] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 103
+[ 7554.674129] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 104
+[ 7554.686123] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 105
+[ 7554.686285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setbrightness - 106
+[ 7554.686287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 107
+[ 7554.686288] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 108
+[ 7554.698121] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 109
+[ 7554.698263] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setexposure - 110
+[ 7554.698265] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 111
+[ 7554.698267] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 112
+[ 7554.710123] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 113
+[ 7554.710285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setfreq - 114
+[ 7554.710287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 115
+[ 7554.710288] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 116
+[ 7554.722124] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 117
+[ 7554.722285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 118
+[ 7554.722287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 119
+[ 7554.722288] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 120
+[ 7554.722296] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_stopN - 121
+[ 7554.722297] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_init - 122
+[ 7554.722298] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 123
+[ 7554.722719] gspca_elgin_sn9c103 2-1.7:1.0: alt 7 - bandwidth not wide enough, trying again
+[ 7554.752462] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_start - 124
+[ 7554.752464] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 125
+[ 7554.752659] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 126
+[ 7554.752784] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 127
+[ 7554.752908] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w_vector - 128
+[ 7554.752910] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 129
+[ 7554.752911] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 130
+[ 7554.762125] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 131
+[ 7554.762283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 132
+[ 7554.762285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 133
+[ 7554.774126] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 134
+[ 7554.774284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 135
+[ 7554.774286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 136
+[ 7554.786126] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 137
+[ 7554.786284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 138
+[ 7554.786286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 139
+[ 7554.798128] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 140
+[ 7554.798285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 141
+[ 7554.798287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 142
+[ 7554.810127] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 143
+[ 7554.810283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 144
+[ 7554.810284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 145
+[ 7554.822134] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 146
+[ 7554.822284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 147
+[ 7554.822286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 148
+[ 7554.834126] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 149
+[ 7554.834283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 150
+[ 7554.834285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 151
+[ 7554.846134] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 152
+[ 7554.846285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 153
+[ 7554.846287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 154
+[ 7554.858127] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 155
+[ 7554.858283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 156
+[ 7554.858285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 157
+[ 7554.870129] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 158
+[ 7554.870284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 159
+[ 7554.870286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 160
+[ 7554.882135] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 161
+[ 7554.882283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 162
+[ 7554.882285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 163
+[ 7554.894129] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 164
+[ 7554.894284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 165
+[ 7554.894286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 166
+[ 7554.906137] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 167
+[ 7554.906283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 168
+[ 7554.906285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 169
+[ 7554.918130] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 170
+[ 7554.918284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 171
+[ 7554.918286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 172
+[ 7554.930129] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 173
+[ 7554.930283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 174
+[ 7554.930285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 175
+[ 7554.942131] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 176
+[ 7554.942284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 177
+[ 7554.942286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 178
+[ 7554.954140] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 179
+[ 7554.954283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 180
+[ 7554.954285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 181
+[ 7554.966129] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 182
+[ 7554.966284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 183
+[ 7554.966286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 184
+[ 7554.978130] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 185
+[ 7554.978283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 186
+[ 7554.978285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 187
+[ 7554.990130] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 188
+[ 7554.990284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 189
+[ 7554.990286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 190
+[ 7555.002127] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 191
+[ 7555.002283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 192
+[ 7555.002285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 193
+[ 7555.014130] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 194
+[ 7555.014284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 195
+[ 7555.014286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 196
+[ 7555.026138] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 197
+[ 7555.026283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 198
+[ 7555.026533] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 199
+[ 7555.026657] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 200
+[ 7555.026783] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 201
+[ 7555.026908] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 202
+[ 7555.027032] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 203
+[ 7555.027171] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 204
+[ 7555.027258] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 205
+[ 7555.027382] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 206
+[ 7555.054132] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setgain - 207
+[ 7555.054134] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 208
+[ 7555.054135] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 209
+[ 7555.066131] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 210
+[ 7555.066284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setbrightness - 211
+[ 7555.066286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 212
+[ 7555.066287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 213
+[ 7555.078134] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 214
+[ 7555.078283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setexposure - 215
+[ 7555.078286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 216
+[ 7555.078287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 217
+[ 7555.090134] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 218
+[ 7555.090285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setfreq - 219
+[ 7555.090287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 220
+[ 7555.090288] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 221
+[ 7555.102137] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 222
+[ 7555.102268] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 223
+[ 7555.102272] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 224
+[ 7555.102275] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 225
+[ 7555.102287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_stopN - 226
+[ 7555.102289] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_init - 227
+[ 7555.102291] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 228
+[ 7555.102736] gspca_elgin_sn9c103 2-1.7:1.0: alt 6 - bandwidth not wide enough, trying again
+[ 7555.131590] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_start - 229
+[ 7555.131592] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 230
+[ 7555.131784] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 231
+[ 7555.131909] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 232
+[ 7555.132035] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w_vector - 233
+[ 7555.132037] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 234
+[ 7555.132038] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 235
+[ 7555.142134] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 236
+[ 7555.142284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 237
+[ 7555.142286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 238
+[ 7555.154133] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 239
+[ 7555.154285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 240
+[ 7555.154287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 241
+[ 7555.166131] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 242
+[ 7555.166285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 243
+[ 7555.166287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 244
+[ 7555.178134] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 245
+[ 7555.178285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 246
+[ 7555.178287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 247
+[ 7555.190134] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 248
+[ 7555.190284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 249
+[ 7555.190286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 250
+[ 7555.202135] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 251
+[ 7555.202285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 252
+[ 7555.202287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 253
+[ 7555.214135] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 254
+[ 7555.214284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 255
+[ 7555.214286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 256
+[ 7555.226135] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 257
+[ 7555.226284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 258
+[ 7555.226286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 259
+[ 7555.238135] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 260
+[ 7555.238284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 261
+[ 7555.238286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 262
+[ 7555.250136] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 263
+[ 7555.250284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 264
+[ 7555.250286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 265
+[ 7555.262136] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 266
+[ 7555.262284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 267
+[ 7555.262286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 268
+[ 7555.274136] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 269
+[ 7555.274285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 270
+[ 7555.274287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 271
+[ 7555.286136] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 272
+[ 7555.286284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 273
+[ 7555.286286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 274
+[ 7555.298137] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 275
+[ 7555.298284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 276
+[ 7555.298286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 277
+[ 7555.310137] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 278
+[ 7555.310284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 279
+[ 7555.310286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 280
+[ 7555.322137] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 281
+[ 7555.322284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 282
+[ 7555.322286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 283
+[ 7555.334140] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 284
+[ 7555.334283] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 285
+[ 7555.334285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 286
+[ 7555.346137] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 287
+[ 7555.346285] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 288
+[ 7555.346287] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 289
+[ 7555.358138] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 290
+[ 7555.358284] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 291
+[ 7555.358286] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 292
+[ 7555.370172] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 293
+[ 7555.370448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 294
+[ 7555.370453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 295
+[ 7555.382171] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 296
+[ 7555.382342] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 297
+[ 7555.382347] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 298
+[ 7555.394181] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 299
+[ 7555.394458] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 300
+[ 7555.394462] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 301
+[ 7555.406173] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 302
+[ 7555.406323] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 303
+[ 7555.406572] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 304
+[ 7555.406822] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 305
+[ 7555.407070] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 306
+[ 7555.407322] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 307
+[ 7555.407574] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 308
+[ 7555.407821] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 309
+[ 7555.408017] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 310
+[ 7555.408139] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 311
+[ 7555.434174] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setgain - 312
+[ 7555.434179] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 313
+[ 7555.434181] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 314
+[ 7555.446173] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 315
+[ 7555.446449] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setbrightness - 316
+[ 7555.446454] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 317
+[ 7555.446456] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 318
+[ 7555.458175] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 319
+[ 7555.458323] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setexposure - 320
+[ 7555.458328] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 321
+[ 7555.458330] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 322
+[ 7555.470177] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 323
+[ 7555.470449] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setfreq - 324
+[ 7555.470453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 325
+[ 7555.470456] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 326
+[ 7555.482174] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 327
+[ 7555.482274] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 328
+[ 7555.482278] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 329
+[ 7555.482280] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 330
+[ 7555.482294] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_stopN - 331
+[ 7555.482297] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_init - 332
+[ 7555.482299] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 333
+[ 7555.482839] gspca_elgin_sn9c103 2-1.7:1.0: alt 5 - bandwidth not wide enough, trying again
+[ 7555.512088] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_start - 334
+[ 7555.512093] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 335
+[ 7555.512323] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 336
+[ 7555.512573] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 337
+[ 7555.512823] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w_vector - 338
+[ 7555.512827] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 339
+[ 7555.512829] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 340
+[ 7555.522176] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 341
+[ 7555.522320] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 342
+[ 7555.522324] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 343
+[ 7555.538206] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 344
+[ 7555.538480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 345
+[ 7555.538484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 346
+[ 7555.550198] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 347
+[ 7555.550479] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 348
+[ 7555.550484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 349
+[ 7555.562180] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 350
+[ 7555.562480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 351
+[ 7555.562484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 352
+[ 7555.574197] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 353
+[ 7555.574478] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 354
+[ 7555.574482] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 355
+[ 7555.586182] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 356
+[ 7555.586480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 357
+[ 7555.586484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 358
+[ 7555.598180] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 359
+[ 7555.598359] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 360
+[ 7555.598364] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 361
+[ 7555.610172] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 362
+[ 7555.610480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 363
+[ 7555.610484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 364
+[ 7555.622185] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 365
+[ 7555.622343] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 366
+[ 7555.622347] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 367
+[ 7555.634181] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 368
+[ 7555.634482] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 369
+[ 7555.634486] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 370
+[ 7555.646186] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 371
+[ 7555.646478] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 372
+[ 7555.646482] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 373
+[ 7555.658180] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 374
+[ 7555.658480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 375
+[ 7555.658485] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 376
+[ 7555.670187] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 377
+[ 7555.670478] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 378
+[ 7555.670482] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 379
+[ 7555.682183] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 380
+[ 7555.682481] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 381
+[ 7555.682485] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 382
+[ 7555.694178] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 383
+[ 7555.694342] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 384
+[ 7555.694347] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 385
+[ 7555.706164] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 386
+[ 7555.706358] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 387
+[ 7555.706363] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 388
+[ 7555.718181] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 389
+[ 7555.718359] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 390
+[ 7555.718363] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 391
+[ 7555.730207] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 392
+[ 7555.730481] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 393
+[ 7555.730485] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 394
+[ 7555.742183] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 395
+[ 7555.742356] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 396
+[ 7555.742360] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 397
+[ 7555.754185] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 398
+[ 7555.754482] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 399
+[ 7555.754487] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 400
+[ 7555.766205] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 401
+[ 7555.766479] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 402
+[ 7555.766483] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 403
+[ 7555.778164] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 404
+[ 7555.778480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 405
+[ 7555.778484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 406
+[ 7555.790180] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 407
+[ 7555.790354] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 408
+[ 7555.790603] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 409
+[ 7555.790853] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 410
+[ 7555.791103] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 411
+[ 7555.791355] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 412
+[ 7555.791559] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 413
+[ 7555.791681] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 414
+[ 7555.791807] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 415
+[ 7555.791931] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 416
+[ 7555.818180] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setgain - 417
+[ 7555.818189] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 418
+[ 7555.818192] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 419
+[ 7555.830181] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 420
+[ 7555.830480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setbrightness - 421
+[ 7555.830484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 422
+[ 7555.830487] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 423
+[ 7555.842184] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 424
+[ 7555.842461] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setexposure - 425
+[ 7555.842464] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 426
+[ 7555.842466] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 427
+[ 7555.854186] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 428
+[ 7555.854482] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setfreq - 429
+[ 7555.854486] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 430
+[ 7555.854489] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 431
+[ 7555.866187] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 432
+[ 7555.866481] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 433
+[ 7555.866486] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 434
+[ 7555.866488] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 435
+[ 7555.866510] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_stopN - 436
+[ 7555.866512] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_init - 437
+[ 7555.866514] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 438
+[ 7555.866928] gspca_elgin_sn9c103 2-1.7:1.0: alt 4 - bandwidth not wide enough, trying again
+[ 7555.896683] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_start - 439
+[ 7555.896688] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 440
+[ 7555.896946] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 441
+[ 7555.897196] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 442
+[ 7555.897446] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w_vector - 443
+[ 7555.897450] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 444
+[ 7555.897453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 445
+[ 7555.906177] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 446
+[ 7555.906328] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 447
+[ 7555.906332] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 448
+[ 7555.918188] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 449
+[ 7555.918450] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 450
+[ 7555.918454] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 451
+[ 7555.930187] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 452
+[ 7555.930324] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 453
+[ 7555.930329] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 454
+[ 7555.942185] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 455
+[ 7555.942450] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 456
+[ 7555.942454] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 457
+[ 7555.954189] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 458
+[ 7555.954448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 459
+[ 7555.954452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 460
+[ 7555.966175] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 461
+[ 7555.966399] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 462
+[ 7555.966405] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 463
+[ 7555.978188] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 464
+[ 7555.978325] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 465
+[ 7555.978329] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 466
+[ 7555.990189] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 467
+[ 7555.990465] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 468
+[ 7555.990470] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 469
+[ 7556.002188] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 470
+[ 7556.002447] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 471
+[ 7556.002452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 472
+[ 7556.014189] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 473
+[ 7556.014448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 474
+[ 7556.014452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 475
+[ 7556.026187] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 476
+[ 7556.026326] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 477
+[ 7556.026330] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 478
+[ 7556.038190] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 479
+[ 7556.038448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 480
+[ 7556.038453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 481
+[ 7556.050190] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 482
+[ 7556.050449] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 483
+[ 7556.050453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 484
+[ 7556.062190] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 485
+[ 7556.062448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 486
+[ 7556.062452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 487
+[ 7556.074188] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 488
+[ 7556.074448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 489
+[ 7556.074452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 490
+[ 7556.086192] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 491
+[ 7556.086449] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 492
+[ 7556.086454] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 493
+[ 7556.098191] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 494
+[ 7556.098448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 495
+[ 7556.098452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 496
+[ 7556.110201] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 497
+[ 7556.110448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 498
+[ 7556.110453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 499
+[ 7556.122191] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 500
+[ 7556.122447] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 501
+[ 7556.122451] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 502
+[ 7556.134175] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 503
+[ 7556.134401] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 504
+[ 7556.134406] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 505
+[ 7556.146208] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 506
+[ 7556.146455] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 507
+[ 7556.146460] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 508
+[ 7556.158192] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 509
+[ 7556.158447] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 510
+[ 7556.158452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 511
+[ 7556.170191] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 512
+[ 7556.170446] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 513
+[ 7556.170695] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 514
+[ 7556.170947] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 515
+[ 7556.171195] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 516
+[ 7556.171393] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 517
+[ 7556.171514] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 518
+[ 7556.171696] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 519
+[ 7556.171895] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 520
+[ 7556.172013] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 521
+[ 7556.198192] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setgain - 522
+[ 7556.198197] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 523
+[ 7556.198199] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 524
+[ 7556.210174] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 525
+[ 7556.210401] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setbrightness - 526
+[ 7556.210405] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 527
+[ 7556.210408] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 528
+[ 7556.222195] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 529
+[ 7556.222447] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setexposure - 530
+[ 7556.222451] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 531
+[ 7556.222454] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 532
+[ 7556.234181] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 533
+[ 7556.234457] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setfreq - 534
+[ 7556.234461] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 535
+[ 7556.234472] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 536
+[ 7556.246211] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 537
+[ 7556.246451] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 538
+[ 7556.246456] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 539
+[ 7556.246458] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 540
+[ 7556.246474] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_stopN - 541
+[ 7556.246476] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_init - 542
+[ 7556.246478] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 543
+[ 7556.246944] gspca_elgin_sn9c103 2-1.7:1.0: alt 3 - bandwidth not wide enough, trying again
+[ 7556.276682] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_start - 544
+[ 7556.276687] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 545
+[ 7556.276828] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 546
+[ 7556.277070] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 547
+[ 7556.277321] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w_vector - 548
+[ 7556.277326] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 549
+[ 7556.277328] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 550
+[ 7556.286192] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 551
+[ 7556.286446] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 552
+[ 7556.286450] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 553
+[ 7556.298176] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 554
+[ 7556.298450] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 555
+[ 7556.298454] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 556
+[ 7556.310171] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 557
+[ 7556.310324] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 558
+[ 7556.310328] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 559
+[ 7556.322193] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 560
+[ 7556.322449] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 561
+[ 7556.322453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 562
+[ 7556.334194] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 563
+[ 7556.334448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 564
+[ 7556.334452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 565
+[ 7556.346192] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 566
+[ 7556.346448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 567
+[ 7556.346453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 568
+[ 7556.358193] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 569
+[ 7556.358448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 570
+[ 7556.358453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 571
+[ 7556.370192] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 572
+[ 7556.370449] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 573
+[ 7556.370454] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 574
+[ 7556.382194] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 575
+[ 7556.382447] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 576
+[ 7556.382451] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 577
+[ 7556.394195] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 578
+[ 7556.394449] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 579
+[ 7556.394453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 580
+[ 7556.406188] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 581
+[ 7556.406446] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 582
+[ 7556.406451] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 583
+[ 7556.418193] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 584
+[ 7556.418449] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 585
+[ 7556.418453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 586
+[ 7556.430194] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 587
+[ 7556.430448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 588
+[ 7556.430452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 589
+[ 7556.442193] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 590
+[ 7556.442449] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 591
+[ 7556.442454] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 592
+[ 7556.454198] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 593
+[ 7556.454446] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 594
+[ 7556.454450] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 595
+[ 7556.466198] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 596
+[ 7556.466448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 597
+[ 7556.466452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 598
+[ 7556.478205] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 599
+[ 7556.478447] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 600
+[ 7556.478452] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 601
+[ 7556.490199] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 602
+[ 7556.490448] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 603
+[ 7556.490453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 604
+[ 7556.502199] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 605
+[ 7556.502447] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 606
+[ 7556.502451] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 607
+[ 7556.514199] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 608
+[ 7556.514481] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 609
+[ 7556.514485] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 610
+[ 7556.526197] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 611
+[ 7556.526480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 612
+[ 7556.526484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 613
+[ 7556.538198] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 614
+[ 7556.538480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 615
+[ 7556.538484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 616
+[ 7556.550204] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 617
+[ 7556.550478] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 618
+[ 7556.550729] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 619
+[ 7556.550978] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 620
+[ 7556.551228] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 621
+[ 7556.551480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 622
+[ 7556.551730] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 623
+[ 7556.551889] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 624
+[ 7556.552013] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 625
+[ 7556.552138] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 626
+[ 7556.578219] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setgain - 627
+[ 7556.578224] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 628
+[ 7556.578226] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 629
+[ 7556.590198] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 630
+[ 7556.590480] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setbrightness - 631
+[ 7556.590484] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 632
+[ 7556.590487] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 633
+[ 7556.602200] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 634
+[ 7556.602478] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setexposure - 635
+[ 7556.602483] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 636
+[ 7556.602485] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 637
+[ 7556.614204] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 638
+[ 7556.614481] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: setfreq - 639
+[ 7556.614486] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: i2c_w - 640
+[ 7556.614488] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 641
+[ 7556.626210] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_r - 642
+[ 7556.626445] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 643
+[ 7556.626450] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 644
+[ 7556.626453] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_s_ctrl - 645
+[ 7561.595064] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: gspca_stop_streaming - 646
+[ 7561.595068] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_stopN - 647
+[ 7561.595071] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: sd_init - 648
+[ 7561.595073] gspca_elgin_sn9c103 2-1.7:1.0: Elgin_sn9c103: reg_w - 649
 
 
 */
