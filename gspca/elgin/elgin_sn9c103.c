@@ -269,7 +269,7 @@ enum gspca_packet_type {
    where changed. */
 int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_avg_lum, int deadzone, int gain_knee, int exposure_knee)
 {
-/*
+
 	s32 gain, orig_gain, exposure, orig_exposure;
 	int i, steps, retval = 0;
 
@@ -332,9 +332,7 @@ int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_av
 			  gain, exposure);
 
 	return retval;
-*/
 
-    return 0;
 }
 
 /* Autogain + exposure algorithm for cameras with a coarse exposure control
@@ -351,7 +349,7 @@ int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_av
    where changed. */
 int gspca_coarse_grained_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_avg_lum, int deadzone)
 {
-/*
+
 	s32 gain_low, gain_high, gain, orig_gain, exposure, orig_exposure;
 	int steps, retval = 0;
 
@@ -415,9 +413,7 @@ int gspca_coarse_grained_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum,
 		gspca_dbg(gspca_dev, D_FRAM, "autogain: changed gain: %d, expo: %d\n",
 			  gain, exposure);
 	return retval;
-*/
 
-    return 0;
 
 }
 
@@ -2108,7 +2104,6 @@ struct sd {
 #define SENSOR_TAS5110C 6
 #define SENSOR_TAS5110D 7
 #define SENSOR_TAS5130CXX 8
-#define SENSOR_OV7631 9
 
 	__u8 reg11;
 };
@@ -2553,8 +2548,8 @@ static void setbrightness(struct gspca_dev *gspca_dev)
 		i2c_w(gspca_dev, i2cOV);
 		break;
 	}
-	case SENSOR_OV7631:
-        break;
+
+
 
 	default:
 		break;
@@ -2606,8 +2601,8 @@ static void setgain(struct gspca_dev *gspca_dev)
 		break;
 	}
 
-	case SENSOR_OV7631:
-        break;
+
+
 
 	default:
 		if (sd->bridge == BRIDGE_103) {
@@ -2703,8 +2698,8 @@ static void setexposure(struct gspca_dev *gspca_dev)
 			sd->reg11 = reg11;
 		break;
 	}
-	case SENSOR_OV7631:
-        break;
+
+
 
 	default:
 		break;
@@ -2740,7 +2735,7 @@ static void setfreq(struct gspca_dev *gspca_dev)
 
 static void do_autogain(struct gspca_dev *gspca_dev)
 {
-/*
+#if(0)
 	struct sd *sd = (struct sd *) gspca_dev;
 	int deadzone, desired_avg_lum, avg_lum;
 
@@ -2774,8 +2769,8 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 		if (gspca_expo_autogain(gspca_dev, avg_lum, desired_avg_lum, deadzone, gain_knee, sd->exposure_knee))
 			sd->autogain_ignore_frames = AUTOGAIN_IGNORE_FRAMES;
 	}
+#endif
 
-*/
 
 }
 
@@ -2907,8 +2902,8 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	case SENSOR_OV7630:
 		gspca_dev->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_GAIN, 0, 47, 1, 31);
 		break;
-	case SENSOR_OV7631:
-        break;
+
+
 
 	default:
 		if (sd->bridge == BRIDGE_103) {
@@ -2925,8 +2920,8 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 		gspca_dev->exposure = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_EXPOSURE, 0, 1023, 1, 66);
 		sd->exposure_knee = 200;
 		break;
-	case SENSOR_OV7631:
-        break;
+
+
 	}
 
 	if (gspca_dev->exposure) {
@@ -3108,10 +3103,10 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	sd->reg11 = -1;
 
 
-	setgain(gspca_dev);
-	setbrightness(gspca_dev);
-	setexposure(gspca_dev);
-	setfreq(gspca_dev);
+	setgain(gspca_dev);             // configura ganho pelo sensor          r00
+	setbrightness(gspca_dev);       // configura brilho pelo sensor         r06
+	setexposure(gspca_dev);         // configura exposicao pelo sensor      r10 e r11
+	setfreq(gspca_dev);             // configura freq pelo sensor           r2b
 
 	sd->frames_to_drop = 0;
 	sd->autogain_ignore_frames = 0;
@@ -3119,6 +3114,14 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	gspca_dev->exp_too_low_cnt = 0;
 	atomic_set(&sd->avg_lum, -1);
 	return gspca_dev->usb_err;
+
+
+
+	// ATENCAO: AS FUNÇÕES QUE FORAM IDENTIFICADAS COMO CAPAZES DE FAZEREM ALTERAÇÕES NOS REGISTRADOS
+	// ESTÃO LOCALIZADAS EM PONTOS ESPECÍFICOS:
+	// FUNÇÕES: setgain, setexposure, setbrightness, setfreq CHAMADAS DE DENTRO DAS FUNÇÕES sd_s_ctrl e sd_start
+	// FUNÇÕES: gspca_expo_autogain e gspca_coarse_grained_expo_autogain CHAMDAS A PARTIR DE do_autogain
+
 }
 
 
