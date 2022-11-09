@@ -2987,9 +2987,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
     regs[0x10] = 0x00; // r10
 	regs[0x11] = 0x00; // r11
 
-    regs[0x12] = 0x02; // Set hstart to 2 - r12
+    regs[0x12] = 0x02; // Set hstart to 2 - r12 // em 640x480 e com vlaor 5 ainda aparece um linha escura vetical no lado direito; com 4 ainda aparece resquicios da interpolação
     regs[0x13] = 0x01; // r13
-    regs[0x14] = 0x0a; // r14
+    regs[0x14] = 0x22; // r14  - Quanto maior o valor mais escuro a imagem. Se fica mais claro, a imagem parece ser mais borrada
     regs[0x15] = 0x28; // r15
     regs[0x16] = 0x1f; // r16
     /* Vga mode emulation on SIF sensor? */
