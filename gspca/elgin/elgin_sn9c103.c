@@ -269,7 +269,7 @@ enum gspca_packet_type {
    where changed. */
 int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_avg_lum, int deadzone, int gain_knee, int exposure_knee)
 {
-
+/*
 	s32 gain, orig_gain, exposure, orig_exposure;
 	int i, steps, retval = 0;
 
@@ -279,8 +279,8 @@ int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_av
 	orig_gain = gain = v4l2_ctrl_g_ctrl(gspca_dev->gain);
 	orig_exposure = exposure = v4l2_ctrl_g_ctrl(gspca_dev->exposure);
 
-	/* If we are of a multiple of deadzone, do multiple steps to reach the
-	   desired lumination fast (with the risc of a slight overshoot) */
+	// If we are of a multiple of deadzone, do multiple steps to reach the
+	// desired lumination fast (with the risc of a slight overshoot)
 
 
 	steps = abs(desired_avg_lum - avg_lum) / deadzone;
@@ -332,6 +332,9 @@ int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_av
 			  gain, exposure);
 
 	return retval;
+*/
+
+    return 0;
 }
 
 /* Autogain + exposure algorithm for cameras with a coarse exposure control
@@ -348,6 +351,7 @@ int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_av
    where changed. */
 int gspca_coarse_grained_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desired_avg_lum, int deadzone)
 {
+/*
 	s32 gain_low, gain_high, gain, orig_gain, exposure, orig_exposure;
 	int steps, retval = 0;
 
@@ -362,7 +366,8 @@ int gspca_coarse_grained_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum,
 	gain_high = (s32)(gspca_dev->gain->maximum - gspca_dev->gain->minimum) /
 		    5 * 4 + gspca_dev->gain->minimum;
 
-	// If we are of a multiple of deadzone, do multiple steps to reach the	   desired lumination fast (with the risc of a slight overshoot)
+	// If we are of a multiple of deadzone, do multiple steps to reach the
+	// desired lumination fast (with the risc of a slight overshoot)
 
 	steps = (desired_avg_lum - avg_lum) / deadzone;
 
@@ -410,6 +415,9 @@ int gspca_coarse_grained_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum,
 		gspca_dbg(gspca_dev, D_FRAM, "autogain: changed gain: %d, expo: %d\n",
 			  gain, exposure);
 	return retval;
+*/
+
+    return 0;
 
 }
 
@@ -2230,6 +2238,8 @@ static const struct v4l2_pix_format sif_mode[] = {
 
 #define MCK_INIT1 0x20		/*fixme: Bayer - 0x50 for JPEG ??*/
 
+
+#if(0)
 static const __u8 initOv7630[] = {
 	0x04,   // r01
 	0x44,   // r02
@@ -2257,7 +2267,36 @@ static const __u8 initOv7630[] = {
 	0x8f,   // r18
 	0x20, //MCK_INIT1,   // r19
 };
+#else
+static const __u8 initOv7630[] = {
+	0x00,   // r01
+	0x00,   // r02
+	0x00,   // r03
+	0x00,   // r04
+	0x00,   // r05
+	0x00,   // r06
+	0x00,   // r07
+	0x00,   // r08
+	0x00,   // r09
+	0x00,   // r0A
+	0x00,   // r0B
+	0x00,   // r0C
+	0x00,   // r0D
+	0x00,   // r0E
+	0x00,   // r0F
+	0x00,   // r10
+	0x00,   // r11
+	0x00,   // r12
+	0x00,   // r13
+	0x00,   // r14
+	0x00,   // r15
+	0x00,   // r16 			//  H & V sizes     r15 .. r16
+	0x00,   // r17  [0x17]=0x68
+	0x00,   // r18
+	0x00, //MCK_INIT1,   // r19
+};
 
+#endif
 
 static const __u8 ov7630_sensor_init[][8] = {
 //  {i2cC, slID, addr,   D0,   D1,   D2,   D3, CRT }
@@ -2924,13 +2963,58 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	/* Copy registers 0x01 - 0x19 from the template */
 	memcpy(&regs[0x01], sensor_data[sd->sensor].bridge_init, 0x19);
 
-	/* Set the mode */
-	regs[0x18] |= mode << 4;
+
+    /* Special cases where some regs depend on mode or bridge */
+	/* FIXME / TESTME for some reason with the 101/102 bridge the
+	   clock is set to 12 Mhz (reg1 == 0x04), rather then 24.
+	   Also the hstart needs to go from 1 to 2 when using a 103,
+	   which is likely related. This does not seem right. */
+	regs[0x01] = 0x44; /* Select 24 Mhz clock */
+	regs[0x02] = 0x44; // r02
+
+	regs[0x03] = 0x00; // r03
+	regs[0x04] = 0x00; // r04
 
 	/* Set bridge gain to 1.0 */
-	regs[0x05] = 0x20; /* Red */
-	regs[0x06] = 0x20; /* Green */
-	regs[0x07] = 0x20; /* Blue */
+	regs[0x05] = 0x20;  // r05 Red
+	regs[0x06] = 0x20;  // r06 Green
+	regs[0x07] = 0x20;  // r07 Blue
+
+	regs[0x08] = 0x80; // r08
+	regs[0x09] = 0x21; // r09
+	regs[0x0a] = 0x00; // r0a
+	regs[0x0b] = 0x00; // r0b
+	regs[0x0c] = 0x00; // r0c
+	regs[0x0d] = 0x00; // r0d
+	regs[0x0e] = 0x00; // r0e
+	regs[0x0f] = 0x00; // r0f
+
+    regs[0x10] = 0x00; // r10
+	regs[0x11] = 0x00; // r11
+
+    regs[0x12] = 0x02; // Set hstart to 2 - r12
+    regs[0x13] = 0x01; // r13
+    regs[0x14] = 0x0a; // r14
+    regs[0x15] = 0x28; // r15
+    regs[0x16] = 0x1f; // r16
+    /* Vga mode emulation on SIF sensor? */
+	if (0/*cam->cam_mode[gspca_dev->curr_mode].priv & MODE_REDUCED_SIF*/) {
+		regs[0x12] += 16;	/* hstart adjust */
+		regs[0x13] += 24;	/* vstart adjust */
+		regs[0x15]  = 320 / 16; /* hsize */
+		regs[0x16]  = 240 / 16; /* vsize */
+	}
+
+    regs[0x17] = 0x64; // r17
+	/* Set the mode */
+	regs[0x18] = 0x8f; // r18
+	regs[0x18] |= mode << 4;
+	/* Disable compression when the raw bayer format has been selected */
+	if (cam->cam_mode[gspca_dev->curr_mode].priv & MODE_RAW)
+		regs[0x18] &= ~0x80;
+
+	regs[0x19] = 0x20; // r19
+
 
 	/* Setup pixel numbers and auto exposure window */
 	if (1 /*sensor_data[sd->sensor].flags & F_SIF*/) {
@@ -2954,46 +3038,50 @@ static int sd_start(struct gspca_dev *gspca_dev)
 		regs[0x20 + i] = i * 16;
 	regs[0x20 + i] = 255;
 
-	/* Special cases where some regs depend on mode or bridge */
-	/* FIXME / TESTME for some reason with the 101/102 bridge the
-	   clock is set to 12 Mhz (reg1 == 0x04), rather then 24.
-	   Also the hstart needs to go from 1 to 2 when using a 103,
-	   which is likely related. This does not seem right. */
-	regs[0x01] = 0x44; /* Select 24 Mhz clock */
-	regs[0x12] = 0x02; /* Set hstart to 2 */
 
 
-	/* Disable compression when the raw bayer format has been selected */
-	if (cam->cam_mode[gspca_dev->curr_mode].priv & MODE_RAW)
-		regs[0x18] &= ~0x80;
 
-	/* Vga mode emulation on SIF sensor? */
-	if (0/*cam->cam_mode[gspca_dev->curr_mode].priv & MODE_REDUCED_SIF*/) {
-		regs[0x12] += 16;	/* hstart adjust */
-		regs[0x13] += 24;	/* vstart adjust */
-		regs[0x15]  = 320 / 16; /* hsize */
-		regs[0x16]  = 240 / 16; /* vsize */
-	}
+
+
+
+
 
 	/* reg 0x01 bit 2 video transfert on */
-	reg_w(gspca_dev, 0x01, &regs[0x01], 1);             // [0x01] = 0x44
+//	reg_w(gspca_dev, 0x01, &regs[0x01], 1);             // [0x01] = 0x44
 	/* reg 0x17 SensorClk enable inv Clk 0x60 */
-	reg_w(gspca_dev, 0x17, &regs[0x17], 1);
+//	reg_w(gspca_dev, 0x17, &regs[0x17], 1);
 	/* Set the registers from the template */
-	reg_w(gspca_dev, 0x01, &regs[0x01], (sd->bridge == BRIDGE_103) ? 0x30 : 0x1f); // josemar tamanho da tabela de registradores: 0x1F = SN9C102 e 0x30 = SN9C103
+	reg_w(gspca_dev, 0x01, &regs[0x01], 0x30); // josemar tamanho da tabela de registradores: 0x1F = SN9C102 e 0x30 = SN9C103
+
+
+
+
+
+/// *********************************************************************************
+/// **************************** SET REGISTERS OF SENSOR ****************************
+/// *********************************************************************************
+
 
 
 
 	/* Init the sensor */
 	i2c_w_vector(gspca_dev, sensor_data[sd->sensor].sensor_init, sensor_data[sd->sensor].sensor_init_size);
 
-
-
 	/* Mode / bridge specific sensor setup */
 	/* FIXME / TESTME We should be able to handle this identical
 	   for the 101/102 and the 103 case */
-	//const __u8 i2c[] = { 0xa0, 0x21, 0x13, 0x80, 0x00, 0x00, 0x00, 0x10 };
+	///const __u8 i2c[] = { 0xa0, 0x21, 0x13, 0x80, 0x00, 0x00, 0x00, 0x10 };
 	i2c_w(gspca_dev, i2c);
+
+
+
+
+
+
+
+/// *********************************************************************************
+/// ************************** SET REGISTERS OF CONTROLLER **************************
+/// *********************************************************************************
 
 
 	/* H_size V_size 0x28, 0x1e -> 640x480. 0x16, 0x12 -> 352x288 */
