@@ -2989,9 +2989,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
     regs[0x12] = 0x02; // Set hstart to 2 - r12 // em 640x480 e com vlaor 5 ainda aparece um linha escura vetical no lado direito; com 4 ainda aparece resquicios da interpolação
     regs[0x13] = 0x01; // r13
-    regs[0x14] = 0x22; // r14  - Quanto maior o valor mais escuro a imagem. Se fica mais claro, a imagem parece ser mais borrada
+    regs[0x14] = 0x01; // r14  - Quanto maior o valor mais escuro a imagem. Se fica mais claro, a imagem parece ser mais borrada
     regs[0x15] = 0x28; // r15
-    regs[0x16] = 0x1f; // r16
+    regs[0x16] = 0x1e; // r16
     /* Vga mode emulation on SIF sensor? */
 	if (0/*cam->cam_mode[gspca_dev->curr_mode].priv & MODE_REDUCED_SIF*/) {
 		regs[0x12] += 16;	/* hstart adjust */
@@ -3002,7 +3002,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
     regs[0x17] = 0x64; // r17
 	/* Set the mode */
-	regs[0x18] = 0x8f; // r18
+	regs[0x18] = 0x89; // r18
 	regs[0x18] |= mode << 4;
 	/* Disable compression when the raw bayer format has been selected */
 	if (cam->cam_mode[gspca_dev->curr_mode].priv & MODE_RAW)
