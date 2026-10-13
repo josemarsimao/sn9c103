@@ -42,7 +42,7 @@ Leia primeiro: `NOTAS_REGISTRADORES.md` (a seção "Varredura das fontes", no fi
 - Melhoria futura: controles XY da janela de AE fora de "Custom" (hoje guardam o valor sem efeito).
 - Contraste/saturação do sensor não atuam em Bayer: decidir manter ou remover.
 - S_CROP / media controller (adiado).
-- Git (raiz em `sn9c103/`): tudo commitado em 2026-10-13 na branch `elgin-fps` (commit 7a5cfce, ainda sem push e sem merge na `main`). `.gitignore` exclui restos de compilação e `__pycache__`. Com o git, as cópias `.bak_*` podem ser removidas quando o Josemar decidir.
+- Git (raiz em `sn9c103/`): tudo commitado em 2026-10-13 na `main` (commits 7a5cfce e seguintes; o Josemar prefere trabalhar direto na `main`, sem branch). Push para o GitHub ainda não feito: só com autorização. `.gitignore` exclui restos de compilação e `__pycache__`. Com o git, as cópias `.bak_*` podem ser removidas quando o Josemar decidir.
 - Travamento ao trocar de resolução em BA81 sem reiniciar o Multiview (NOTAS, Pendências item 7): reproduzir e ver `dmesg | grep -iE 'bug|oops|warn|call trace'`.
 - Scripts em `testes/` ainda não rodados: `testa_novos.py`, `testa_ganhos.py` (atualizar às tabelas de formato/posição), `testa_7e7f.py`; `testa_awb.py` está obsoleto.
 
