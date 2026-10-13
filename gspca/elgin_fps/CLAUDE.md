@@ -41,8 +41,8 @@ Leia primeiro: `NOTAS_REGISTRADORES.md` (a seção "Varredura das fontes", no fi
 - Verificar se BA81/S910 saem com R/B trocados no `bayer2rgb24` (teste com objeto vermelho vivo).
 - Melhoria futura: controles XY da janela de AE fora de "Custom" (hoje guardam o valor sem efeito).
 - Contraste/saturação do sensor não atuam em Bayer: decidir manter ou remover.
-- S_CROP / media controller (adiado). Limpar PNGs soltos em `elgin_fps/`.
-- Git (raiz em `sn9c103/`): último commit em 2022-11-10; `elgin/elgin_sn9c103.c` tem alterações não commitadas de 2022-12-22 e nada de `elgin_fps/` foi commitado (decidir commit único ou temático). O `git status` mostra PDFs de `CHIP_INFO/` apagados e outros novos com nomes diferentes: conferir antes de commitar.
+- S_CROP / media controller (adiado).
+- Git (raiz em `sn9c103/`): tudo commitado em 2026-10-13 na branch `elgin-fps` (commit 7a5cfce, ainda sem push e sem merge na `main`). `.gitignore` exclui restos de compilação e `__pycache__`. Com o git, as cópias `.bak_*` podem ser removidas quando o Josemar decidir.
 - Travamento ao trocar de resolução em BA81 sem reiniciar o Multiview (NOTAS, Pendências item 7): reproduzir e ver `dmesg | grep -iE 'bug|oops|warn|call trace'`.
 - Scripts em `testes/` ainda não rodados: `testa_novos.py`, `testa_ganhos.py` (atualizar às tabelas de formato/posição), `testa_7e7f.py`; `testa_awb.py` está obsoleto.
 
