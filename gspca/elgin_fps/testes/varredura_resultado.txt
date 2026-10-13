@@ -1,0 +1,198 @@
+Varredura de registradores NAO documentados do sensor OV7630 (modo S910 160x120).
+
+Fase 1  leitura: le os 256 enderecos do sensor DURANTE a captura, duas vezes (marca com * os que mudam
+        sozinhos) -> mostra quais enderecos respondem.
+Fase 2  escrita: para cada registrador reservado do datasheet (07-09 0E-0F 1E 34-4B 4E-5F 69-6E 7B 7E-7F)
+        grava 0x00 e depois 0xFF (via regs_start, a cada inicio de captura), e mede: se o stream continua,
+        fps, brilho, contraste, diferenca entre linhas e colunas, tamanho comprimido e se o valor "gruda"
+        (leitura de volta). O valor original e' restaurado antes do caso seguinte.
+Fase 3  bits: nos registradores que mudaram algo, testa os 8 bits um a um (valor = 1 << bit).
+
+Mantenha a camera apontada para uma cena PARADA e bem iluminada durante todo o teste (~15 a 20 min).
+Pede sudo uma vez. Resultado: varredura_resultado.txt e as imagens de cada caso em varredura/*.png
+Se um registrador deixar o sensor preso, o script avisa (desconecte e reconecte a camera).
+
+Uso:  python3 varredura.py                  (fases 1, 2 e 3 nos registradores reservados)
+      python3 varredura.py --so-leitura     (so a fase 1)
+      python3 varredura.py 34-4b 7b          (so esses enderecos, em hexadecimal)
+      python3 varredura.py --ext             (inclui tambem 0x80-0xFF, +30 min)
+      python3 varredura.py --30              (usa 30 fps em vez de 60 fps)
+
+
+==== FASE 1: leitura dos 256 enderecos do sensor (durante a captura) ====
+       +0  +1  +2  +3  +4  +5  +6  +7  +8  +9  +a  +b  +c  +d  +e  +f 
+0x00:  3f  77  3a  80  10  20  cd  29  29* 29  76  31  20  20  29  29*
+0x10:  20  00  78  80  a0  34  03  1c  bd  06  f6  04  7f  a2  29* 00 
+0x20:  40  80  80  ee  10  8a  a0  9a  80  30  80  00  88  41  80  3d 
+0x30:  24  00  86  08  29  29  29  29  29  29  29  29  29  29  29  29 
+0x40:  29  2a* 2a* 2a* 2a* 2a* 2a* 2a* 2a* 29  29  29* 00  00  29  29 
+0x50:  28* 29  29  29* 29* 29* 29  29* 29* 29  29* 2a* 29* 29* 2a* 2a*
+0x60:  29  42  12  55  73  00  55  01  ac  38  2a* 00  00  00  00  88 
+0x70:  0b  00  10  50  21  8e  00  f3  80  80  80  29* 29* f7  00  00 
+0x80:  00  3a  cd  76  29  78  03  f6  29  80  a0  80  80  86  29  29 
+0x90:  28* 29  28* 29  29  29  29  29  29  12  55  28* 00  10  00  80 
+0xa0:  00  28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 29  29 
+0xb0:  28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 28* 28*
+0xc0:  28* 3a  cd  76  29  78  03  f6  28* 80  a0  80  80  86  29  29 
+0xd0:  29  29  29  29  29  29  29  28* 28* 12  55  28* 00  10  00  80 
+0xe0:  00  28* 28* 28* 29  29  29  29  29  29  29  28* 29  29  29  29 
+0xf0:  29  29  29  29  29  29* 28* 28* 29  28* 28* 29  29  28* 28* 28*
+(-- = leitura falhou; * = mudou entre as duas leituras)
+
+==== FASE 2: escrita de 0x00/0xff em 57 registradores (modo S910 160x120, 60 fps) ====
+base 1: 59.5    media= 30.8 dp= 12.8 linhas=0.011 colunas=0.103 bytes=5231
+base 2: 59.5    media= 31.0 dp= 12.7 linhas=0.007 colunas=0.106 bytes=5218
+base 3: 59.5    media= 30.6 dp= 12.8 linhas=0.007 colunas=0.104 bytes=5220
+0x07=0x00  lido=29    59.5    media= 30.8 dp= 12.8 linhas=0.011 colunas=0.101 bytes=5213  
+0x07=0xff  lido=29    59.5    media= 30.7 dp= 12.8 linhas=0.011 colunas=0.097 bytes=5209  
+0x08=0x00  lido=29    59.5    media= 30.6 dp= 12.7 linhas=0.009 colunas=0.102 bytes=5203  
+0x08=0xff  lido=29    59.9    media= 30.7 dp= 12.7 linhas=0.010 colunas=0.096 bytes=5189  
+0x09=0x00  lido=29    59.5    media= 30.6 dp= 12.7 linhas=0.007 colunas=0.097 bytes=5210  
+0x09=0xff  lido=29    59.5    media= 30.9 dp= 12.8 linhas=0.012 colunas=0.101 bytes=5228  
+0x0e=0x00  lido=29    59.5    media= 30.7 dp= 12.7 linhas=0.011 colunas=0.093 bytes=5194  
+0x0e=0xff  lido=2a    59.5    media= 30.8 dp= 13.0 linhas=0.007 colunas=0.093 bytes=5242  
+0x0f=0x00  lido=2a    59.5    media= 30.9 dp= 12.6 linhas=0.009 colunas=0.101 bytes=5209  
+0x0f=0xff  lido=2a    59.5    media= 30.9 dp= 12.9 linhas=0.009 colunas=0.100 bytes=5249  
+0x1e=0x00  lido=29    59.9    media= 30.5 dp= 12.8 linhas=0.010 colunas=0.107 bytes=5219  
+0x1e=0xff  lido=29    59.9    media= 30.8 dp= 12.8 linhas=0.010 colunas=0.098 bytes=5216  
+0x34=0x00  lido=29    59.5    media= 30.5 dp= 12.8 linhas=0.008 colunas=0.101 bytes=5219  
+0x34=0xff  lido=29    59.5    media= 30.8 dp= 12.8 linhas=0.009 colunas=0.103 bytes=5221  
+0x35=0x00  lido=29    59.9    media= 30.9 dp= 12.7 linhas=0.012 colunas=0.103 bytes=5222  
+0x35=0xff  lido=29    59.5    media= 30.9 dp= 12.8 linhas=0.008 colunas=0.098 bytes=5229  
+0x36=0x00  lido=29    59.5    media= 30.7 dp= 12.8 linhas=0.012 colunas=0.106 bytes=5212  
+0x36=0xff  lido=2a    59.5    media= 31.0 dp= 12.8 linhas=0.008 colunas=0.107 bytes=5215  
+0x37=0x00  lido=2a    59.5    media= 31.0 dp= 12.7 linhas=0.009 colunas=0.098 bytes=5223  
+0x37=0xff  lido=29    59.9    media= 31.1 dp= 12.8 linhas=0.012 colunas=0.106 bytes=5247  
+0x38=0x00  lido=29    59.9    media= 30.6 dp= 12.7 linhas=0.011 colunas=0.109 bytes=5209  
+0x38=0xff  lido=29    59.5    media= 31.0 dp= 12.7 linhas=0.010 colunas=0.106 bytes=5204  
+0x39=0x00  lido=29    59.9    media= 31.1 dp= 12.8 linhas=0.008 colunas=0.104 bytes=5217  
+0x39=0xff  lido=2a    59.9    media= 31.0 dp= 12.7 linhas=0.009 colunas=0.093 bytes=5259  
+0x3a=0x00  lido=29    59.9    media= 31.2 dp= 12.7 linhas=0.009 colunas=0.103 bytes=5213  
+0x3a=0xff  lido=2a    59.5    media= 31.1 dp= 12.8 linhas=0.010 colunas=0.104 bytes=5227  
+0x3b=0x00  lido=2a    59.9    media= 30.9 dp= 12.7 linhas=0.008 colunas=0.098 bytes=5228  
+0x3b=0xff  lido=29    59.5    media= 31.0 dp= 12.7 linhas=0.009 colunas=0.107 bytes=5194  
+0x3c=0x00  lido=29    59.5    media= 30.9 dp= 12.7 linhas=0.010 colunas=0.101 bytes=5211  
+0x3c=0xff  lido=28    59.5    media= 30.1 dp= 12.6 linhas=0.010 colunas=0.092 bytes=5196  
+0x3d=0x00  lido=29    59.9    media= 29.6 dp= 12.2 linhas=0.011 colunas=0.098 bytes=5155  
+0x3d=0xff  lido=2a    59.9    media= 31.2 dp= 12.9 linhas=0.012 colunas=0.097 bytes=5243  
+0x3e=0x00  lido=2a    59.9    media= 31.1 dp= 12.8 linhas=0.010 colunas=0.092 bytes=5264  
+0x3e=0xff  lido=2b    59.5    media= 31.8 dp= 13.4 linhas=0.009 colunas=0.095 bytes=5288  
+0x3f=0x00  lido=2a    59.5    media= 30.8 dp= 12.7 linhas=0.008 colunas=0.103 bytes=5219  
+0x3f=0xff  lido=2a    59.5    media= 31.8 dp= 13.3 linhas=0.009 colunas=0.085 bytes=5310  
+0x40=0x00  lido=2a    59.5    media= 31.1 dp= 12.8 linhas=0.008 colunas=0.103 bytes=5250  
+0x40=0xff  lido=2a    59.5    media= 31.9 dp= 12.9 linhas=0.008 colunas=0.100 bytes=5251  
+0x41=0x00  lido=2a    59.5    media= 31.6 dp= 12.8 linhas=0.011 colunas=0.095 bytes=5243  
+0x41=0xff  lido=2a    59.5    media= 31.5 dp= 12.8 linhas=0.010 colunas=0.095 bytes=5236  
+0x42=0x00  lido=2a    59.5    media= 31.4 dp= 12.7 linhas=0.009 colunas=0.093 bytes=5260  
+0x42=0xff  lido=29    59.5    media= 31.4 dp= 12.9 linhas=0.007 colunas=0.096 bytes=5271  
+0x43=0x00  lido=2a    59.5    media= 31.3 dp= 12.8 linhas=0.008 colunas=0.099 bytes=5256  
+0x43=0xff  lido=2a    59.5    media= 31.3 dp= 12.7 linhas=0.014 colunas=0.088 bytes=5203  
+0x44=0x00  lido=2a    59.5    media= 31.4 dp= 13.0 linhas=0.007 colunas=0.110 bytes=5260  
+0x44=0xff  lido=2a    59.5    media= 31.1 dp= 12.8 linhas=0.010 colunas=0.093 bytes=5230  
+0x45=0x00  lido=29    59.9    media= 31.0 dp= 12.8 linhas=0.011 colunas=0.103 bytes=5219  
+0x45=0xff  lido=2a    59.5    media= 31.2 dp= 12.7 linhas=0.011 colunas=0.098 bytes=5239  
+0x46=0x00  lido=2a    59.5    media= 31.1 dp= 12.8 linhas=0.007 colunas=0.106 bytes=5248  
+0x46=0xff  lido=2a    59.9    media= 31.1 dp= 12.8 linhas=0.012 colunas=0.097 bytes=5248  
+0x47=0x00  lido=2a    59.5    media= 31.3 dp= 12.9 linhas=0.008 colunas=0.095 bytes=5239  
+0x47=0xff  lido=2a    59.9    media= 31.4 dp= 12.7 linhas=0.009 colunas=0.088 bytes=5256  
+0x48=0x00  lido=2a    59.9    media= 31.4 dp= 12.8 linhas=0.007 colunas=0.087 bytes=5235  
+0x48=0xff  lido=2a    59.9    media= 31.1 dp= 12.9 linhas=0.011 colunas=0.100 bytes=5244  
+0x49=0x00  lido=2a    59.5    media= 31.2 dp= 12.8 linhas=0.009 colunas=0.094 bytes=5231  
+0x49=0xff  lido=2a    59.5    media= 31.4 dp= 12.8 linhas=0.010 colunas=0.096 bytes=5225  
+0x4a=0x00  lido=2a    59.5    media= 31.0 dp= 12.9 linhas=0.009 colunas=0.098 bytes=5203  
+0x4a=0xff  lido=29    59.9    media= 31.0 dp= 12.8 linhas=0.009 colunas=0.097 bytes=5243  
+0x4b=0x00  lido=2a    59.9    media= 31.3 dp= 12.8 linhas=0.009 colunas=0.093 bytes=5226  
+0x4b=0xff  lido=2a    59.9    media= 31.0 dp= 12.8 linhas=0.012 colunas=0.101 bytes=5231  
+0x4e=0x00  lido=2a    59.5    media= 31.3 dp= 12.7 linhas=0.008 colunas=0.092 bytes=5237  
+0x4e=0xff  lido=2a    59.5    media= 31.2 dp= 12.7 linhas=0.009 colunas=0.091 bytes=5234  
+0x4f=0x00  lido=29    59.5    media= 30.0 dp= 12.3 linhas=0.010 colunas=0.098 bytes=5178  
+0x4f=0xff  lido=29    59.5    media= 31.0 dp= 12.5 linhas=0.011 colunas=0.096 bytes=5206  
+0x50=0x00  lido=29    59.9    media= 30.6 dp= 12.4 linhas=0.010 colunas=0.102 bytes=5195  
+0x50=0xff  lido=29    59.5    media= 31.3 dp= 12.8 linhas=0.010 colunas=0.097 bytes=5236  
+0x51=0x00  lido=2a    59.9    media= 30.4 dp= 12.4 linhas=0.010 colunas=0.094 bytes=5198  
+0x51=0xff  lido=29    59.5    media= 30.6 dp= 12.3 linhas=0.011 colunas=0.094 bytes=5194  
+0x52=0x00  lido=2a    59.9    media= 30.4 dp= 12.3 linhas=0.011 colunas=0.101 bytes=5215  
+0x52=0xff  lido=29    59.5    media= 30.7 dp= 12.5 linhas=0.011 colunas=0.094 bytes=5232  
+0x53=0x00  lido=29    59.5    media= 31.1 dp= 12.6 linhas=0.012 colunas=0.087 bytes=5203  
+0x53=0xff  lido=2a    59.9    media= 31.6 dp= 12.9 linhas=0.011 colunas=0.091 bytes=5244  
+0x54=0x00  lido=29    59.9    media= 30.6 dp= 12.5 linhas=0.010 colunas=0.091 bytes=5196  
+0x54=0xff  lido=29    59.9    media= 30.7 dp= 12.5 linhas=0.010 colunas=0.106 bytes=5204  
+0x55=0x00  lido=29    59.9    media= 30.6 dp= 12.4 linhas=0.012 colunas=0.106 bytes=5208  
+0x55=0xff  lido=29    59.9    media= 30.6 dp= 12.5 linhas=0.009 colunas=0.098 bytes=5207  
+0x56=0x00  lido=2a    59.5    media= 30.7 dp= 12.7 linhas=0.008 colunas=0.094 bytes=5217  
+0x56=0xff  lido=29    59.9    media= 31.1 dp= 12.4 linhas=0.008 colunas=0.090 bytes=5198  
+0x57=0x00  lido=29    59.5    media= 31.2 dp= 12.5 linhas=0.009 colunas=0.099 bytes=5188  
+0x57=0xff  lido=2a    59.5    media= 30.8 dp= 12.5 linhas=0.008 colunas=0.093 bytes=5202  
+0x58=0x00  lido=29    59.5    media= 30.5 dp= 12.4 linhas=0.009 colunas=0.097 bytes=5209  
+0x58=0xff  lido=29    59.5    media= 31.4 dp= 12.8 linhas=0.011 colunas=0.092 bytes=5227  
+0x59=0x00  lido=2a    59.5    media= 31.3 dp= 12.8 linhas=0.010 colunas=0.097 bytes=5265  
+0x59=0xff  lido=2a    59.5    media= 30.8 dp= 12.7 linhas=0.008 colunas=0.090 bytes=5195  
+0x5a=0x00  lido=29    59.9    media= 30.7 dp= 12.6 linhas=0.011 colunas=0.097 bytes=5204  
+0x5a=0xff  lido=29    59.5    media= 31.1 dp= 12.5 linhas=0.011 colunas=0.094 bytes=5210  
+0x5b=0x00  lido=29    59.5    media= 30.7 dp= 12.6 linhas=0.009 colunas=0.098 bytes=5205  
+0x5b=0xff  lido=29    59.5    media= 30.5 dp= 12.4 linhas=0.010 colunas=0.097 bytes=5182  
+0x5c=0x00  lido=29    59.9    media= 30.3 dp= 12.3 linhas=0.010 colunas=0.105 bytes=5188  
+0x5c=0xff  lido=29    59.9    media= 32.0 dp= 13.4 linhas=0.011 colunas=0.094 bytes=5334  
+0x5d=0x00  lido=2a    59.9    media= 32.5 dp= 12.5 linhas=0.009 colunas=0.085 bytes=5270  
+0x5d=0xff  lido=2a    59.5    media= 31.3 dp= 12.4 linhas=0.009 colunas=0.092 bytes=5191  
+0x5e=0x00  lido=29    59.9    media= 30.9 dp= 12.4 linhas=0.011 colunas=0.094 bytes=5217  
+0x5e=0xff  lido=2a    59.5    media= 31.1 dp= 12.4 linhas=0.010 colunas=0.091 bytes=5199  
+0x5f=0x00  lido=29    59.5    media= 30.9 dp= 12.3 linhas=0.011 colunas=0.100 bytes=5201  
+0x5f=0xff  lido=29    59.5    media= 30.8 dp= 12.3 linhas=0.009 colunas=0.097 bytes=5240  
+0x69=0x00  gruda      59.5    media= 59.4 dp= 19.9 linhas=0.005 colunas=0.090 bytes=6496  BRILHO
+0x69=0xff  gruda      59.5    media= 25.7 dp= 10.7 linhas=0.011 colunas=0.102 bytes=4868  
+0x6a=0x00  lido=2a    59.5    media= 30.7 dp= 12.3 linhas=0.009 colunas=0.090 bytes=5195  
+0x6a=0xff  lido=2a    59.9    media= 30.4 dp= 12.4 linhas=0.012 colunas=0.090 bytes=5184  
+0x6b=0xff  gruda      58.9    media= 75.2 dp=  6.6 linhas=0.005 colunas=0.172 bytes=2637  BRILHO CONTRASTE COLUNAS TAMANHO
+0x6c=0xff  gruda      56.8    media= 31.3 dp= 13.4 linhas=0.006 colunas=0.094 bytes=6048  
+0x6d=0xff  gruda      59.5    media= 30.9 dp= 12.3 linhas=0.010 colunas=0.096 bytes=5167  
+0x6e=0xff  gruda      59.5    media= 30.7 dp= 12.3 linhas=0.009 colunas=0.097 bytes=5218  
+0x7b=0x00  lido=28    59.9    media= 30.3 dp= 12.3 linhas=0.007 colunas=0.093 bytes=5190  
+0x7b=0xff  lido=29    59.5    media= 30.5 dp= 12.6 linhas=0.008 colunas=0.098 bytes=5212  
+0x7e=0xff  gruda      30.5    media= 60.2 dp= 23.6 linhas=0.004 colunas=0.051 bytes=6569  FPS BRILHO CONTRASTE COLUNAS
+0x7f=0xff  gruda      travou  sem imagem  PAROU
+
+==== FASE 3: bits dos registradores que mudaram algo (0x69 0x6b 0x7e 0x7f) ====
+0x69 bit 0 (=0x01)  59.5    media= 50.4 dp= 17.0 linhas=0.007 colunas=0.080 bytes=6031  BRILHO
+0x69 bit 1 (=0x02)  59.9    media= 44.0 dp= 15.7 linhas=0.006 colunas=0.082 bytes=5732  
+0x69 bit 2 (=0x04)  59.5    media= 70.7 dp= 26.0 linhas=0.003 colunas=0.081 bytes=7267  BRILHO CONTRASTE
+0x69 bit 3 (=0x08)  59.9    media= 31.0 dp= 13.5 linhas=0.008 colunas=0.111 bytes=6032  
+0x69 bit 4 (=0x10)  59.5    media= 60.2 dp= 20.0 linhas=0.002 colunas=0.071 bytes=6519  BRILHO
+0x69 bit 5 (=0x20)  59.5    media= 59.7 dp= 20.6 linhas=0.005 colunas=0.075 bytes=6516  BRILHO CONTRASTE
+0x69 bit 6 (=0x40)  59.9    media= 59.9 dp= 20.4 linhas=0.004 colunas=0.080 bytes=6533  BRILHO
+0x69 bit 7 (=0x80)  59.5    media= 59.8 dp= 20.4 linhas=0.004 colunas=0.083 bytes=6514  BRILHO
+0x6b bit 0 (=0x01)  59.9    media= 30.0 dp= 12.6 linhas=0.010 colunas=0.115 bytes=5237  
+0x6b bit 1 (=0x02)  59.9    media= 28.5 dp= 12.5 linhas=0.010 colunas=0.123 bytes=5220  
+0x6b bit 2 (=0x04)  59.5    media= 25.5 dp= 12.6 linhas=0.015 colunas=0.175 bytes=5210  COLUNAS
+0x6b bit 3 (=0x08)  59.5    media= 19.4 dp= 12.5 linhas=0.017 colunas=0.275 bytes=5160  COLUNAS
+0x6b bit 4 (=0x10)  59.5    media= 12.3 dp= 11.8 linhas=0.023 colunas=0.483 bytes=4770  BRILHO COLUNAS
+0x6b bit 5 (=0x20)  59.5    media=  2.7 dp=  6.2 linhas=0.019 colunas=1.009 bytes=3113  BRILHO CONTRASTE COLUNAS TAMANHO
+0x6b bit 6 (=0x40)  59.5    media=  0.0 dp=  0.5 linhas=0.027 colunas=1.925 bytes=2423  BRILHO CONTRASTE COLUNAS TAMANHO
+0x6b bit 7 (=0x80)  59.5    media= 31.1 dp= 12.6 linhas=0.007 colunas=0.100 bytes=5193  
+0x7e bit 0 (=0x01)  59.5    media= 31.0 dp= 12.6 linhas=0.011 colunas=0.106 bytes=5243  
+0x7e bit 1 (=0x02)  59.5    media= 31.5 dp= 12.7 linhas=0.009 colunas=0.093 bytes=5219  
+0x7e bit 2 (=0x04)  58.9    media= 31.9 dp= 12.7 linhas=0.008 colunas=0.090 bytes=5241  
+0x7e bit 3 (=0x08)  58.0    media= 32.6 dp= 12.9 linhas=0.008 colunas=0.090 bytes=5272  
+0x7e bit 4 (=0x10)  56.5    media= 33.1 dp= 13.2 linhas=0.008 colunas=0.088 bytes=5318  
+0x7e bit 5 (=0x20)  53.4    media= 34.3 dp= 13.8 linhas=0.009 colunas=0.089 bytes=5367  FPS
+0x7e bit 6 (=0x40)  48.2    media= 38.0 dp= 15.2 linhas=0.007 colunas=0.082 bytes=5554  FPS
+0x7e bit 7 (=0x80)  40.4    media= 48.0 dp= 19.2 linhas=0.006 colunas=0.068 bytes=6069  FPS
+0x7f bit 0 (=0x01)  30.4    media= 61.0 dp= 24.2 linhas=0.004 colunas=0.052 bytes=6620  FPS BRILHO CONTRASTE COLUNAS
+0x7f bit 1 (=0x02)  20.2    media= 73.7 dp= 28.8 linhas=0.003 colunas=0.034 bytes=7143  FPS BRILHO CONTRASTE COLUNAS
+0x7f bit 2 (=0x04)  11.9    media= 70.8 dp= 25.6 linhas=0.003 colunas=0.023 bytes=6694  FPS BRILHO CONTRASTE COLUNAS
+0x7f bit 3 (=0x08)  travou  media= 74.7 dp= 22.2 linhas=0.002 colunas=0.015 bytes=6386  PAROU
+0x7f bit 4 (=0x10)  travou  media=119.4 dp= 22.6 linhas=0.002 colunas=0.106 bytes=7077  PAROU
+0x7f bit 5 (=0x20)  travou  media=158.4 dp= 15.8 linhas=0.003 colunas=0.164 bytes=6361  PAROU
+0x7f bit 6 (=0x40)  travou  media=187.4 dp= 17.3 linhas=0.003 colunas=0.165 bytes=6219  PAROU
+0x7f bit 7 (=0x80)  travou  media=226.0 dp= 15.0 linhas=0.003 colunas=0.124 bytes=4785  PAROU
+
+==== RESUMO: registradores que alteraram o comportamento ====
+0x69  brilho
+0x6b  brilho colunas contraste tamanho
+0x7e  brilho colunas contraste fps
+0x7f  PAROU
+
+base: fps=59.5 media=30.8 dp=12.8 linhas<=0.011 colunas=0.104 bytes=5220
+LINHAS = as linhas pares e impares passaram a diferir (pista de cor completa).
+
+verificacao final (registrador restaurado, regs_start limpo): 58.0    media= 31.9 dp= 13.8 linhas=0.012 colunas=0.105 bytes=6069

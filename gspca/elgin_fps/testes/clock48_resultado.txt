@@ -1,0 +1,33 @@
+Testa se o ruido a 48 MHz vem da borda de captura (reg 0x18 bit 0) ou do clock invertido (reg 0x17 bit 6).
+
+No modo S910 160x120 pedindo 60 fps o driver grava 0x17=0x68 (24 MHz) e 0x18=0x9F. Casos (via regs_start):
+  controle 24 MHz:  0x17=0x68/0x18=0x9F (atual) · 0x68/0x9E (captura na descida) · 0x28/0x9F (clock do sensor sem inversao)
+  48 MHz:           0x6C/0x9F (ja medido: ruido) · 0x6C/0x9E · 0x2C/0x9F · 0x2C/0x9E
+Para cada caso mede fps, bytes por quadro, taxa USB e a CORRELACAO entre pixels vizinhos de mesma cor
+(imagem de verdade: perto de 1; ruido: perto de 0). Veredito IMAGEM se a correlacao passar de 0,6.
+
+Aponte a camera para uma cena PARADA, com detalhe e sem estourar. ~1,5 minuto. Pede sudo uma vez.
+Resultado: clock48_resultado.txt e as imagens em clock48/*.png. No fim o regs_start e' limpo.
+
+Uso:  python3 testa_clock48.py
+
+24 MHz atual               0x17=0x68 0x18=0x9f  59.5    media= 30.0 dp= 12.6 bytes= 5183 USB~ 301 KB/s  corr=0.90  IMAGEM
+24 MHz capt. descida       0x17=0x68 0x18=0x9e  59.5    media= 31.1 dp= 13.4 bytes= 5660 USB~ 329 KB/s  corr=0.85  IMAGEM
+24 MHz clock sem inv.      0x17=0x28 0x18=0x9f  59.5    media= 30.1 dp= 12.6 bytes= 5162 USB~ 300 KB/s  corr=0.90  IMAGEM
+48 MHz                     0x17=0x6c 0x18=0x9f  119.3   media= 27.2 dp=  6.8 bytes= 6706 USB~ 781 KB/s  corr=0.27  RUIDO
+48 MHz capt. descida       0x17=0x6c 0x18=0x9e  119.3   media= 33.2 dp=  7.6 bytes= 7071 USB~ 824 KB/s  corr=0.20  RUIDO
+48 MHz clock sem inv.      0x17=0x2c 0x18=0x9f  travou  sem imagem
+48 MHz sem inv. + descida  0x17=0x2c 0x18=0x9e  119.6   sem imagem
+
+regs_start limpo.
+
+==== RESUMO ====
+24 MHz atual               fps=59.5    IMAGEM
+24 MHz capt. descida       fps=59.5    IMAGEM
+24 MHz clock sem inv.      fps=59.5    IMAGEM
+48 MHz                     fps=119.3   RUIDO
+48 MHz capt. descida       fps=119.3   RUIDO
+48 MHz clock sem inv.      fps=travou  SEM IMAGEM
+48 MHz sem inv. + descida  fps=119.6   SEM IMAGEM
+
+Nenhum caso a 48 MHz devolveu imagem limpa: o limite parece ser o sensor (maximo 40 MHz), nao a captura.

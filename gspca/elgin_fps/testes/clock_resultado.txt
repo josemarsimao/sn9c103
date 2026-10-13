@@ -1,0 +1,33 @@
+Testa se o fps muda quando o clock mestre do sensor (reg 0x17 da ponte, bits 3:2) muda.
+
+Casos (modo S910 160x120, pedindo 30 e 60 fps, sem recompilar: usa regs_start):
+  0x64 = 12 MHz   0x68 = 24 MHz (o do driver hoje)   0x6C = 48 MHz (acima do maximo de 40 MHz do sensor)
+Para cada um mede: fps real, se o quadro decodifica, brilho, contraste, bytes por quadro e a taxa de
+dados USB (fps x bytes). Se o fps escalar com o clock, o clock manda no fps.
+
+Aponte a camera para uma cena PARADA, com detalhe e sem estourar. ~2 minutos. Pede sudo uma vez.
+Resultado: clock_resultado.txt e as imagens em clock/*.png. No fim o regs_start e' limpo.
+
+Uso:  python3 testa_clock.py
+
+0x17=0x64 12 MHz          pede 30 fps -> 14.1    media= 71.0 dp= 30.1 bytes= 6916  USB~  95 KB/s
+0x17=0x64 12 MHz          pede 60 fps -> 29.8    media= 61.4 dp= 25.9 bytes= 6863  USB~ 200 KB/s
+0x17=0x68 24 MHz (atual)  pede 30 fps -> 28.1    media= 66.2 dp= 27.6 bytes= 6745  USB~ 185 KB/s
+0x17=0x68 24 MHz (atual)  pede 60 fps -> 59.5    media= 30.2 dp= 13.7 bytes= 5988  USB~ 348 KB/s
+0x17=0x6c 48 MHz          pede 30 fps -> travou  sem imagem
+0x17=0x6c 48 MHz          pede 60 fps -> 119.8   media= 45.8 dp= 13.9 bytes= 8430  USB~ 987 KB/s
+
+regs_start limpo.
+
+==== RESUMO ====
+reg 0x17   clock           pedido     fps      leitura
+0x64       12 MHz          30         14.1     fps x 0.50 em relacao a 24 MHz
+0x64       12 MHz          60         29.8     fps x 0.50 em relacao a 24 MHz
+0x68       24 MHz (atual)  30         28.1     fps x 1.00 em relacao a 24 MHz
+0x68       24 MHz (atual)  60         59.5     fps x 1.00 em relacao a 24 MHz
+0x6c       48 MHz          30         travou   SEM IMAGEM / TRAVOU
+0x6c       48 MHz          60         119.8    fps x 2.01 em relacao a 24 MHz
+
+Se o fps escalou com o clock (x0,5 / x1 / x2) o clock manda no fps. Se a imagem saiu estragada ou sem
+imagem em 48 MHz, o sensor (maximo 40 MHz) ou a ponte nao acompanha. A taxa USB ~ fps x bytes deve ficar
+abaixo de ~900 KB/s; acima disso o quadro e cortado.

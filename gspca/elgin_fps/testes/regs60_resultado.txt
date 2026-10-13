@@ -1,0 +1,17 @@
+
+registrador do sensor lido DURANTE a captura (valor bruto devolvido pelo driver)
+
+reg      nome   pedindo 30 fps             pedindo 60 fps            
+0x11     CLKRC  s:0x11 = 0x00  (cru: 00 00 11 00 00) s:0x11 = 0x00  (cru: 00 00 11 00 00)
+0x12     COMA   s:0x12 = 0x78  (cru: 00 00 12 00 78) s:0x12 = 0x78  (cru: 00 00 12 00 78)
+0x13     COMB   s:0x13 = 0x80  (cru: 00 00 13 00 80) s:0x13 = 0x80  (cru: 00 00 13 00 80)
+0x14     COMC   s:0x14 = 0x80  (cru: 00 00 14 00 80) s:0x14 = 0xa0  (cru: 00 00 14 00 a0)
+0x28     COMH   s:0x28 = 0xa0  (cru: 00 00 28 00 a0) s:0x28 = 0x80  (cru: 00 00 28 00 80)
+0x2a     FRARH  s:0x2a = 0x80  (cru: 00 00 2a 00 80) s:0x2a = 0x80  (cru: 00 00 2a 00 80)
+0x2b     FRARL  s:0x2b = 0x00  (cru: 00 00 2b 00 00) s:0x2b = 0x00  (cru: 00 00 2b 00 00)
+0x2d     COMJ   s:0x2d = 0x01  (cru: 00 00 2d 00 01) s:0x2d = 0x41  (cru: 00 00 2d 00 41)
+0x10     AEC    s:0x10 = 0x0a  (cru: 00 00 10 00 0a) s:0x10 = 0x0a  (cru: 00 00 10 00 0a)
+0x00     GAIN   s:0x00 = 0x06  (cru: 00 00 00 00 06) s:0x00 = 0x06  (cru: 00 00 00 00 06)
+
+fps medido: pedindo 30 -> 30.000 | pedindo 60 -> 60.000
+esperado em 60 fps: COMC=0xa0, COMH=0x80, COMJ=0xc1, CLKRC=0x00

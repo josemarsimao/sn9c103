@@ -1,0 +1,12 @@
+# restos de compilacao do kernel (gerados de novo pelo make)
+*.o
+*.ko
+*.cmd
+*.mod
+*.mod.c
+*.o.d
+modules.order
+Module.symvers
+.tmp_versions/
+# cache do Python
+__pycache__/

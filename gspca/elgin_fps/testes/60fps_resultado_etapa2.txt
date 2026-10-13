@@ -1,0 +1,11 @@
+S910 160x120, pedindo 30 fps (n=0); a taxa real vem do v4l2-ctl
+
+configuracao                                                                 fps    bytes   sobra  media   corr regs_start
+A  referencia (nada)                                                       29.92     4423     0.1   43.3   1.00 
+D  QVGA + janela 320x240 e escala 1/2 (30 fps)                             29.92     4996     0.4   43.7   0.95 s:0x14=0xa0,b:0x15=0x14,b:0x16=0x0f,b:0x18=0x9f
+G  D + COMJ bit 6 + COMH 0x80 (entrelacado)  (alvo: 60 fps)                59.53     4387     0.5   21.5   0.88 s:0x14=0xa0,s:0x2d=0xc1,s:0x28=0x80,b:0x15=0x14,b:0x16=0x0f,b:0x18=0x9f
+H  D + COMH 0x80 (entrelacado), sem COMJ                                   59.52     4477     0.0   24.6   0.92 s:0x14=0xa0,s:0x28=0x80,b:0x15=0x14,b:0x16=0x0f,b:0x18=0x9f
+I  so COMH 0x80 em VGA (entrelacado)                                       59.52     2173 -1199.9   34.5   0.26 s:0x28=0x80
+J  D + COMJ bit 6 + COMH 0x00 (duas linhas; a ponte nao entende)           59.53     4258     0.5   24.1   0.97 s:0x14=0xa0,s:0x2d=0xc1,s:0x28=0x00,b:0x15=0x14,b:0x16=0x0f,b:0x18=0x9f
+
+regs_start devolvido ao padrao. PNGs em testes/60fps_etapa2/.

@@ -1,0 +1,1057 @@
+010806: Abort Pipe (UP), 2022-12-09 22:13:38,9302018 +0,0000069. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: 0x852bdc6c (Endpoint Address: 0x81)
+010807: Abort Pipe (DOWN), 2022-12-09 22:13:38,9308855 +0,0006837 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Pipe Handle: 0x852bdcac (Endpoint Address: 0x83)
+010808: Abort Pipe (UP), 2022-12-09 22:13:38,9471965 +0,0163110. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: 0x852bdcac (Endpoint Address: 0x83)
+010809: Vendor-Specific Request (DOWN), 2022-12-09 22:13:38,9473024 +0,0001059 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x1
+Send 0x1 bytes to the device
+
+ 49                                                I
+010810: Control Transfer (UP), 2022-12-09 22:13:38,9475260 +0,0002236. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 48                                                H
+Setup Packet
+ 41 08 01 00 00 00 01 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x1
+Index: 0x0
+Length: 0x1
+010811: Vendor-Specific Request (DOWN), 2022-12-09 22:13:38,9475414 +0,0000154 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x17
+Send 0x1 bytes to the device
+
+ 48                                                H
+
+010812: Control Transfer (UP), 2022-12-09 22:13:38,9477720 +0,0002306. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 48                                                H
+Setup Packet
+ 41 08 17 00 00 00 01 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x17
+Index: 0x0
+Length: 0x1
+010813: Vendor-Specific Request (DOWN), 2022-12-09 22:13:38,9478325 +0,0000605 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x1
+Send 0x2 bytes to the device
+
+ 49 44                                             ID
+
+010814: Control Transfer (UP), 2022-12-09 22:13:38,9479988 +0,0001663. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 03 00                                             ..
+Setup Packet
+ 41 08 01 00 00 00 02 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x1
+Index: 0x0
+Length: 0x2
+010815: Select Interface (DOWN), 2022-12-09 22:13:38,9480488 +0,0000500 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Configuration Handle: 0x8724b6d8, Interface Number: 0x0, Alternate Setting: 0x0
+
+
+010816: Select Interface (UP), 2022-12-09 22:13:39,0525553 +0,0000027. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Configuration Handle: 0x8724b6d8, Interface Number: 0x0, Alternate Setting: 0x0
+
+
+010818: Abort Pipe (DOWN), 2022-12-09 22:15:27,7848289 +108,7304271 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Pipe Handle: 0x8661974c (Endpoint Address: 0x83)
+
+
+010819: Bulk or Interrupt Transfer (UP), 2022-12-09 22:15:27,8014879 +0,0166590. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0xc0010000
+Pipe Handle: 0x8661974c (Endpoint Address: 0x83)
+Get 0x0 bytes from the device
+
+010820: Abort Pipe (UP), 2022-12-09 22:15:27,8014963 +0,0000084. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: 0x8661974c (Endpoint Address: 0x83)
+
+
+010821: Select Interface (DOWN), 2022-12-09 22:15:27,8016126 +0,0001163 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Configuration Handle: 0x8724b6d8, Interface Number: 0x0, Alternate Setting: 0x8
+
+
+010822: Select Interface (UP), 2022-12-09 22:15:27,8716104 +0,0000011. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Configuration Handle: 0x8724b6d8, Interface Number: 0x0, Alternate Setting: 0x8
+
+
+010823: Vendor-Specific Request (DOWN), 2022-12-09 22:15:27,8719346 +0,0003242 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x1
+Send 0x1 bytes to the device
+
+ 44                                                D
+
+010824: Control Transfer (UP), 2022-12-09 22:15:27,8722745 +0,0003399. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 44                                                D
+Setup Packet
+ 41 08 01 00 00 00 01 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x1
+Index: 0x0
+Length: 0x1
+010825: Vendor-Specific Request (DOWN), 2022-12-09 22:15:27,8723468 +0,0000723 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x17
+Send 0x1 bytes to the device
+
+ 68                                                h
+
+010826: Control Transfer (UP), 2022-12-09 22:15:27,8726275 +0,0002807. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 44                                                D
+Setup Packet
+ 41 08 17 00 00 00 01 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x17
+Index: 0x0
+Length: 0x1
+
+010827: Vendor-Specific Request (DOWN), 2022-12-09 22:15:27,8726887 +0,0000612 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x1
+Send 0x2 bytes to the device
+
+ 44 44                                             DD
+010828: Control Transfer (UP), 2022-12-09 22:15:27,8730151 +0,0003264. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 44 44                                             DD
+Setup Packet
+ 41 08 01 00 00 00 02 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x1
+Index: 0x0
+Length: 0x2
+010829: Vendor-Specific Request (DOWN), 2022-12-09 22:15:27,8730752 +0,0000601 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x1
+Send 0x30 bytes to the device
+
+ 44 44 00 1A 20 20 20 80 21 00 00 00 00 00 00 03   DD..   €!.......
+ 00 01 01 0A 16 12 68 8F 20 1D 10 02 03 0F 0C 00   ......h .......
+ 10 20 30 40 50 60 70 80 90 A0 B0 C0 D0 E0 F0 FF   . 0@P`p€ °ÀÐàðÿ
+
+
+010830: Control Transfer (UP), 2022-12-09 22:15:27,8733535 +0,0002783. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 12 80 00 00 00 10 EB 03 00 00 00 00 00 00    !.€....ë.......
+ EB 03 00 00 EB 03 00 00 00 00 00 00 D6 07 00 00   ë...ë.......Ö...
+ 2A 00 00 00 00 00 00 00 C1 0B 00 00 00 00 00 00   *.......Á.......
+
+Setup Packet
+ 41 08 01 00 00 00 30 00                           A.....0.
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x1
+Index: 0x0
+Length: 0x30
+010831: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0744137 +0,2010602 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 12 80 00 00 00 10                            !.€....
+
+010832: Control Transfer (UP), 2022-12-09 22:15:28,0747286 +0,0003149. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ D0 21 12 78 00 80 34 10                           Ð!.x.€4.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010833: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0754311 +0,0007025 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ D0 21 12 78 00 80 34 10                           Ð!.x.€4.
+
+010834: Control Transfer (UP), 2022-12-09 22:15:28,0757241 +0,0002930. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 11 01 00 80 34 10                            !...€4.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010835: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0774410 +0,0017169 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 11 01 00 80 34 10                            !...€4.
+
+010836: Control Transfer (UP), 2022-12-09 22:15:28,0777289 +0,0002879. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0 21 01 77 3A 80 34 10                           °!.w:€4.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010837: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0794447 +0,0017158 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ B0 21 01 77 3A 80 34 10                           °!.w:€4.
+
+010838: Control Transfer (UP), 2022-12-09 22:15:28,0796710 +0,0002263. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 1B 04 3A 80 34 10                            !..:€4.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010839: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0814326 +0,0017616 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 1B 04 3A 80 34 10                            !..:€4.
+
+010840: Control Transfer (UP), 2022-12-09 22:15:28,0817236 +0,0002910. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 20 44 3A 80 34 10                            ! D:€4.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010841: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0834101 +0,0016865 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 20 44 3A 80 34 10                            ! D:€4.
+
+010842: Control Transfer (UP), 2022-12-09 22:15:28,0837239 +0,0003138. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 23 EE 3A 80 34 10                            !#î:€4.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010843: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0854327 +0,0017088 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 23 EE 3A 80 34 10                            !#î:€4.
+
+010844: Control Transfer (UP), 2022-12-09 22:15:28,0857291 +0,0002964. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ D0 21 26 A0 9A A0 30 10                           Ð!& š 0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010845: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0874333 +0,0017042 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ D0 21 26 A0 9A A0 30 10                           Ð!& š 0.
+
+010846: Control Transfer (UP), 2022-12-09 22:15:28,0876874 +0,0002541. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0 21 2A 80 00 A0 30 10                           °!*€. 0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010847: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0894224 +0,0017350 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ B0 21 2A 80 00 A0 30 10                           °!*€. 0.
+
+010848: Control Transfer (UP), 2022-12-09 22:15:28,0897226 +0,0003002. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 03 00 00 00 4C 97 61 86                           ....L—a†
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010849: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0914326 +0,0017100 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ B0 21 2F 3D 24 A0 30 10                           °!/=$ 0.
+
+010850: Control Transfer (UP), 2022-12-09 22:15:28,0917229 +0,0002903. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0 21 2F 3D 24 A0 30 10                           °!/=$ 0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010851: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0934328 +0,0017099 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 32 86 24 A0 30 10                            !2†$ 0.
+
+010852: Control Transfer (UP), 2022-12-09 22:15:28,0937219 +0,0002891. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 32 86 24 A0 30 10                            !2†$ 0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010853: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0954331 +0,0017112 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ B0 21 60 29 42 A0 30 10                           °!`)B 0.
+
+010854: Control Transfer (UP), 2022-12-09 22:15:28,0957233 +0,0002902. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0 21 60 29 42 A0 30 10                           °!`)B 0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010855: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0974241 +0,0017008 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 65 00 42 A0 30 10                            !e.B 0.
+
+010856: Control Transfer (UP), 2022-12-09 22:15:28,0977220 +0,0002979. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 65 00 42 A0 30 10                            !e.B 0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010857: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,0994343 +0,0017123 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 69 38 42 A0 30 10                            !i8B 0.
+
+010858: Control Transfer (UP), 2022-12-09 22:15:28,0997230 +0,0002887. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 69 38 42 A0 30 10                            !i8B 0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010859: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,1014249 +0,0017019 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ C0 21 6F 88 0B 00 30 10                           À!oˆ..0.
+
+010860: Control Transfer (UP), 2022-12-09 22:15:28,1017217 +0,0002968. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ C0 21 6F 88 0B 00 30 10                           À!oˆ..0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010861: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,1034344 +0,0017127 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ C0 21 74 21 8E 00 30 10                           À!t!Ž.0.
+
+010862: Control Transfer (UP), 2022-12-09 22:15:28,1037220 +0,0002876. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ C0 21 74 21 8E 00 30 10                           À!t!Ž.0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010863: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,1054339 +0,0017119 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 7D F7 8E 00 30 10                            !}÷Ž.0.
+
+010864: Control Transfer (UP), 2022-12-09 22:15:28,1057214 +0,0002875. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 7D F7 8E 00 30 10                            !}÷Ž.0.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010865: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,1074341 +0,0017127 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ D0 21 17 1C BD 06 F6 10                           Ð!..½.ö.
+
+010866: Control Transfer (UP), 2022-12-09 22:15:28,1076982 +0,0002641. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ D0 21 17 1C BD 06 F6 10                           Ð!..½.ö.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010867: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3084592 +0,2007610 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x1c
+Send 0x4 bytes to the device
+
+ 02 03 0F 0C                                       ....
+
+010868: Control Transfer (UP), 2022-12-09 22:15:28,3087114 +0,0002522. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 02 03 0F 0C                                       ....
+Setup Packet
+ 41 08 1C 00 00 00 04 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x1c
+Index: 0x0
+Length: 0x4
+
+010869: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3087283 +0,0000169 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x15
+Send 0x2 bytes to the device
+
+ 28 1E                                             (.
+
+010870: Control Transfer (UP), 2022-12-09 22:15:28,3089608 +0,0002325. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 28 1E                                             (.
+Setup Packet
+ 41 08 15 00 00 00 02 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x15
+Index: 0x0
+Length: 0x2
+
+010871: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3090220 +0,0000612 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x18
+Send 0x1 bytes to the device
+
+ 9F                                                Ÿ
+
+010872: Control Transfer (UP), 2022-12-09 22:15:28,3092053 +0,0001833. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 9F                                                Ÿ
+Setup Packet
+ 41 08 18 00 00 00 01 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x18
+Index: 0x0
+Length: 0x1
+
+010873: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3092588 +0,0000535 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x1
+Send 0x1 bytes to the device
+
+ 44                                                D
+
+010874: Control Transfer (UP), 2022-12-09 22:15:28,3094621 +0,0002033. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 44                                                D
+Setup Packet
+ 41 08 01 00 00 00 01 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x1
+Index: 0x0
+Length: 0x1
+
+010875: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3095217 +0,0000596 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x17
+Send 0x2 bytes to the device
+
+ 68 9F                                             hŸ
+
+010876: Control Transfer (UP), 2022-12-09 22:15:28,3097100 +0,0001883. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ 68 9F                                             hŸ
+Setup Packet
+ 41 08 17 00 00 00 02 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x17
+Index: 0x0
+Length: 0x2
+
+010877: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3104156 +0,0007056 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 10 83 BD 06 F6 16                            !.ƒ½.ö.
+
+010878: Control Transfer (UP), 2022-12-09 22:15:28,3107055 +0,0002899. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 10 83 BD 06 F6 16                            !.ƒ½.ö.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010879: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3114496 +0,0007441 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 76 00 BD 06 F6 16                            !v.½.ö.
+
+010880: Control Transfer (UP), 2022-12-09 22:15:28,3117179 +0,0002683. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 76 00 BD 06 F6 16                            !v.½.ö.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010881: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3124497 +0,0007318 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 11 00 BD 06 F6 16                            !..½.ö.
+
+010882: Control Transfer (UP), 2022-12-09 22:15:28,3127211 +0,0002714. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 11 00 BD 06 F6 16                            !..½.ö.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010883: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3134483 +0,0007272 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ A0 21 00 10 BD 06 F6 15                            !..½.ö.
+
+010884: Control Transfer (UP), 2022-12-09 22:15:28,3137220 +0,0002737. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ A0 21 00 10 BD 06 F6 15                            !..½.ö.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010885: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3144511 +0,0007291 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x8
+Value: 0x8
+Send 0x8 bytes to the device
+
+ B0 21 2A 80 60 06 F6 1D                           °!*€`.ö.
+
+010886: Control Transfer (UP), 2022-12-09 22:15:28,3147225 +0,0002714. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0 21 2A 80 60 06 F6 1D                           °!*€`.ö.
+Setup Packet
+ 41 08 08 00 00 00 08 00                           A.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Host->Device
+Request: 0x8 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x8
+
+010887: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3147802 +0,0000577 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x0
+Value: 0x8
+Get 0x1 bytes from the device
+
+010888: Control Transfer (UP), 2022-12-09 22:15:28,3149850 +0,0002048. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0                                                °
+Setup Packet
+ C1 00 08 00 00 00 01 00                           Á.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Device->Host
+Request: 0x0 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x1
+
+010889: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3244503 +0,0094653 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x0
+Value: 0x8
+Get 0x1 bytes from the device
+
+010890: Control Transfer (UP), 2022-12-09 22:15:28,3247175 +0,0002672. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0                                                °
+Setup Packet
+ C1 00 08 00 00 00 01 00                           Á.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Device->Host
+Request: 0x0 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x1
+
+010891: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3344492 +0,0097317 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x0
+Value: 0x8
+Get 0x1 bytes from the device
+
+010892: Control Transfer (UP), 2022-12-09 22:15:28,3347225 +0,0002733. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0                                                °
+Setup Packet
+ C1 00 08 00 00 00 01 00                           Á.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Device->Host
+Request: 0x0 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x1
+
+010893: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3443815 +0,0096590 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x0
+Value: 0x8
+Get 0x1 bytes from the device
+
+010894: Control Transfer (UP), 2022-12-09 22:15:28,3447037 +0,0003222. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0                                                °
+Setup Packet
+ C1 00 08 00 00 00 01 00                           Á.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Device->Host
+Request: 0x0 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x1
+
+010895: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3544958 +0,0097921 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x0
+Value: 0x8
+Get 0x1 bytes from the device
+
+010896: Control Transfer (UP), 2022-12-09 22:15:28,3547222 +0,0002264. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B0                                                °
+Setup Packet
+ C1 00 08 00 00 00 01 00                           Á.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Device->Host
+Request: 0x0 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x1
+
+010897: Vendor-Specific Request (DOWN), 2022-12-09 22:15:28,3644508 +0,0097286 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Destination: Interface, Index 0
+Reserved Bits: 0
+Request: 0x0
+Value: 0x8
+Get 0x1 bytes from the device
+
+010898: Control Transfer (UP), 2022-12-09 22:15:28,3647214 +0,0002706. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: Control Pipe
+ B4                                                ´
+Setup Packet
+ C1 00 08 00 00 00 01 00                           Á.......
+Recipient: Interface
+Request Type: Vendor
+Direction: Device->Host
+Request: 0x0 (Unknown)
+Value: 0x8
+Index: 0x0
+Length: 0x1
+
+010900: Reset Pipe (DOWN), 2022-12-09 22:15:28,3648177 +0,0000385 (1. Device: USB camera (PC Camera (SN9C103 + OV7630)))
+Pipe Handle: 0x85254d7c (Endpoint Address: 0x81)
+
+
+010901: Reset Pipe (UP), 2022-12-09 22:15:28,3651110 +0,0002933. (1. Device: USB camera (PC Camera (SN9C103 + OV7630))) Status: 0x00000000
+Pipe Handle: 0x85254d7c (Endpoint Address: 0x81)
+
+
+
+
+
+
+************************************************
+************************************************
+
+
+/// ***** VIR *****
+	regs[0x01] = 0x44; /* Select 24 Mhz clock */
+	/// ***** VIR *****
+
+	regs[0x02] = 0x44; // r02
+
+	regs[0x03] = 0x00; // r03
+	regs[0x04] = 0x00; // r04
+
+	/* Set bridge gain to 1.0 */
+	regs[0x05] = 0x20;  // r05 Red
+	regs[0x06] = 0x20;  // r06 Green
+	regs[0x07] = 0x20;  // r07 Blue
+
+	regs[0x08] = 0x80; // r08
+	regs[0x09] = 0x21; // r09
+	regs[0x0a] = 0x00; // r0a
+	regs[0x0b] = 0x00; // r0b
+	regs[0x0c] = 0x00; // r0c
+	regs[0x0d] = 0x00; // r0d
+	regs[0x0e] = 0x00; // r0e
+	regs[0x0f] = 0x00; // r0f
+
+    regs[0x10] = 0x00; // r10
+	regs[0x11] = 0x00; // r11
+
+    regs[0x12] = 0x02; // Set hstart to 2 - r12 // em 640x480 e com vlaor 5 ainda aparece um linha escura vetical no lado direito; com 4 ainda aparece resquicios da interpolação
+    regs[0x13] = 0x00; // r13
+    regs[0x14] = 0x00; // r14  - offset = 0; Quanto maior o valor mais escuro a imagem. Se fica mais claro, a imagem parece ser mais borrada
+    regs[0x15] = 0x28; // r15  - deve ser 640 / 16
+    regs[0x16] = 0x1e; // r16  - deve ser 480 / 16
+
+    /* Vga mode emulation on SIF sensor? */
+	if (0/*cam->cam_mode[gspca_dev->curr_mode].priv & MODE_REDUCED_SIF*/) {
+		regs[0x12] += 16;	/* hstart adjust */
+		regs[0x13] += 24;	/* vstart adjust */
+		regs[0x15]  = 320 / 16; /* hsize */
+		regs[0x16]  = 240 / 16; /* vsize */
+	}
+
+
+
+	/// ***** VIR *****
+    regs[0x17] = 0x6c; // r17           aqui controla o frame rate  48MHz, 24MHz, 12MHz
+    /// ***** VIR *****
+
+
+	/* Set the mode */
+	/* Disable compression when the raw bayer format has been selected */
+	/// ***** VIR *****
+	regs[0x18] = (0x8f | (mode << 4)) & ((cam->cam_mode[gspca_dev->curr_mode].priv & MODE_RAW)?0x7f:0xff);
+	/// ***** VIR *****
+
+	//KDBG(gspca_dev->v4l2_dev.dev, "regs[0x18] = ","0x%02x - %d",regs[0x18], elgcnt)
+
+    /// ***** VIR *****
+	regs[0x19] = 0x28; // r19      // aqui tem 2x;  aqui controla o frame rate quando utilizando a freq do sistema
+    /// ***** VIR *****
+
+	/* Setup pixel numbers and auto exposure window */
+	if (1 /*sensor_data[sd->sensor].flags & F_SIF*/) {
+		regs[0x1a] = 0x14; /* HO_SIZE 640, makes no sense */        // NÃO ALTEROU EM NADA
+		regs[0x1b] = 0x0f; /* VO_SIZE 320, makes no sense */        // NÃO ALTEROU EM NADA
+		regs[0x1c] = 0x00; /* AE H-start 64 */                      // ÁREA PARA CONTROLE AUTOMATICO DE GANHO OU BRILHO
+		regs[0x1d] = 0x00; /* AE V-start 64 */                      // ÁREA PARA CONTROLE AUTOMATICO DE GANHO OU BRILHO
+		regs[0x1e] = 0x00; /* AE H-end 288 */                       // ÁREA PARA CONTROLE AUTOMATICO DE GANHO OU BRILHO
+		regs[0x1f] = 0x00; /* AE V-end 224 */                       // ÁREA PARA CONTROLE AUTOMATICO DE GANHO OU BRILHO
+	} else {
+		regs[0x1a] = 0x1d; /* HO_SIZE 960, makes no sense */
+		regs[0x1b] = 0x10; /* VO_SIZE 512, makes no sense */
+		regs[0x1c] = 0x05; /* AE H-start 160 */
+		regs[0x1d] = 0x03; /* AE V-start 96 */
+		regs[0x1e] = 0x0f; /* AE H-end 480 */
+		regs[0x1f] = 0x0c; /* AE V-end 384 */
+	}
+
+	/* Setup the gamma table (only used with the sn9c103 bridge) */
+	for (i = 0; i < 16; i++)
+		regs[0x20 + i] = i * 16;
+	regs[0x20 + i] = 255;
+
+******************************************************************
+******************************************************************
+
+
+
+
+
+
+static const __u8 ov7630_sensor_init[][8] = {
+//  {i2cC, slID, addr,   D0,   D1,   D2,   D3, CRT }
+	{0xA0, 0x21, 0x12, 0x80, 0x00, 0x00, 0x00, 0x10},
+    {0xD0, 0x21, 0x12, 0x78, 0x00, 0x80, 0x34, 0x10},
+    {0xA0, 0x21, 0x11, 0x01, 0x00, 0x80, 0x34, 0x10},
+    {0xB0, 0x21, 0x01, 0x77, 0x3A, 0x80, 0x34, 0x10},
+    {0xA0, 0x21, 0x1B, 0x04, 0x3A, 0x80, 0x34, 0x10},
+    {0xA0, 0x21, 0x20, 0x44, 0x3A, 0x80, 0x34, 0x10},
+    {0xA0, 0x21, 0x23, 0xEE, 0x3A, 0x80, 0x34, 0x10},
+    {0xD0, 0x21, 0x26, 0xA0, 0x9A, 0xA0, 0x30, 0x10},
+    {0xB0, 0x21, 0x2A, 0x80, 0x00, 0xA0, 0x30, 0x10},
+    {0xB0, 0x21, 0x2F, 0x3D, 0x24, 0xA0, 0x30, 0x10},
+    {0xA0, 0x21, 0x32, 0x86, 0x24, 0xA0, 0x30, 0x10},
+    {0xB0, 0x21, 0x60, 0x29, 0x42, 0xA0, 0x30, 0x10},
+    {0xA0, 0x21, 0x65, 0x00, 0x42, 0xA0, 0x30, 0x10},
+    {0xA0, 0x21, 0x69, 0x38, 0x42, 0xA0, 0x30, 0x10},
+    {0xC0, 0x21, 0x6F, 0x88, 0x0B, 0x00, 0x30, 0x10},
+    {0xC0, 0x21, 0x74, 0x21, 0x8E, 0x00, 0x30, 0x10},
+    {0xA0, 0x21, 0x7D, 0xF7, 0x8E, 0x00, 0x30, 0x10},
+    {0xD0, 0x21, 0x17, 0x1C, 0xBD, 0x06, 0xF6, 0x10},
+    {0xA0, 0x21, 0x10, 0x83, 0xBD, 0x06, 0xF6, 0x16},
+    {0xA0, 0x21, 0x76, 0x00, 0xBD, 0x06, 0xF6, 0x16},
+    {0xA0, 0x21, 0x11, 0x00, 0xBD, 0x06, 0xF6, 0x16},
+    {0xA0, 0x21, 0x00, 0x10, 0xBD, 0x06, 0xF6, 0x15},
+    {0xB0, 0x21, 0x2A, 0x80, 0x60, 0x06, 0xF6, 0x1D},
+
+};
+
+
+

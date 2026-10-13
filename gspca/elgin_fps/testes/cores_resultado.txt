@@ -1,0 +1,26 @@
+Descobre qual posicao do mosaico Bayer e vermelha, verde ou azul, usando cor SOLIDA,
+em seis modos: BA81 e S910 em 160x120, 320x240 e 640x480.
+
+Mostre a cor cobrindo toda a imagem da camera (tela do celular em brilho maximo, papel
+colorido bem iluminado, etc.) e aperte Enter. Para cada cor o script captura os seis modos
+(~25 s); mantenha a cor ate ele pedir a proxima. Compara as 4 posicoes dentro do mesmo
+quadro, entao nao importa o ganho. Nao precisa de sudo. Resultado: cores_resultado.txt
+
+Uso:  python3 testa_cores.py [BA81:320 S910:160 ...]     (sem argumentos: os sete modos)
+      python3 testa_cores.py S910:160x240              (modo novo 160x240, janela 320x480)
+      FPS60=1 python3 testa_cores.py S910:160           (S910 160x120 no modo de 60 fps)
+
+
+Mostre BRANCO cobrindo TODA a imagem e aperte Enter (e mantenha ate o proximo pedido)...   BA81 320x240  (0,0)=  65.5  (0,1)=  84.5  (1,0)=  83.9  (1,1)=  73.3
+
+Mostre VERMELHO cobrindo TODA a imagem e aperte Enter (e mantenha ate o proximo pedido)...   BA81 320x240  (0,0)=  13.1  (0,1)=  25.4  (1,0)=  21.8  (1,1)=  99.1
+
+Mostre VERDE cobrindo TODA a imagem e aperte Enter (e mantenha ate o proximo pedido)...   BA81 320x240  (0,0)=  34.3  (0,1)=  91.2  (1,0)=  91.3  (1,1)=  22.8
+
+Mostre AZUL cobrindo TODA a imagem e aperte Enter (e mantenha ate o proximo pedido)...   BA81 320x240  (0,0)=  94.9  (0,1)=  28.5  (1,0)=  29.4  (1,1)=  10.6
+
+==== RESULTADO POR MODO ====
+fmt  tamanho  mosaico  padrao formato V4L2                 contraste R/G/B
+BA81 320x240 BG/GR    BGGR   SBGGR8 (BA81)                7.6x 4.0x 9.0x
+
+Esperado apos a correcao do hstart: BGGR em todos os modos (BA81 anuncia SBGGR8).

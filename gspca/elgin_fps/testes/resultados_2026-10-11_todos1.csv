@@ -1,0 +1,37 @@
+data_hora,caso,formato,largura,altura,fps_pedido,fps_medido,parametros,media,desvio,aviso,veredito
+2026-10-11T20:06:49,BA81 160x120,BA81,160,120,,29.76,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': -1, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",19.3,11.3,,boa
+2026-10-11T20:06:54,S910 160x120,S910,160,120,,30.75,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': -1, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",17.0,10.7,,boa
+2026-10-11T20:09:18,BA81 160x120,BA81,160,120,,29.76,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': -1, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",15.9,9.2,,boa
+2026-10-11T20:09:20,S910 160x120,S910,160,120,,30.76,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': -1, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",19.1,8.7,,boa
+2026-10-11T20:09:23,S910 320x240 sensor_reg11=0,S910,320,240,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",13.7,8.0,,boa
+2026-10-11T20:09:27,S910 320x240 sensor_reg11=1,S910,320,240,,14.88,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 1, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",19.2,21.8,,boa
+2026-10-11T20:09:32,S910 320x240 sensor_reg11=2,S910,320,240,,9.92,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 2, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",25.2,32.9,,boa
+2026-10-11T20:09:42,S910 320x240 sensor_reg11=3,S910,320,240,,7.52,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",32.6,43.2,,boa
+2026-10-11T20:09:46,S910 640x480 sensor_reg11=0,S910,640,480,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",13.8,11.3,AUTO: quadro S910 inconsistente (39305 de 4730 bytes),ruim
+2026-10-11T20:09:50,S910 640x480 sensor_reg11=1,S910,640,480,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 1, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",20.5,17.1,AUTO: quadro S910 inconsistente (54605 de 54610 bytes),ruim
+2026-10-11T20:09:55,S910 640x480 sensor_reg11=2,S910,640,480,,9.92,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 2, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",26.3,30.9,,boa
+2026-10-11T20:10:02,S910 640x480 sensor_reg11=3,S910,640,480,,7.41,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': -1, 'reg19': -1, 'lq_sel': -1}",26.2,23.4,,boa
+2026-10-11T20:10:05,S910 320x240 sensor_reg11=0 lq_sel=0,S910,320,240,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': -1, 'reg19': -1, 'lq_sel': 0}",13.3,6.1,,boa
+2026-10-11T20:10:08,S910 320x240 sensor_reg11=0 lq_sel=1,S910,320,240,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': -1, 'reg19': -1, 'lq_sel': 1}",12.2,6.1,,boa
+2026-10-11T20:10:12,S910 320x240 sensor_reg11=1 lq_sel=0,S910,320,240,,14.88,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 1, 'reg17': -1, 'reg19': -1, 'lq_sel': 0}",16.8,11.4,,boa
+2026-10-11T20:10:16,S910 320x240 sensor_reg11=1 lq_sel=1,S910,320,240,,14.88,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 1, 'reg17': -1, 'reg19': -1, 'lq_sel': 1}",15.5,9.3,,boa
+2026-10-11T20:10:23,S910 320x240 sensor_reg11=2 lq_sel=0,S910,320,240,,9.92,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 2, 'reg17': -1, 'reg19': -1, 'lq_sel': 0}",27.8,35.1,,boa
+2026-10-11T20:10:28,S910 320x240 sensor_reg11=2 lq_sel=1,S910,320,240,,9.92,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 2, 'reg17': -1, 'reg19': -1, 'lq_sel': 1}",26.9,32.2,,boa
+2026-10-11T20:10:31,S910 640x480 sensor_reg11=1 lq_sel=0,S910,640,480,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 1, 'reg17': -1, 'reg19': -1, 'lq_sel': 0}",41.4,41.0,AUTO: quadro S910 inconsistente (54996 de 54999 bytes),ruim
+2026-10-11T20:10:33,S910 640x480 sensor_reg11=1 lq_sel=1,S910,640,480,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 1, 'reg17': -1, 'reg19': -1, 'lq_sel': 1}",41.4,43.0,AUTO: quadro S910 inconsistente (55072 de 55074 bytes),ruim
+2026-10-11T20:10:38,S910 640x480 sensor_reg11=2 lq_sel=0,S910,640,480,,9.92,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 2, 'reg17': -1, 'reg19': -1, 'lq_sel': 0}",21.3,17.3,,boa
+2026-10-11T20:10:42,S910 640x480 sensor_reg11=2 lq_sel=1,S910,640,480,,9.92,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 2, 'reg17': -1, 'reg19': -1, 'lq_sel': 1}",20.8,15.8,,boa
+2026-10-11T20:10:47,S910 640x480 sensor_reg11=3 lq_sel=0,S910,640,480,,7.41,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': -1, 'reg19': -1, 'lq_sel': 0}",25.3,18.9,,boa
+2026-10-11T20:10:52,S910 640x480 sensor_reg11=3 lq_sel=1,S910,640,480,,7.41,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': -1, 'reg19': -1, 'lq_sel': 1}",30.7,36.0,,boa
+2026-10-11T20:10:55,S910 320x240 sensor_reg11=0 reg17=0x68 reg19=0x20 lq_sel=0,S910,320,240,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': 104, 'reg19': 32, 'lq_sel': 0}",14.2,7.9,,boa
+2026-10-11T20:10:58,S910 320x240 sensor_reg11=0 reg17=0x68 reg19=0x20 lq_sel=1,S910,320,240,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': 104, 'reg19': 32, 'lq_sel': 1}",20.1,8.0,,boa
+2026-10-11T20:10:58,S910 320x240 sensor_reg11=0 reg17=0x60 reg19=0x50 lq_sel=0,S910,320,240,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': 96, 'reg19': 80, 'lq_sel': 0}",,,sem quadro,sem_imagem
+2026-10-11T20:10:59,S910 320x240 sensor_reg11=0 reg17=0x60 reg19=0x50 lq_sel=1,S910,320,240,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': 96, 'reg19': 80, 'lq_sel': 1}",,,sem quadro,sem_imagem
+2026-10-11T20:11:02,S910 320x240 sensor_reg11=0 reg17=0x6c reg19=0x2b lq_sel=0,S910,320,240,,19.16,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': 108, 'reg19': 43, 'lq_sel': 0}",35.6,23.9,AUTO: quadro S910 inconsistente (14244 de 14114 bytes),ruim
+2026-10-11T20:11:05,S910 320x240 sensor_reg11=0 reg17=0x6c reg19=0x2b lq_sel=1,S910,320,240,,20.12,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 0, 'reg17': 108, 'reg19': 43, 'lq_sel': 1}",49.8,40.5,AUTO: quadro S910 inconsistente (14058 de 13929 bytes),ruim
+2026-10-11T20:11:10,S910 640x480 sensor_reg11=3 reg17=0x68 reg19=0x20 lq_sel=0,S910,640,480,,7.41,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': 104, 'reg19': 32, 'lq_sel': 0}",27.2,21.7,,boa
+2026-10-11T20:11:16,S910 640x480 sensor_reg11=3 reg17=0x68 reg19=0x20 lq_sel=1,S910,640,480,,7.41,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': 104, 'reg19': 32, 'lq_sel': 1}",35.8,45.8,,boa
+2026-10-11T20:11:17,S910 640x480 sensor_reg11=3 reg17=0x60 reg19=0x50 lq_sel=0,S910,640,480,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': 96, 'reg19': 80, 'lq_sel': 0}",,,sem quadro,sem_imagem
+2026-10-11T20:11:17,S910 640x480 sensor_reg11=3 reg17=0x60 reg19=0x50 lq_sel=1,S910,640,480,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': 96, 'reg19': 80, 'lq_sel': 1}",,,sem quadro,sem_imagem
+2026-10-11T20:11:20,S910 640x480 sensor_reg11=3 reg17=0x6c reg19=0x2b lq_sel=0,S910,640,480,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': 108, 'reg19': 43, 'lq_sel': 0}",8.1,10.1,AUTO: quadro S910 inconsistente (40656 de 4711 bytes),ruim
+2026-10-11T20:11:22,S910 640x480 sensor_reg11=3 reg17=0x6c reg19=0x2b lq_sel=1,S910,640,480,,,"{'stock_regs': 0, 'stock_sensor': 0, 'sensor_reg11': 3, 'reg17': 108, 'reg19': 43, 'lq_sel': 1}",51.3,69.6,AUTO: quadro S910 inconsistente (47100 de 45864 bytes),ruim

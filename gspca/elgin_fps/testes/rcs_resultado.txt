@@ -1,0 +1,42 @@
+Testa contraste (CNT, reg 0x05 do sensor) e saturacao (SAT, reg 0x03) em BA81 e S910 (160x120 a 30 fps).
+
+Mede, por valor: brilho medio, desvio padrao (contraste) e a "croma" do mosaico
+(|R-G| + |B-G|) / media, que cresce com a saturacao. Se o controle nao mudar nada na Bayer crua,
+os numeros ficam praticamente iguais em todos os valores.
+Aponte a camera para uma cena PARADA, colorida (cartao de cores), sem estourar. Nao precisa de sudo.
+Resultado: rcs_resultado.txt ; imagens em cs/*.png
+
+Uso:  python3 testa_cs.py
+
+controle contrast     presente
+controle saturation   presente
+
+-- BA81: contrast --
+contrast=0    media=  19.8 dp=  8.0  B= 16.4 G= 19.6 R= 23.7  croma=0.364
+contrast=16   media=  19.9 dp=  7.9  B= 16.7 G= 19.6 R= 23.7  croma=0.351
+contrast=32   media=  12.3 dp=  4.0  B= 10.3 G= 12.6 R= 13.9  croma=0.288
+contrast=64   media=  12.1 dp=  4.0  B=  9.9 G= 12.5 R= 13.5  croma=0.304
+contrast=128  media=  12.3 dp=  4.0  B= 10.2 G= 12.6 R= 13.6  croma=0.286
+contrast=255  media=  12.2 dp=  3.9  B= 10.2 G= 12.4 R= 13.8  croma=0.292
+
+-- BA81: saturation --
+saturation=0    media=  12.3 dp=  4.0  B= 10.2 G= 12.6 R= 13.8  croma=0.296
+saturation=64   media=  12.4 dp=  3.9  B= 10.4 G= 12.7 R= 13.6  croma=0.261
+saturation=128  media=  12.3 dp=  3.9  B= 10.1 G= 12.8 R= 13.6  croma=0.293
+saturation=192  media=  12.1 dp=  3.9  B= 10.1 G= 12.4 R= 13.6  croma=0.289
+saturation=255  media=  12.2 dp=  3.9  B= 10.2 G= 12.3 R= 13.8  croma=0.294
+
+-- S910: contrast --
+contrast=0    media=  12.2 dp=  4.0  B= 10.0 G= 12.4 R= 13.8  croma=0.322
+contrast=16   media=  12.1 dp=  4.0  B=  9.9 G= 12.4 R= 13.8  croma=0.320
+contrast=32   media=  12.1 dp=  4.0  B= 10.0 G= 12.4 R= 13.6  croma=0.305
+contrast=64   media=  12.1 dp=  4.0  B= 10.2 G= 12.3 R= 13.4  croma=0.273
+contrast=128  media=  12.1 dp=  4.0  B= 10.0 G= 12.4 R= 13.6  croma=0.306
+contrast=255  media=  12.3 dp=  4.0  B= 10.1 G= 12.7 R= 13.8  croma=0.301
+
+-- S910: saturation --
+saturation=0    media=  12.2 dp=  4.0  B= 10.1 G= 12.6 R= 13.5  croma=0.282
+saturation=64   media=  12.3 dp=  4.0  B= 10.3 G= 12.5 R= 13.8  croma=0.293
+saturation=128  media=  12.1 dp=  4.0  B= 10.0 G= 12.4 R= 13.6  croma=0.301
+saturation=192  media=  11.9 dp=  4.0  B=  9.9 G= 12.3 R= 13.3  croma=0.285
+saturation=255  media=  12.1 dp=  4.0  B=  9.9 G= 12.4 R= 13.6  croma=0.303

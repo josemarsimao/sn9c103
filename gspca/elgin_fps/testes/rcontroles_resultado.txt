@@ -1,0 +1,60 @@
+Testa os controles novos: black_level, gamma, hflip e test_pattern (160x120 a 30 fps, BA81 e S910).
+
+Cada captura comeca com TODOS os controles no padrao (os valores ficam gravados no driver entre
+execucoes) e muda so o que esta sendo testado. O ganho/exposicao automaticos ficam como estao.
+Para o espelho compara a fase do mosaico (B/R) e a imagem invertida, em BA81 e em S910 decodificado,
+e depois muda os controles COM o fluxo ligado.
+Aponte a camera para uma cena PARADA, colorida, com detalhe, sem estourar. Nao precisa de sudo.
+Resultado: rcontroles_resultado.txt ; imagens em controles/*.png
+
+Uso:  python3 testa_controles.py
+
+controle black_level      presente
+controle gamma            presente
+controle horizontal_flip  presente
+controle test_pattern     presente
+
+-- referencia (tudo no padrao) --
+padrao                         media=  29.5 dp= 11.3
+
+-- black_level (padrao 10): maior = mais escuro --
+black_level=0                  media=  39.1 dp= 11.2
+black_level=10                 media=  16.2 dp=  5.4
+black_level=30                 media=   1.4 dp=  2.6
+black_level=60                 media=   0.0 dp=  0.0
+
+-- gamma (0..8; 2 = linear): menor = mais escuro nas sombras --
+gamma=0                        media=   2.7 dp=  1.7
+gamma=2                        media=  17.2 dp=  5.8
+gamma=5                        media=  44.1 dp= 11.4
+gamma=8                        media=  70.3 dp= 14.5
+
+-- test_pattern (1 = ponte, 2 = barras do sensor) --
+test_pattern=1                 media= 108.2 dp= 69.0
+test_pattern=2                 media=  26.7 dp= 16.5
+
+-- horizontal_flip em BA81: a fase do mosaico deve se manter --
+BA81 padrao                    media=  30.3 dp= 11.7
+BA81 horizontal_flip=1         media=  29.9 dp= 11.5
+fase sem espelho: ['26.4', '30.0', '29.2', '35.7']  B/R=0.74
+fase com espelho: ['25.9', '29.7', '28.7', '35.3']  B/R=0.73  (deve ser parecida)
+melhor correlacao da imagem espelhada: 0.97 no deslocamento 1 px
+
+-- horizontal_flip em S910: a fase do mosaico deve se manter --
+S910 padrao                    media=  16.6 dp=  5.7
+S910 horizontal_flip=1         media=  15.7 dp=  5.5
+fase sem espelho: ['14.2', '17.4', '16.2', '18.6']  B/R=0.76
+fase com espelho: ['13.5', '16.2', '15.4', '17.6']  B/R=0.77  (deve ser parecida)
+melhor correlacao da imagem espelhada: 0.93 no deslocamento 1 px
+
+-- ao vivo (S910): muda os controles com o fluxo ligado e grava quadros --
+  gamma=8              ok
+  black_level=60       ok
+  horizontal_flip=1    ok
+  test_pattern=1       ok
+  test_pattern=2       ok
+  test_pattern=0       ok
+  horizontal_flip=0    ok
+  black_level=10       ok
+  gamma=2              ok
+fluxo terminou normalmente (codigo 0)

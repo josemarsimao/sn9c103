@@ -1,0 +1,53 @@
+# CLAUDE.md: projeto driver Elgin (SN9C103 + OV7630)
+
+Leia primeiro: `NOTAS_REGISTRADORES.md` (conhecimento acumulado, com legenda de confiança), depois `MAPA_REGISTRADORES.html` (registrador por registrador) e `BITS_ANALISE_60FPS.html` (bits do modo 60 fps). Este arquivo só resume o essencial e as combinações de trabalho.
+
+## O projeto
+- Driver gspca `gspca_elgin_fps` (`elgin_fps.c`) para a webcam Elgin: ponte Sonix SN9C103 + sensor OmniVision OV7630, USB `0c45:608f`. Kernel 7.0.0-38. Compilar/recarregar: `./umilmod.sh` (descarrega, compila com `make ELGIN_BUILD=<AAAAMMDDHHMM>`, instala, `depmod`, `modprobe`; termina com `echo "done"`).
+- Versão do módulo: `elgin-AAAAMMDDHHMM` (`modinfo gspca_elgin_fps | grep -i "author\|description\|version"`). O `Makefile` repassa `ELGIN_BUILD` ao compilador.
+- Consumidor: **Multiview**, em `/home/josemar/Downloads/projects/claude/multiview` (conversores de pixel em `/home/josemar/Downloads/projects/claude/v4l2misc/camconv.cpp`). **Nunca alterar** `/home/josemar/Downloads/projects/multiview` (cópia antiga).
+- Ordem combinada: primeiro melhorar o driver; depois o **emulador de câmera** (driver que lê um vídeo e se comporta como uma câmera completa, com controles, modos e FPS).
+- Critério: driver completo, com as funções padrão do V4L2 mesmo que o kernel não as habilite (ex.: `VIDIOC_DBG_*` sob `#ifdef`).
+
+## Como trabalhar com o Josemar
+- Responda em **português**, **curto**, **uma coisa de cada vez**, explicando comandos e termos de forma simples.
+- Pergunta de teste ("seria possível...?", "como funciona...?"): dê a **resposta e o custo/impacto primeiro**; só implemente quando ele pedir.
+- Não mude o que ele mandou deixar como está. Antes de editar um arquivo importante, faça cópia `.bak_<assunto>` na mesma pasta.
+- Cabeçalho dos arquivos novos/alterados: Autor (Josemar Simão <josemars@ifes.edu.br>), Co-autor e Revisor (Claude), comentário de propósito em cada função e comentários no corpo.
+- `MODULE_AUTHOR`: "Original: Jean-François Moine", "Modificador: Josemar Simão", "Revisor: Claude (Anthropic)". `MODULE_DESCRIPTION("GSPCA USB Elgin Camera Driver")`.
+- Documentação: toda descoberta vai para NOTAS, MAPA e BITS (os dois HTML são gerados por scripts Python; se não existirem mais, edite o HTML com cuidado e peça confirmação).
+- Câmera: `/dev/video0` costuma ser a câmera do laptop; descubra a Elgin com `v4l2-ctl --list-devices` (os scripts de `testes/` usam `elgin_dev.acha_dev()`).
+- Testes dependem de cena **parada e bem iluminada**; scripts pedem `sudo` uma vez.
+
+## Fatos técnicos que já custaram caro
+- **Registradores da ponte** (acesso: parâmetros do módulo `regr`, `regw`, `regs_start`; item `b:0xREG=0xVAL` = ponte, `s:0xREG=0xVAL` = sensor). Faixa 0x40–0x7F é só leitura (dados que mudam sozinhos); 0x80–0xFF espelha 0x00–0x7F; 0x31–0x3E não guardam valor.
+- **Formatos Bayer crus** (paridade de H_START 0x12 / V_START 0x13 sobre a base BGGR): BA81=SBGGR8 (base) · GBRG (H_START+1) · GRBG (V_START+1) · RGGB (os dois +1). O S910 (comprimido) só existe em BGGR.
+- **Ganhos da ponte 0x05/0x06/0x07 agem por posição (linha, coluna)**: 0x05→(1,0), 0x06→(0,1), 0x07→diagonal (0,0)+(1,1). O driver escolhe o registrador conforme o formato (GBRG: 0x05=R, 0x06=B, 0x07=G; GRBG: 0x05=B, 0x06=R, 0x07=G; BGGR/RGGB: 0x05 e 0x06 = verdes, 0x07 = R+B juntos, o Blue gain fica sem efeito, decisão mantida).
+- O quadro do OpenCV no Multiview é **BGR** (o primeiro byte escrito é Blue): `sgbrg2rgb24` é GBRG de verdade.
+- **Janela de exposição automática** (0x1C–0x1F, blocos de 32 px): o chip entrega a **soma** da luminosidade da janela; o driver escala o alvo pela área (`ae_area`, 117 = janela do Windows). Mudar a janela sem atualizar `ae_area` invalida a medida. Controles: menu "AE window" + 4 números (valem só em Custom).
+- Sensor: AWB = COMA 0x12 bit 2; ganhos R/B do sensor 0x02/0x01 (padrões 0x3a/0x77); SAT/CNT/BRT só agem em YUV (sem efeito em Bayer); VFLIP = COMN 0x75 bit 7 (confirmado); BANDF = COMJ 0x2D bit 2.
+- 60 fps: S910 160x120 (59,5 fps medidos); COMC 0xA0, COMH 0x80, COMJ 0xC1.
+- USB: o kernel enumera o dispositivo (reset, endereço, descritores) antes do nosso driver; os registradores da ponte são acessados por `usb_control_msg()` na EP0; o gspca escolhe o alt setting (banda isócrona).
+
+## Pendências (resumo; ver NOTAS, seção "Pendências" e "Melhorias futuras")
+- **Próximo passo combinado (2026-10-13): registradores do sensor sem conclusão, nesta ordem:**
+  1. 0x7E/0x7F: fórmula com valores intermediários e restauração para 0x00 (`testes/testa_7e7f.py`, pronto, ~5 min).
+  2. Balanço de branco, num teste só com a cartela de cores: 0x0C/0x0D (alvos do AWB, controles "AWB Target Blue/Red", efeito não medido), 0x12 bit 2 (AWB do sensor, não equilibra bem; `testa_awb.py` desatualizado) e 0x6B/0x6C por canal.
+  3. Testes rápidos "tem efeito ou não" (decidem se os controles ficam): 0x2D bit 2 (filtro de banda, `band_stop_filter`, efeito não medido), 0x06 (brilho do sensor; provável efeito só em YUV), 0x03/0x05 (saturação/contraste, sem efeito medido) e 0x69 com AE/AG desligados.
+- Testar no Multiview o efeito de cada janela de AE no brilho automático (qualidade do brilho ainda ruim; balanço de branco do sensor não equilibra bem).
+- Atualizar NOTAS/MAPA/BITS com: soma e área da janela de AE, janelas padrão por modo, controles novos, correção da explicação do "brilho preso em 174" (era o `ae_area` desatualizado, não restauração incompleta do script).
+- Registradores sem documentação a estudar por cor: sensor 0x7E/0x7F (hipótese: contador de 16 bits de linhas extras), 0x6B/0x6C por canal com cartão de cor, 0x69 com AE/AG desligados, `0x19=0x50` para raw.
+- Verificar se BA81/S910 saem com R/B trocados no `bayer2rgb24` (teste com objeto vermelho vivo).
+- Melhoria futura: controles XY da janela de AE fora de "Custom" (hoje guardam o valor sem efeito).
+- Contraste/saturação do sensor não atuam em Bayer: decidir manter ou remover.
+- S_CROP / media controller (adiado). Limpar PNGs soltos em `elgin_fps/`.
+- Git (raiz em `sn9c103/`): último commit em 2022-11-10; `elgin/elgin_sn9c103.c` tem alterações não commitadas de 2022-12-22 e nada de `elgin_fps/` foi commitado (decidir commit único ou temático). O `git status` mostra PDFs de `CHIP_INFO/` apagados e outros novos com nomes diferentes: conferir antes de commitar.
+- Travamento ao trocar de resolução em BA81 sem reiniciar o Multiview (NOTAS, Pendências item 7): reproduzir e ver `dmesg | grep -iE 'bug|oops|warn|call trace'`.
+- Scripts em `testes/` ainda não rodados: `testa_novos.py`, `testa_ganhos.py` (atualizar às tabelas de formato/posição), `testa_7e7f.py`; `testa_awb.py` está obsoleto.
+
+## Cuidados
+- Log do driver (`KDBG`, nível info, prefixo `Elgin_sn9c103:`): parâmetro `dbg_level` (0 = nada, 1 = eventos, padrão; 2 = tudo, cada registrador e controle; o ganho automático gera muitas mensagens). Muda na hora: `echo 2 | sudo tee /sys/module/gspca_elgin_fps/parameters/dbg_level`. `DEBUG_103 0` remove tudo na compilação. O `apply_fps` (chamado a cada ajuste do ganho automático) só aparece no nível 1 quando a taxa muda e uma vez por captura. Validado em 2026-10-13: uma sessão no Multiview = 19 mensagens. Cópias anteriores: `elgin_fps.c.bak_kdbg` e `.bak_kdbg2`.
+- O `gspca_sonixb` (driver original do kernel, mesmo ID USB `0c45:608f`) não está na blacklist e volta a carregar ao reconectar a câmera; numa reconexão ou boot ele pode ficar com a câmera (aconteceu no boot de 2026-10-13 19:23: a câmera virou "USB camera"; o `./umilmod.sh` devolve ao nosso driver). Conferir com `v4l2-ctl --list-devices` (nome "Elgin camera") ou `lsmod | grep gspca`. Blacklist só com autorização do Josemar (`/etc/modprobe.d/blacklist.conf`).
+- Compilar **sem sudo** (`umilmod.sh` faz `make` como usuário e para se a compilação falhar; só a instalação, o `depmod` e o `modprobe` usam sudo). Nunca rodar `sudo make` na pasta: deixa `.ko`/`.o` com dono root e o próximo `make` falha por permissão. Cópia anterior do script: `umilmod.sh.bak_semsudo`.
+- O `Makefile` e outros arquivos de build podem ser protegidos contra escrita por ferramentas remotas; nesse caso entregue como `Makefile.novo` e o Josemar faz `mv`.
+- Editores com o arquivo aberto podem sobrescrever o que for gravado por fora; o mesmo vale para gravações atrasadas por ferramentas remotas. Depois de gravar, confira tamanho/conteúdo.

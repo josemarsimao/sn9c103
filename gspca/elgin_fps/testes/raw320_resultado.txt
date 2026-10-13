@@ -1,0 +1,17 @@
+BA81 320x240, 6 quadros isolados por caso (cheio = 76800 bytes)
+
+configuracao                                               fps  tamanho dos quadros
+padrao (alt 8, hstart 2, janela de AE ligada)              10   [33869, 26029, 30669, 26029, 33229, 30669]  -> 0 de 6 cheios
+padrao (alt 8, hstart 2, janela de AE ligada)              8    [76800, 76800, 76800, 76800, 76800, 76800]  -> 6 de 6 cheios
+alt 7 (top_alt=0)                                          10   [33869, 31309, 30029, 30669, 33184, 30029]  -> 0 de 6 cheios
+alt 7 (top_alt=0)                                          8    [76800, 76800, 76800, 76800, 76800, 76800]  -> 6 de 6 cheios
+hstart 1 (como antes da correcao de cor)                   10   [26829, 29234, 33229, 26829, 22962, 30029]  -> 0 de 6 cheios
+hstart 1 (como antes da correcao de cor)                   8    [76800, 76800, 76800, 76800, 76800, 76800]  -> 6 de 6 cheios
+janela de AE zerada (como antes)                           10   [23629, 26829, 29351, 32537, 30029, 26186]  -> 0 de 6 cheios
+janela de AE zerada (como antes)                           8    [76800, 76800, 76800, 76800, 76800, 76800]  -> 6 de 6 cheios
+alt 7 + hstart 1 + janela de AE zerada (estado de antes)   10   [31309, 26829, 26829, 26029, 32429, 26829]  -> 0 de 6 cheios
+alt 7 + hstart 1 + janela de AE zerada (estado de antes)   8    [76800, 76800, 76800, 76800, 76800, 76800]  -> 6 de 6 cheios
+registradores do gspca original (stock_regs=1)             10   [2974, 3611, 2859, 3611, 3726, 3611]  -> 0 de 6 cheios
+registradores do gspca original (stock_regs=1)             8    [3371, 3371, 2709, 2709, 2937, 2830]  -> 0 de 6 cheios
+
+parametros devolvidos ao padrao.

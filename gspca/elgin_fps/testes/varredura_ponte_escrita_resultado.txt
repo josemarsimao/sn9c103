@@ -1,0 +1,76 @@
+Escrita + leitura de volta na ponte SN9C103, so para ver QUAIS registradores guardam valor.
+Durante a captura (S910 160x120), para cada endereco: le o original, grava 0x00 e le, grava 0xFF e le,
+grava 0x55 e 0xAA e le, e restaura o original. Sem medir imagem (rapido).
+Padrao: 0x40-0x7F. Lista opcional em hexa:  python3 varredura_ponte_escrita.py 31-3f 40-7f
+Nunca toca 0x00,0x01,0x08,0x09-0x0e,0x17,0x19. No fim mede fps/brilho como verificacao.
+Resultado: varredura_ponte_escrita_resultado.txt
+
+base: 59.9    media= 55.6 dp= 64.2 linhas=0.001 colunas=0.014 bytes=5747
+reg   orig  =00  =ff  =55  =aa   resultado
+0x40  d0   d0  d0  d0  d0   GUARDA parcial (mascara 0xd0)
+0x41  00   00  03  00  00   GUARDA parcial (mascara 0x03)
+0x42  c9   c9  c9  c9  c9   GUARDA parcial (mascara 0xc9)
+0x43  02   00  00  03  02   GUARDA
+0x44  08   08  08  08  08   GUARDA parcial (mascara 0x08)
+0x45  01   00  00  01  00   GUARDA
+0x46  6a   6a  6a  6a  6a   GUARDA parcial (mascara 0x6a)
+0x47  01   00  02  03  02   GUARDA parcial (mascara 0x02)
+0x48  82   82  82  82  82   GUARDA parcial (mascara 0x82)
+0x49  02   00  00  01  01   GUARDA
+0x4a  8a   8a  8a  8a  8a   GUARDA parcial (mascara 0x8a)
+0x4b  00   02  01  02  00   GUARDA parcial (mascara 0x01)
+0x4c  de   de  de  de  de   GUARDA parcial (mascara 0xde)
+0x4d  01   01  02  02  00   GUARDA parcial (mascara 0x02)
+0x4e  22   22  22  22  22   GUARDA parcial (mascara 0x22)
+0x4f  02   01  03  02  03   GUARDA parcial (mascara 0x03)
+0x50  01   01  01  01  01   GUARDA parcial (mascara 0x01)
+0x51  01   00  03  00  02   GUARDA parcial (mascara 0x03)
+0x52  52   52  52  52  52   GUARDA parcial (mascara 0x52)
+0x53  00   00  02  03  00   GUARDA parcial (mascara 0x02)
+0x54  33   33  33  33  33   GUARDA parcial (mascara 0x33)
+0x55  01   02  01  01  01   GUARDA parcial (mascara 0x01)
+0x56  24   24  24  24  24   GUARDA parcial (mascara 0x24)
+0x57  02   00  03  02  02   GUARDA parcial (mascara 0x03)
+0x58  81   81  81  81  81   GUARDA parcial (mascara 0x81)
+0x59  02   00  03  00  03   GUARDA parcial (mascara 0x03)
+0x5a  16   16  16  16  16   GUARDA parcial (mascara 0x16)
+0x5b  02   03  00  00  02   
+0x5c  ee   ee  ee  ee  ee   GUARDA parcial (mascara 0xee)
+0x5d  00   01  02  02  01   GUARDA parcial (mascara 0x02)
+0x5e  27   27  27  27  27   GUARDA parcial (mascara 0x27)
+0x5f  02   01  00  01  00   
+0x60  dd   dd  dd  dd  dd   GUARDA parcial (mascara 0xdd)
+0x61  00   00  00  01  01   GUARDA
+0x62  2d   2d  2d  2d  2d   GUARDA parcial (mascara 0x2d)
+0x63  01   02  03  02  00   GUARDA parcial (mascara 0x03)
+0x64  42   42  42  42  42   GUARDA parcial (mascara 0x42)
+0x65  02   02  00  01  01   
+0x66  3f   3f  3f  3f  3f   GUARDA parcial (mascara 0x3f)
+0x67  00   01  00  02  00   
+0x68  d0   d0  d0  d0  d0   GUARDA parcial (mascara 0xd0)
+0x69  00   01  00  03  02   
+0x6a  c0   c0  c0  c0  c0   GUARDA parcial (mascara 0xc0)
+0x6b  01   03  03  00  02   GUARDA parcial (mascara 0x03)
+0x6c  78   78  78  78  78   GUARDA parcial (mascara 0x78)
+0x6d  02   01  01  00  03   GUARDA parcial (mascara 0x01)
+0x6e  3a   3a  3a  3a  3a   GUARDA parcial (mascara 0x3a)
+0x6f  00   03  01  00  03   GUARDA parcial (mascara 0x01)
+0x70  05   05  05  05  05   GUARDA parcial (mascara 0x05)
+0x71  01   01  02  00  00   GUARDA parcial (mascara 0x02)
+0x72  06   06  06  06  06   GUARDA parcial (mascara 0x06)
+0x73  03   00  02  00  00   GUARDA parcial (mascara 0x02)
+0x74  c5   c5  c5  c5  c5   GUARDA parcial (mascara 0xc5)
+0x75  03   00  00  02  00   GUARDA
+0x76  1e   1e  1e  1e  1e   GUARDA parcial (mascara 0x1e)
+0x77  00   03  02  01  00   GUARDA parcial (mascara 0x02)
+0x78  03   03  03  03  03   GUARDA parcial (mascara 0x03)
+0x79  00   01  00  01  00   
+0x7a  01   01  01  01  01   GUARDA parcial (mascara 0x01)
+0x7b  02   03  02  02  00   GUARDA parcial (mascara 0x02)
+0x7c  a1   a1  a1  a1  a1   GUARDA parcial (mascara 0xa1)
+0x7d  00   01  01  00  02   GUARDA parcial (mascara 0x01)
+0x7e  a7   a7  a7  a7  a7   GUARDA parcial (mascara 0xa7)
+0x7f  01   02  00  01  01   
+
+registradores que guardam valor: 0x40 0x41 0x42 0x43 0x44 0x45 0x46 0x47 0x48 0x49 0x4a 0x4b 0x4c 0x4d 0x4e 0x4f 0x50 0x51 0x52 0x53 0x54 0x55 0x56 0x57 0x58 0x59 0x5a 0x5c 0x5d 0x5e 0x60 0x61 0x62 0x63 0x64 0x66 0x68 0x6a 0x6b 0x6c 0x6d 0x6e 0x6f 0x70 0x71 0x72 0x73 0x74 0x75 0x76 0x77 0x78 0x7a 0x7b 0x7c 0x7d 0x7e
+verificacao final: 59.9    media= 60.7 dp= 71.4 linhas=0.001 colunas=0.015 bytes=6014

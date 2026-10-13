@@ -1,0 +1,35 @@
+Janela da exposicao automatica da ponte (0x1C AE_STRX, 0x1D AE_STRY, 0x1E AE_ENDX, 0x1F AE_ENDY).
+Unidade: 32 pixels/linhas do sensor (320x240 -> x 0..10, y 0..7).
+Para cada janela: grava os 4 registradores (regs_start), espera a exposicao se acomodar, mede a media
+total e das 4 metades/quadrantes da imagem, e SEMPRE volta aos valores originais antes da proxima
+(com uma medida da base entre elas, para ver se ha deriva).
+
+CENA: aponte a camera para algo com contraste forte e PARADO, por exemplo metade clara (janela, tela
+branca) e metade escura (parede escura), sem mexer durante o teste (~6 min). Pede sudo uma vez.
+Resultado: varredura_ae_resultado.txt e imagens em varredura_ae/*.png
+Uso: python3 varredura_ae.py
+
+originais lidos (1c 1d 1e 1f): 01 02 07 06
+BASE                 fps=48.4  media= 50.8 | sup.esq= 39.6 sup.dir=107.7 inf.esq= 23.3 inf.dir= 32.8
+original 60fps (1, 2, 7, 6) fps=51.6  media= 21.1 | sup.esq= 12.7 sup.dir= 51.8 inf.esq=  8.9 inf.dir= 10.7
+  base apos          fps=51.6  media= 51.1 | sup.esq= 39.9 sup.dir=108.1 inf.esq= 23.4 inf.dir= 32.9
+tela cheia (0, 0, 10, 7) fps=59.1  media= 19.4 | sup.esq= 11.0 sup.dir= 50.2 inf.esq=  7.3 inf.dir=  9.1
+  base apos          fps=59.5  media= 26.8 | sup.esq= 17.9 sup.dir= 61.9 inf.esq= 12.4 inf.dir= 15.0
+metade esquerda (0, 0, 5, 7) fps=49.4  media= 24.5 | sup.esq= 16.2 sup.dir= 57.1 inf.esq= 11.3 inf.dir= 13.6
+  base apos          fps=50.1  media=154.8 | sup.esq=184.3 sup.dir=188.6 inf.esq=140.0 inf.dir=106.3
+metade direita (5, 0, 10, 7) fps=59.5  media= 24.0 | sup.esq= 15.4 sup.dir= 58.3 inf.esq=  9.9 inf.dir= 12.5
+  base apos          fps=59.5  media= 24.8 | sup.esq= 16.3 sup.dir= 59.0 inf.esq= 10.7 inf.dir= 13.3
+metade de cima (0, 0, 10, 3) fps=55.8  media= 18.8 | sup.esq= 10.9 sup.dir= 47.5 inf.esq=  7.5 inf.dir=  9.2
+  base apos          fps=50.8  media= 26.4 | sup.esq= 18.0 sup.dir= 60.8 inf.esq= 12.2 inf.dir= 14.8
+metade de baixo (0, 4, 10, 7) fps=51.8  media= 73.3 | sup.esq= 61.7 sup.dir=145.2 inf.esq= 35.9 inf.dir= 50.3
+  base apos          fps=49.4  media= 34.8 | sup.esq= 25.1 sup.dir= 78.5 inf.esq= 15.3 inf.dir= 20.5
+centro pequeno (4, 3, 6, 5) fps=56.6  media= 97.9 | sup.esq= 87.2 sup.dir=182.6 inf.esq= 50.8 inf.dir= 71.1
+  base apos          fps=51.8  media= 29.1 | sup.esq= 20.0 sup.dir= 67.6 inf.esq= 12.6 inf.dir= 16.2
+canto sup. esq. (0, 0, 2, 2) fps=58.7  media= 99.0 | sup.esq= 88.4 sup.dir=184.1 inf.esq= 51.5 inf.dir= 72.1
+  base apos          fps=51.0  media= 24.7 | sup.esq= 16.0 sup.dir= 59.5 inf.esq= 10.4 inf.dir= 13.0
+canto inf. dir. (6, 5, 10, 7) fps=59.1  media= 98.6 | sup.esq= 87.9 sup.dir=183.8 inf.esq= 51.0 inf.dir= 71.6
+  base apos          fps=50.8  media= 21.2 | sup.esq= 13.3 sup.dir= 50.6 inf.esq=  9.6 inf.dir= 11.4
+invertida (ini>fim) (7, 7, 1, 1) fps=57.0  media= 98.8 | sup.esq= 88.3 sup.dir=184.2 inf.esq= 51.1 inf.dir= 71.7
+  base apos          fps=53.8  media= 20.6 | sup.esq= 12.7 sup.dir= 49.7 inf.esq=  9.1 inf.dir= 10.7
+
+verificacao final: restaurado           fps=55.6  media= 25.8 | sup.esq= 17.1 sup.dir= 60.4 inf.esq= 11.4 inf.dir= 14.1

@@ -1,0 +1,21 @@
+Testa os modos CIF 352x288 e QCIF 176x144 (BA81 cru e S910 comprimido).
+
+Para cada caso: confere se o modo e' anunciado, mede o fps real, decodifica um quadro, calcula a
+correlacao entre vizinhos (imagem x ruido) e LOCALIZA a janela dentro de um quadro BA81 640x480 da
+mesma cena. Isso confirma as unidades de H_START/V_START: o esperado e' x=144, y=96 (janela
+centralizada). Aponte a camera para uma cena PARADA, com detalhe, sem estourar.
+Nao precisa de sudo. Resultado: rcif_resultado.txt  (~1-2 minutos). Imagens em cif/*.png
+
+Uso:  python3 testa_cif.py
+
+352x288 anunciado pelo driver: SIM
+176x144 anunciado pelo driver: SIM
+Referencia 640x480 BA81: media=64.6 dp=28.8
+BA81 352x288 pede  4 fps -> 2.8 fps  SEM IMAGEM (bytes=89749)
+BA81 352x288 pede  2 fps ->   1.5 fps  bytes=101376 media= 69.1 dp= 26.2 corr=0.97 IMAGEM | janela em x=144 y=96 (esperado 144,96) ncc=1.00 OK
+BA81 176x144 pede 12 fps ->   7.5 fps  bytes= 25344 media= 40.3 dp= 14.0 corr=0.94 IMAGEM | janela em x=144 y=96 (esperado 144,96) ncc=1.00 OK
+BA81 176x144 pede  8 fps ->   5.6 fps  bytes= 25344 media= 45.1 dp= 15.9 corr=0.94 IMAGEM | janela em x=144 y=96 (esperado 144,96) ncc=1.00 OK
+S910 352x288 pede 15 fps ->  14.9 fps  bytes= 24958 media= 45.7 dp= 15.4 corr=0.96 IMAGEM | janela em x=144 y=96 (esperado 144,96) ncc=0.99 OK
+S910 352x288 pede 30 fps ->  29.8 fps  bytes= 19948 media= 36.1 dp= 14.8 corr=0.98 IMAGEM | janela em x=140 y=96 (esperado 144,96) ncc=0.59 ??
+S910 176x144 pede 30 fps ->  30.5 fps  bytes=  6248 media= 46.1 dp= 15.1 corr=0.94 IMAGEM | janela em x=144 y=96 (esperado 144,96) ncc=1.00 OK
+S910 176x144 pede 15 fps ->  11.0 fps  bytes=  5668 media= 36.5 dp= 12.2 corr=0.94 IMAGEM | janela em x=144 y=96 (esperado 144,96) ncc=0.99 OK
