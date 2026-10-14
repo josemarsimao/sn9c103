@@ -1,0 +1,51 @@
+Testa 60 fps COM COR COMPLETA: sensor em QVGA progressivo + opcoes de clock (S910 160x120).
+
+Autor: Josemar Simao <josemars@ifes.edu.br>
+Co-autor e Revisor: Claude (Anthropic)
+
+Hoje o modo 60 fps usa o sensor ENTRELACADO (COMH 0x28 = 0x80): cada campo so tem linhas de uma
+paridade, entao cada quadro tem so duas cores. O datasheet diz que o QVGA de UMA LINHA pega blocos
+2x2 (linhas 1-2, 5-6..., colunas 1-2, 5-6...), preservando as 4 cores, e que o formato cru de uma
+linha vai ate 60 f/s. Hipotese: QVGA PROGRESSIVO (COMH = 0xA0) + alguma opcao de clock chega a 60 fps
+com cor completa. Candidatos: CLKC 0x23 bit 1 (QCLK) e bit 0 (EVEN2), COMI 0x29 bit 6 (clock 2x),
+COMJ 0x2D bit 6 (so campo impar).
+
+Partida: modo 60 fps do driver (pede 60 fps no S910 160x120). Cada caso grava registradores por
+regs_start no fim do inicio da captura; o reset do sensor no proximo inicio desfaz tudo.
+Mede: fps, quadro integro, medias das 4 posicoes do mosaico (comparadas com a referencia de 30 fps,
+que tem cor completa) e salva uma imagem colorida de cada caso em testes/qvga60/.
+
+Cena PARADA (a lampada serve; nao precisa de muita luz). Pede sudo uma vez. ~2 min.
+Resultado: qvga60_resultado.txt
+Uso:  python3 testa_qvga60.py            (todos os casos)
+      python3 testa_qvga60.py prog c29   (so os casos cujo nome contem esses textos)
+
+dispositivo: /dev/video2
+ref30           fps=29.8   bytes=5194   B,G,G,R =  16.7  21.4  18.9  22.6  [14=80 23=ee 28=a0 29=30 2d=01]
+base60          fps=59.5   bytes=6773   B,G,G,R =  11.9  15.7  11.0  17.2  [14=a0 23=ee 28=80 29=30 2d=41]
+prog            fps=29.8   bytes=5920   B,G,G,R =  12.4  17.6  15.3  18.9  [14=a0 23=ee 28=a0 29=30 2d=41]
+prog_c2d81      fps=29.8   bytes=5945   B,G,G,R =  12.7  18.6  16.2  19.8  [14=a0 23=ee 28=a0 29=30 2d=01]
+prog_c23ec      fps=29.8   bytes=5910   B,G,G,R =  12.3  18.5  16.0  19.4  [14=a0 23=ec 28=a0 29=30 2d=41]
+prog_c23ef      fps=29.8   bytes=5932   B,G,G,R =  12.7  17.9  15.7  19.1  [14=a0 23=ef 28=a0 29=30 2d=41]
+prog_c29        fps=29.8   bytes=5949   B,G,G,R =  12.5  18.7  16.3  18.8  [14=a0 23=ee 28=a0 29=70 2d=41]
+prog_c29_c2d81  fps=29.8   bytes=5909   B,G,G,R =  12.9  18.2  15.7  18.8  [14=a0 23=ee 28=a0 29=70 2d=01]
+prog_c29_c23ec  fps=29.8   bytes=5951   B,G,G,R =  13.0  18.6  16.4  19.0  [14=a0 23=ec 28=a0 29=70 2d=41]
+entr_c23ef      fps=59.5   bytes=6918   B,G,G,R =  12.7  16.5  12.1  18.3  [14=a0 23=ef 28=80 29=30 2d=41]
+
+==== RESUMO ====
+Cor: as 4 posicoes normalizadas pela media, comparadas com a ref30 (cor completa).
+     "dif" pequena (< 0,10) = mosaico igual ao da referencia = 4 cores. Com so 2 cores, (0,x) e (1,x) se igualam.
+caso            fps     dif    o que muda
+ref30           29.8    0.00   referencia: modo 30 fps normal (VGA progressivo, cor completa)
+base60          59.5    0.16   modo 60 fps atual (QVGA entrelacado: so 2 cores)
+prog            29.8    0.07   QVGA PROGRESSIVO (esperado: 30 fps, 4 cores)
+prog_c2d81      29.8    0.08   progressivo + COMJ bit 6 = 0
+prog_c23ec      29.8    0.10   progressivo + CLKC bit 1 (QCLK) = 0
+prog_c23ef      29.8    0.06   progressivo + CLKC bit 0 (EVEN2) = 1
+prog_c29        29.8    0.09   progressivo + COMI bit 6 (clock 2x) = 1
+prog_c29_c2d81  29.8    0.05   progressivo + clock 2x + COMJ bit 6 = 0
+prog_c29_c23ec  29.8    0.06   progressivo + clock 2x + QCLK = 0
+entr_c23ef      59.5    0.14   entrelacado (atual) + EVEN2 = 1
+
+Imagens em /home/josemar/Downloads/projects/sn9c103/gspca/elgin_fps/testes/qvga60/ (compare base60 e os "prog" com ref30).
+Sucesso = fps perto de 60 E dif pequena E imagem com as cores da ref30.

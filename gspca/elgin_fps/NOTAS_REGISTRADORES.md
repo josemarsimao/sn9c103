@@ -807,3 +807,20 @@ As varreduras do sensor (2026-10-12, `testes/varredura.py`) e da ponte (2026-10-
 | Taxa | `0x11`, `0x2A`/`0x2B`, `0x29` bit 6, `0x16` | `0x17` bits 3:2, `0x19` | Sensor |
 | Padrão de teste | COMA bit 1 | `0x17` bit 4 | As duas |
 
+- **Modo YUV do sensor (avaliado e descartado em 2026-10-13):** COMA (`0x12`) bit 3 = 0 dá saída YUV 4:2:2 (bit 4 = ordem YUYV/UYVY), e com ela saturação, contraste e brilho do sensor passariam a agir. Na ponte só caberia QVGA (640 bytes por linha; a janela vai a 1008), sem compressão (~154 KB por quadro, **~6 fps** no USB), com ganhos, gama e offset da ponte neutros e provavelmente sem a escala da ponte. Não testado. Decisão: não vale a pena enquanto o fps cair tanto.
+
+## 60 fps com cor completa: QVGA progressivo e opções de clock (2026-10-13 23:10)
+
+Script `testes/testa_qvga60.py` (resultado `testes/qvga60_resultado.txt`, imagens em `testes/qvga60/`). S910 160x120, cena parada sob a lâmpada; registradores lidos de volta em cada caso (as gravações pegaram).
+
+| Caso | Registradores | fps | Mosaico (dif × ref30) |
+|---|---|---|---|
+| ref30 | VGA progressivo (modo normal) | 29,8 | 0,00, cor completa |
+| base60 | QVGA entrelaçado (`0x28 = 0x80`, modo 60 fps atual) | 59,5 | 0,16, **listras de cor erradas** |
+| prog | QVGA progressivo (`0x28 = 0xA0`) | 29,8 | 0,07, cor completa |
+| prog + `0x2D = 0x81` / `0x23 = 0xEC` (QCLK 0) / `0x23 = 0xEF` (EVEN2 1) / `0x29 = 0x70` (COMI clock 2×) e combinações | | **29,8 em todos** | 0,05–0,10, cor completa |
+| entrelaçado + `0x23 = 0xEF` | | 59,5 | 0,14 |
+
+- **Confirmado `[medido]`:** o QVGA de uma linha do sensor preserva o mosaico (blocos 2x2, como no datasheet). A falta de cor do 60 fps vem do **entrelaçado** (cada campo tem só uma paridade de linha).
+- **Refutado:** nenhuma opção de clock (`0x23` bits 0/1, `0x29` bit 6) nem o `0x2D` bit 6 tira o progressivo de 30 fps. O teto é o clock interno de 12 MHz (24 MHz / 2 do CLKRC), já no limite do ADC.
+- **Conclusão:** 60 fps com cor completa não é possível neste sensor. Os 60/s existem só como campos de meia cor. Opções: manter o 60 fps atual marcando os campos (`V4L2_FIELD_ALTERNATE`, para a aplicação combinar ou interpolar) ou usar o QVGA progressivo a 30 fps.
