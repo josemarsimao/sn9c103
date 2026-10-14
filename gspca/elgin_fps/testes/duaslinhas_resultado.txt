@@ -1,0 +1,53 @@
+Testa o formato cru de DUAS LINHAS do sensor (COMH 0x28 bit 7 = 0) no QVGA entrelacado.
+
+Autor: Josemar Simao <josemars@ifes.edu.br>
+Co-autor e Revisor: Claude (Anthropic)
+
+Ideia: no formato de duas linhas, cada pulso de linha (HREF) do sensor traz duas linhas misturadas
+pixel a pixel (datasheet: "BGRG...", clock de saida dobrado). Se no entrelacado esse par for B/G + G/R,
+cada campo teria as 4 cores e o 60 fps teria cor completa. O teste "J" de 2026-10-12 (0x28 = 0x00 a
+60 fps) deu 59,5 fps e decodificou, mas a cor nao foi verificada.
+
+Parte 1 (modo 60 fps do driver, S910 160x120): compara um-linha (atual) x duas-linhas pelo mosaico.
+Parte 2 (janela larga, sem escala): a ponte pega 640 amostras por linha (no SN9C102 o maximo seria
+1008; no SN9C103 nao ha mapa: o teste tambem mostra se 0x15 = 0x28 e' aceito com o sensor em QVGA) e
+o padrao das colunas de 4 em 4 mostra o que vem em cada pulso: B G B G (uma linha) ou B G R G (duas).
+Taxa reduzida (0x11 = 3) para o fluxo caber no USB: aqui importa a estrutura, nao o fps.
+
+Cena PARADA, de preferencia com algo VERMELHO e algo AZUL no quadro. Pede sudo uma vez. ~2 min.
+Resultado: duaslinhas_resultado.txt e imagens em testes/duaslinhas/
+
+dispositivo: /dev/video2
+
+ref30       referencia: modo 30 fps normal (cor completa)
+   fps=29.8  bytes=5218  sensor[11=00 14=80 28=a0 2d=01]
+   mosaico 2x2 (linha par / impar):  0.84 1.09  /  0.94 1.13
+   igualdade das linhas (|par-impar| medio, ~0 = linhas do mesmo tipo): 0.073
+
+base60      60 fps atual: uma linha (0x28 = 0x80)
+   fps=59.5  bytes=6726  sensor[11=00 14=a0 28=80 2d=41]
+   mosaico 2x2 (linha par / impar):  0.83 1.13  /  0.79 1.25
+   igualdade das linhas (|par-impar| medio, ~0 = linhas do mesmo tipo): 0.084
+
+J           60 fps com DUAS linhas (0x28 = 0x00)
+   fps=59.5  bytes=5759  sensor[11=00 14=a0 28=00 2d=41]
+   mosaico 2x2 (linha par / impar):  1.41 0.62  /  1.30 0.67
+   igualdade das linhas (|par-impar| medio, ~0 = linhas do mesmo tipo): 0.078
+
+larga_1lin  janela 640 sem escala, UMA linha
+   fps=27.4  bytes=32760  sensor[11=01 14=a0 28=80 2d=41]
+   mosaico 2x2 (linha par / impar):  0.49 0.59  /  2.50 0.43
+   igualdade das linhas (|par-impar| medio, ~0 = linhas do mesmo tipo): 1.088
+   colunas de 4 em 4 (linha par):   0.49 0.59 0.48 0.59
+   colunas de 4 em 4 (linha impar): 2.50 0.43 2.49 0.43
+   (uma linha: col 0 = col 2 e col 1 = col 3; duas linhas B G R G: col 0 != col 2)
+
+larga_2lin  janela 640 sem escala, DUAS linhas
+   fps=14.9  bytes=30692  sensor[11=03 14=a0 28=00 2d=41]
+   mosaico 2x2 (linha par / impar):  1.21 0.55  /  1.82 0.42
+   igualdade das linhas (|par-impar| medio, ~0 = linhas do mesmo tipo): 0.372
+   colunas de 4 em 4 (linha par):   1.21 0.55 1.21 0.55
+   colunas de 4 em 4 (linha impar): 1.83 0.42 1.82 0.42
+   (uma linha: col 0 = col 2 e col 1 = col 3; duas linhas B G R G: col 0 != col 2)
+
+Imagens (mosaico cru em cinza) em /home/josemar/Downloads/projects/sn9c103/gspca/elgin_fps/testes/duaslinhas/

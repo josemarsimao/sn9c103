@@ -824,3 +824,18 @@ Script `testes/testa_qvga60.py` (resultado `testes/qvga60_resultado.txt`, imagen
 - **Confirmado `[medido]`:** o QVGA de uma linha do sensor preserva o mosaico (blocos 2x2, como no datasheet). A falta de cor do 60 fps vem do **entrelaçado** (cada campo tem só uma paridade de linha).
 - **Refutado:** nenhuma opção de clock (`0x23` bits 0/1, `0x29` bit 6) nem o `0x2D` bit 6 tira o progressivo de 30 fps. O teto é o clock interno de 12 MHz (24 MHz / 2 do CLKRC), já no limite do ADC.
 - **Conclusão:** 60 fps com cor completa não é possível neste sensor. Os 60/s existem só como campos de meia cor. Opções: manter o 60 fps atual marcando os campos (`V4L2_FIELD_ALTERNATE`, para a aplicação combinar ou interpolar) ou usar o QVGA progressivo a 30 fps.
+
+## Formato cru de duas linhas no QVGA entrelaçado (2026-10-13 23:42)
+
+Script `testes/testa_duaslinhas.py` (resultado `testes/duaslinhas_resultado.txt`, mosaicos crus em `testes/duaslinhas/`). Ganho automático desligado durante o teste.
+
+| Caso | Registradores | fps | Mosaico (linha par / ímpar, normalizado) |
+|---|---|---|---|
+| ref30 | modo normal | 29,8 | 0,84 1,09 / 0,94 1,13 (linhas diferentes: cor completa) |
+| base60 | QVGA entrelaçado, uma linha (`0x28 = 0x80`) | 59,5 | 0,83 1,13 / 0,79 1,25 (meia cor, listras) |
+| J | idem com **duas linhas** (`0x28 = 0x00`) | 59,5 | 1,41 0,62 / 1,30 0,67: **continua meia cor** (linhas iguais; só a fase das colunas muda), mesmas listras |
+| larga 1 e 2 linhas | QVGA entrelaçado, ponte `0x15 = 0x28` (640), `0x16 = 0x0F`, escala 1/1, `0x11 = 3` | 27,4 / 14,9 | imagem **inclinada**: inconclusivo |
+
+- **Refutado `[medido]`:** o formato de duas linhas não dá as 4 cores por campo. Junto com o teste do QVGA progressivo, fecha a questão: **60 fps com cor completa não é possível** neste par sensor/ponte.
+- **Ponte SN9C103 `[medido]`:** aceita `0x15 = 0x28` (640) com o sensor em QVGA, mas quando a janela é maior que a linha do sensor ela **atravessa o fim da linha** (pega amostras da linha seguinte), o que inclina a imagem: não se realinha a cada HREF, só conta amostras. Logo, a linha do QVGA tem menos de 640 amostras **também** no formato de duas linhas (a hipótese "duas linhas = 640 amostras por HREF com o par B/G + G/R" não se confirma).
+- Observação: no caso "larga uma linha" o `0x11` foi lido como 0x01 (gravado 0x03 pelo `regs_start`); algo do driver o regravou no início da captura. Não afeta a conclusão.
