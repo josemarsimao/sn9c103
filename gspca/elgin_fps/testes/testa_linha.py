@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Linha unica x duas linhas (COMH 0x28 bit 7) com a tela do celular: cores e comprimento da linha.
+"""Linha unica x duas linhas (COMH 0x28 bit 7) com padroes na tela: cores e comprimento da linha.
 
 Autor: Josemar Simao <josemars@ifes.edu.br>
 Co-autor e Revisor: Claude (Anthropic)
@@ -22,8 +22,12 @@ sem escala para nao descartar amostras):
 Taxa reduzida pelo 0x11 para caber no USB. Ganho automatico e taxa dinamica ficam desligados (eles
 regravam o 0x11) e voltam ao valor anterior no fim.
 
-Tela do celular em brilho MEDIO, encostada ou bem perto da lente, cobrindo TODA a imagem. O script
-pede cada tela e espera Enter. Pede sudo uma vez. ~5 min.
+Padrao (janela no notebook, tela_padrao.py): a camera no suporte (~5 cm) olhando para a janela. O
+script abre a janela no padrao "alinhar"; posicione e ajuste o tamanho (+/-) pelo Multiview ate o
+contorno ficar inteiro na imagem, FECHE o Multiview e aperte Enter. Depois tudo e' automatico; as
+medidas usam so a regiao do padrao (achada na captura do branco de cada caso). ~5 min.
+Com --celular: modo manual antigo (tela do celular cobrindo toda a imagem, Enter a cada tela).
+Pede sudo uma vez.
 Resultado: linha_resultado.txt e imagens em testes/linha/
 """
 import os
@@ -34,6 +38,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import testa_qvga60 as t  # noqa: E402  (sudo, leitura de registradores, medida de fps)
+from janela import Janela  # noqa: E402
 from sn9c10x_decode import decode  # noqa: E402
 
 OUT = os.path.join(HERE, 'linha')
@@ -50,9 +55,11 @@ CASOS = [
     ('entr2', 's:0x28=0x00,s:0x2d=0xc1', 'QVGA entrelacado, DUAS linhas'),
     ('prog2', 's:0x28=0x20', 'QVGA progressivo, DUAS linhas'),
 ]
-TELAS = [('BRANCO', 'tela toda BRANCA (255,255,255)'), ('VERMELHO', 'tela toda VERMELHA (255,0,0)'),
-         ('VERDE', 'tela toda VERDE (0,255,0)'), ('AZUL', 'tela toda AZUL (0,0,255)'),
-         ('MEIO', 'metade ESQUERDA BRANCA e metade DIREITA PRETA (divisa vertical)')]
+# (nome, padrao da janela, pedido no modo celular)
+TELAS = [('BRANCO', 'branco', 'tela toda BRANCA (255,255,255)'), ('VERMELHO', 'vermelho', 'tela toda VERMELHA (255,0,0)'),
+         ('VERDE', 'verde', 'tela toda VERDE (0,255,0)'), ('AZUL', 'azul', 'tela toda AZUL (0,0,255)'),
+         ('MEIO', 'meio', 'metade ESQUERDA BRANCA e metade DIREITA PRETA (divisa vertical)')]
+CELULAR = '--celular' in sys.argv
 
 
 def regs(caso, jan):
@@ -84,9 +91,26 @@ def captura(wd, hd):
         return None
 
 
-def grade(q):
-    """Media de cada posicao (linha par/impar x coluna de 4 em 4), ignorando 8 pixels de borda."""
-    q = q[8:-8, 8:-8]
+def regiao(q):
+    """Regiao do padrao na imagem do branco: retangulo das linhas e colunas claras (acima da metade do
+    brilho alto), encolhido 10% em cada lado e alinhado ao mosaico (linha par, coluna multipla de 4).
+    Sem padrao claro (modo celular), usa a imagem toda menos 8 pixels de borda."""
+    alto = float(np.percentile(q, 99))
+    claro = q > 0.5 * alto
+    lin = np.where(claro.mean(axis=1) > 0.5)[0]
+    col = np.where(claro.mean(axis=0) > 0.5)[0]
+    if len(lin) < 16 or len(col) < 16:
+        return (8, q.shape[0] - 8, 8, q.shape[1] - 8)
+    r0, r1, c0, c1 = lin[0], lin[-1] + 1, col[0], col[-1] + 1
+    dr, dc = (r1 - r0) // 10, (c1 - c0) // 10
+    r0, r1, c0, c1 = r0 + dr, r1 - dr, c0 + dc, c1 - dc
+    return (r0 + r0 % 2, r1, c0 + (-c0) % 4, c1)
+
+
+def grade(q, roi):
+    """Media de cada posicao (linha par/impar x coluna de 4 em 4) dentro da regiao do padrao."""
+    r0, r1, c0, c1 = roi
+    q = q[r0:r1, c0:c1]
     return np.array([[q[r::2, c::4].mean() for c in range(4)] for r in range(2)])
 
 
@@ -136,10 +160,20 @@ def main():
     ctrl('gain_automatic', 0)
     ctrl('exposure_dynamic_framerate', 0)
     g = {}						# g[caso][tela] = grade 2x4
+    roi = {}						# roi[caso] = regiao do padrao (achada no branco)
+    jan_p = None
     try:
-        for tela, pedido in TELAS:
+        if not CELULAR:
+            jan_p = Janela('alinhar')
+            input('\n>>> Posicione a janela pelo Multiview (padrao "alinhar", +/- muda o tamanho) ate o contorno\n'
+                  '    ficar inteiro na imagem, FECHE o Multiview e aperte Enter... ')
+        for tela, padrao, pedido in TELAS:
             t.subprocess.run(['sudo', '-v'])
-            input('\n>>> Mostre %s e aperte Enter (mantenha ate o proximo pedido)... ' % pedido)
+            if CELULAR:
+                input('\n>>> Mostre %s e aperte Enter (mantenha ate o proximo pedido)... ' % pedido)
+            else:
+                jan_p.mostra(padrao)
+                print('\n--- padrao %s' % padrao)
             for caso in CASOS:
                 nome = caso[0]
                 jan = 640 if tela == 'MEIO' else 320
@@ -160,12 +194,17 @@ def main():
                     g.setdefault(nome, {})['MEIO'] = a
                     print('  %-6s linha do sensor ~ %.0f amostras' % (nome, 640 + a))
                 else:
-                    m = grade(q)
+                    if tela == 'BRANCO':
+                        roi[nome] = regiao(q)
+                    m = grade(q, roi.get(nome, (8, q.shape[0] - 8, 8, q.shape[1] - 8)))
                     g.setdefault(nome, {})[tela] = m
                     sat = ' SATURADO (diminua o brilho)' if q.max() >= 250 and np.mean(q >= 250) > 0.2 else ''
-                    print('  %-6s par: %s  impar: %s%s%s' % (nome, ' '.join('%5.1f' % x for x in m[0]),
-                                                           ' '.join('%5.1f' % x for x in m[1]), sat, info))
+                    reg = '  regiao linhas %d-%d colunas %d-%d' % roi[nome] if tela == 'BRANCO' and nome in roi else ''
+                    print('  %-6s par: %s  impar: %s%s%s%s' % (nome, ' '.join('%5.1f' % x for x in m[0]),
+                                                             ' '.join('%5.1f' % x for x in m[1]), sat, info, reg))
     finally:
+        if jan_p:
+            jan_p.fecha()
         t.sudo_tee(t.PS, '')
         for c, v in antes.items():
             if v:
