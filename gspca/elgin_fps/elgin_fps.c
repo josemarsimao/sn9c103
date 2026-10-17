@@ -2154,6 +2154,7 @@ struct sd {
 	struct v4l2_ctrl *hflip;	/* espelho horizontal (COMA bit 6 do sensor) */
 	struct v4l2_ctrl *vflip;	/* inversao vertical (COMN 0x75 bit 7 do sensor) */
 	struct v4l2_ctrl *bandf;	/* filtro de banda (COMJ 0x2D bit 2 do sensor) */
+	struct v4l2_ctrl *ae_target;	/* alvo de luminosidade do ganho automatico (127 = padrao) */
 	struct v4l2_ctrl *abg_blue;	/* alvo do AWB, fundo azul (sensor 0x0C) */
 	struct v4l2_ctrl *abg_red;	/* alvo do AWB, fundo vermelho (sensor 0x0D) */
 	__u8 vstart;			/* V_START base (reg 0x13 da ponte) */
@@ -2522,7 +2523,8 @@ static const __u8 ov7630_sensor_init[][8] = {
     {0xB0, 0x21, 0x2A, 0x80, 0x00, 0xA0, 0x30, 0x10},
     {0xB0, 0x21, 0x2F, 0x3D, 0x24, 0xA0, 0x30, 0x10},
     {0xA0, 0x21, 0x32, 0x86, 0x24, 0xA0, 0x30, 0x10},
-    {0xB0, 0x21, 0x60, 0x29, 0x42, 0xA0, 0x30, 0x10},
+    {0xB0, 0x21, 0x60, 0x29, 0x4A, 0xA0, 0x30, 0x10},	// 0x61 = 0x4A: SPCB bit 3 (BRTEN) ligado, como no sonixb; o
+							// Windows grava 0x42, que desliga o brilho (0x06) na imagem crua
     {0xA0, 0x21, 0x65, 0x00, 0x42, 0xA0, 0x30, 0x10},
     {0xA0, 0x21, 0x69, 0x38, 0x42, 0xA0, 0x30, 0x10},
     {0xC0, 0x21, 0x6F, 0x88, 0x0B, 0x00, 0x30, 0x10},
@@ -3554,9 +3556,10 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 		desired_avg_lum = 13000;
 	}
 
-	/* o controle de brilho passa a ser o alvo de luminosidade do ganho automatico */
-	if (sd->brightness)
-		desired_avg_lum = sd->brightness->val * desired_avg_lum / 127;
+	/* alvo de luminosidade do ganho automatico: controle proprio "AE target" (o brilho agora age no
+	 * sensor, reg 0x06 com BRTEN ligado, e nao se mistura com o automatico) */
+	if (sd->ae_target)
+		desired_avg_lum = sd->ae_target->val * desired_avg_lum / 127;
 	/* o avg_lum e' a soma de luminosidade da janela de AE: o alvo acompanha a area (117 = padrao) */
 	if (sd->ae_area) {
 		desired_avg_lum = desired_avg_lum * sd->ae_area / 117;
@@ -3775,6 +3778,7 @@ static void settest(struct gspca_dev *gspca_dev)
 #define V4L2_CID_AE_START_Y (V4L2_CID_USER_BASE + 0x1f09)
 #define V4L2_CID_AE_END_X (V4L2_CID_USER_BASE + 0x1f0a)
 #define V4L2_CID_AE_END_Y (V4L2_CID_USER_BASE + 0x1f0b)
+#define V4L2_CID_AE_TARGET (V4L2_CID_USER_BASE + 0x1f0c)	/* controle proprio: alvo do ganho automatico */
 
 static const char * const ae_win_menu[] = {
 	"Mode default", "Full", "Center", "Left half", "Right half", "Top half", "Bottom half", "Custom"
@@ -3956,6 +3960,9 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_BAND_STOP_FILTER:
 		setbandf(gspca_dev);
 		break;
+	case V4L2_CID_AE_TARGET:
+		sd->autogain_ignore_frames = 0;	/* o automatico passa a buscar o alvo novo ja no proximo quadro */
+		break;
 	case V4L2_CID_AWB_BG:
 	case V4L2_CID_AWB_RG:
 		setawbt(gspca_dev);
@@ -4006,6 +4013,14 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 
 	if (sd->sensor == SENSOR_OV6650 || sd->sensor == SENSOR_OV7630 || sd->sensor == SENSOR_PAS106 || sd->sensor == SENSOR_PAS202)
 		sd->brightness = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_BRIGHTNESS, 0, 255, 1, 127);
+	if (sd->sensor == SENSOR_OV7630) {
+		/* alvo do ganho automatico, separado do brilho (lido em do_autogain; nao grava registrador) */
+		static const struct v4l2_ctrl_config aet_cfg = {
+			.ops = &sd_ctrl_ops, .id = V4L2_CID_AE_TARGET, .name = "AE target",
+			.type = V4L2_CTRL_TYPE_INTEGER, .min = 0, .max = 255, .step = 1, .def = 127,
+		};
+		sd->ae_target = v4l2_ctrl_new_custom(hdl, &aet_cfg, NULL);
+	}
 
 	/* Gain range is sensor dependent */
 	switch (sd->sensor) {
