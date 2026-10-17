@@ -915,3 +915,21 @@ Mesmo arranjo; cada caso restaura o registrador anterior ao valor de base (algun
 - **`0x6B` bits 6–1:** escurece progressivamente (22,3 → 16,3 / 11,7 / 7,0 / 1,0 / 0): comporta-se como **nível de preto** (confirma a varredura de 2026-10-12). `[medido]`
 - **`0x7E` bits 7–5 e `0x7F` bits 5–1:** baixam a taxa (0x7E: 23,8 / 26,8 fps; 0x7F: 14,9 / 10,0 / 6,3 / 3,5 / 1,8 fps) e clareiam (exposição mais longa, até saturar). Com o bit 7 do `0x7E` (128 unidades) o quadro cresce ~8,5 ms: **~66 µs por unidade, cerca de uma linha** → contador de 16 bits de **linhas extras por quadro** (`0x7F` = byte alto), agora medido com o sensor em VGA. Outra forma de alongar a exposição e baixar a taxa, em passos finos. `[medido]`
 - **Sem efeito com um bit por vez:** todos os demais reservados (`0x07`–`0x09`, `0x0E`, `0x0F`, `0x1E`, `0x34`–`0x4B`, `0x4E`–`0x5F`, `0x62`–`0x64`, `0x6A`, `0x6C`–`0x6E`, `0x7B`), inclusive o `0x6C`.
+
+## Testes de combinação dirigidos (2026-10-17, `testes/testa_combina.py`)
+
+Mesmo arranjo das varreduras (padrão "composto", S910 320x240 a 30 fps, ganho 47 e exposição 67 fixos). Cada caso grava um conjunto de registradores. Dados `testes/comb_sensor.csv` e `testes/comb_ponte.csv`; tabelas `testes/comb_*_resumo.txt`; imagens `testes/comb_*.html`.
+
+### Sensor (38 casos; referência: brilho 21,7)
+
+- **Brilho `[medido]`: `0x06` (BRT) só age com `0x61` bit 3 (BRTEN) = 1.** Com BRTEN = 0, BRT 0x00/0xFF → 22,2/22,1 (sem efeito). Com BRTEN = 1: BRT 0x00 → **2,3**; 0x40 → 7,1; 0xC0 → 51,4; 0xFF → **98,6**. BRTH (`0x61` bit 2) reduz a faixa à metade (0xFF → 50,8). Na varredura de um bit não aparecia porque o BRT estava em 0x7F (quase neutro). **É um controle de brilho real na imagem crua.**
+- **Offset digital manual** (`0x26` bit 1 + `0x27` bit 2), em grupos e não por cor: **`0x21` só o verde** (±32 → verde 96 → 104 / 88); **`0x2E` vermelho e azul juntos** (a diagonal do mosaico; +32 → R 85 → 93, B 91 → 95); **`0x22` sem efeito**. Só o `0x26` bit 1 (offset automático): sem efeito.
+- **Offset do ADC** (`0x78`–`0x7A`, já habilitado pelo `0x27` bit 3 na base): mesmo agrupamento: **`0x78` = verde** (0xFF → verde 96 → 64), **`0x7A` = vermelho + azul** (0xFF → R 85 → 48, B 91 → 59), **`0x79` sem efeito**; 0x00 ≈ sem mudança. Desligar o `0x27` bit 3 quase não muda.
+- **AEC/AGC internos (`0x13`):** AEC → brilho 29,5; AGC → 9,2; os dois → 17,3 (o sensor escolhe o próprio ponto). Alvos `0x24`/`0x25` e janela central (`0x29` bit 3) quase sem efeito; referência `0x68` baixa (0x0C) escurece (9,3), alta (0xEC) igual à base.
+- **AWB:** desligar (`0x12` bit 2 = 0) muda um pouco o azul (B do branco 90 → 101); modos do `0x20` e passo do `0x15`: efeitos pequenos.
+
+### Ponte (17 casos; referência: 29,8 fps, brilho 21,6)
+
+- **Clock com passos intermediários `[medido]`:** `0x17` SEN_RATE = 00 + `0x19` MCK_SIZE = N → clock = 24 MHz / N, taxa proporcional: N = 2 → 14,4 fps (brilho 47); 3 → 9,7 (70); 4 → 7,2 (87); 5 → 5,8 (98; o modo cru do Risolia); 8 → 3,6 (122); 15 → 1,9 (161, satura). Imagem íntegra; a exposição máxima cresce. Forma limpa de ter taxas baixas com mais luz. 12 MHz pelo SEN_RATE = 01 dá o mesmo (14,4 fps).
+- **A ponte gerando o sincronismo não serve:** `0x19` com SYNC_OUT / PCK_OUT / PCK_2X estraga a imagem ou a cor em todas as combinações (SYNC_OUT + PCK_OUT: 38,7 fps, imagem destruída), inclusive a original do gspca (`0x17 = 0x6C`, `0x19 = 0x2B`: 19,7 fps, imagem ruim, como em 2026-10-11).
+- **Polaridades do `0x18`:** trocar a borda do PCK (bit 0) ou do HSYNC (bit 1) desloca o mosaico e embaralha a cor; as do VSYNC (bits 2, 3) sem efeito.

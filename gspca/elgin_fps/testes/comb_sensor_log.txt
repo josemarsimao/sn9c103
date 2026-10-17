@@ -1,0 +1,103 @@
+Testes de combinacao dirigidos: grupos de registradores que o datasheet diz que trabalham juntos.
+
+Autor: Josemar Simao <josemars@ifes.edu.br>
+Co-autor e Revisor: Claude (Anthropic)
+
+A varredura bit a bit (varre_bits.py) inverte um bit por vez; aqui cada caso grava um conjunto de
+registradores de uma vez (ex.: habilitar o offset manual E escrever o valor). Mesmo arranjo: camera no
+suporte olhando o padrao "composto" da janela, modo base S910 320x240 a 30 fps, ganho 47 e exposicao 67
+fixos, ganho automatico e taxa dinamica desligados. Para cada caso grava fps, brilho, a cor das faixas
+(R, G, B nas posicoes do mosaico) e a rampa, e no fim imprime a tabela comparada com a referencia.
+
+Fases: sensor | ponte.  Casos numerados, gravados um a um em comb_<fase>.csv (com fsync); se travar,
+rode de novo com --continua (retoma no caso interrompido) ou --continua --pula N.
+Resultado: comb_<fase>_resumo.txt e comb_<fase>.html (imagens em testes/comb_<fase>/).
+Uso:  python3 testa_combina.py sensor
+
+==== 2026-10-17 17:20  combinacoes do sensor: 38 casos
+>>> Camera analisada: /dev/video2  (Elgin camera (SN9C103 + OV7630))
+
+>>> Confira pelo Multiview se o contorno do padrao "alinhar" esta inteiro na imagem (a janela
+    abre na posicao gravada). FECHE o Multiview e aperte Enter... [01/38] offset  COMF bit 1 so (offset automatico)  fps=29.8 media=21.5
+[02/38] offset  offset manual, valores neutros (0x80)  fps=28.8 media=21.5
+[03/38] offset  manual G +32 (0x21 = 0x20)  fps=28.8 media=25.4
+[04/38] offset  manual G -32 (0x21 = 0xa0)  fps=29.8 media=18.9
+[05/38] offset  manual B +32 (0x22 = 0x20)  fps=29.8 media=21.6
+[06/38] offset  manual B -32 (0x22 = 0xa0)  fps=28.8 media=21.6
+[07/38] offset  manual R +32 (0x2E = 0x20)  fps=29.8 media=25.0
+[08/38] offset  manual R -32 (0x2E = 0xa0)  fps=29.8 media=19.5
+[09/38] adc     offset do ADC desligado (COMG bit 3 = 0)  fps=28.8 media=21.3
+[10/38] adc     ADC G 0x00 (0x78)  fps=28.8 media=21.9
+[11/38] adc     ADC G 0xff (0x78)  fps=29.8 media=14.6
+[12/38] adc     ADC B 0x00 (0x79)  fps=29.8 media=21.9
+[13/38] adc     ADC B 0xff (0x79)  fps=28.8 media=21.8
+[14/38] adc     ADC R 0x00 (0x7A)  fps=29.8 media=21.6
+[15/38] adc     ADC R 0xff (0x7A)  fps=28.8 media=15.2
+[16/38] adc     ADC B 0xff com COMG bit 3 = 0  fps=29.8 media=21.8
+[17/38] brilho  BRTEN = 0, BRT 0x00  fps=29.8 media=22.3
+[18/38] brilho  BRTEN = 0, BRT 0xff  fps=29.8 media=22.1
+[19/38] brilho  BRTEN = 1, BRT 0x00  fps=29.8 media=2.3
+[20/38] brilho  BRTEN = 1, BRT 0x40  fps=29.8 media=7.1
+[21/38] brilho  BRTEN = 1, BRT 0xc0  fps=29.8 media=51.4
+[22/38] brilho  BRTEN = 1, BRT 0xff  fps=29.8 media=98.6
+[23/38] brilho  BRTEN = 1, BRTH = 1, BRT 0xff  fps=28.8 media=50.7
+[24/38] brilho  BRTEN = 1 + offset digital (COMF bit 1), BRT 0xff  fps=28.8 media=99.0
+[25/38] aec     AEC interno (0x13 bit 0)  fps=27.8 media=29.5
+[26/38] aec     AGC interno (0x13 bit 1)  fps=29.8 media=9.2
+[27/38] aec     AEC + AGC internos  fps=26.8 media=17.3
+[28/38] aec     AEC + AGC, alvo claro (0x24 = 0x60, 0x25 = 0x50)  fps=27.8 media=15.1
+[29/38] aec     AEC + AGC, alvo escuro (0x24 = 0x20, 0x25 = 0x90)  fps=27.8 media=15.4
+[30/38] aec     AEC + AGC, referencia baixa (0x68 = 0x0c)  fps=28.8 media=9.3
+[31/38] aec     AEC + AGC, referencia alta (0x68 = 0xec)  fps=26.8 media=17.3
+[32/38] aec     AEC + AGC, janela central 1/4 (0x29 bit 3)  fps=26.8 media=17.3
+[33/38] awb     AWB desligado (0x12 bit 2 = 0)  fps=29.8 media=23.4
+[34/38] awb     AWB ligado (= base)  fps=29.8 media=22.4
+[35/38] awb     AWB + modo rapido (0x20 bit 1)  fps=29.8 media=22.2
+[36/38] awb     AWB + ajuste manual no automatico (0x20 bit 2)  fps=29.8 media=22.0
+[37/38] awb     AWB + modo esperto (0x20 bit 3)  fps=29.8 media=22.7
+[38/38] awb     AWB + passo de 1 bit (0x15 bits 5:4 = 00)  fps=29.8 media=22.6
+
+Combinacoes do sensor (2026-10-17). Valores medidos; a linha REF e a mediana das referencias.
+
+n    grupo   caso                                                           fps  brilho     brB     brG     brR  R/verm G/verde  B/azul  rampa0 rampa15
+REF          referencia                                                    29.3    21.7    90.6    96.0    84.7    50.2    66.4    46.1     0.8    64.1
+1    offset  COMF bit 1 so (offset automatico)                             29.8    21.5    90.2    95.9    84.7    50.2    66.3    45.7     0.6    63.6
+2    offset  offset manual, valores neutros (0x80)                         28.8    21.5    90.3    96.2    80.2    47.3    66.6    46.0     1.0    63.7
+3    offset  manual G +32 (0x21 = 0x20)                                    28.8    25.4    89.4   104.3    80.0    47.1    74.7    45.5     4.3    67.2
+4    offset  manual G -32 (0x21 = 0xa0)                                    29.8    18.9    89.5    88.3    80.8    48.0    58.9    45.4     0.2    59.7
+5    offset  manual B +32 (0x22 = 0x20)                                    29.8    21.6    89.3    95.7    84.4    50.0    66.3    45.3     0.7    63.6
+6    offset  manual B -32 (0x22 = 0xa0)                                    28.8    21.6    90.0    95.9    84.0    49.9    66.0    45.6     0.8    64.0
+7    offset  manual R +32 (0x2E = 0x20)                                    29.8    25.0    94.9    95.8    92.7    58.1    66.6    52.2     2.8    67.4
+8    offset  manual R -32 (0x2E = 0xa0)                                    29.8    19.5    82.6    96.0    76.5    42.3    66.5    38.0     0.7    60.1
+9    adc     offset do ADC desligado (COMG bit 3 = 0)                      28.8    21.3    90.0    95.9    80.4    47.7    66.3    45.5     0.5    63.3
+10   adc     ADC G 0x00 (0x78)                                             28.8    21.9    89.9    97.0    80.4    47.8    67.3    45.9     1.1    63.8
+11   adc     ADC G 0xff (0x78)                                             29.8    14.6    90.5    64.1    84.9    50.6    34.3    46.1     0.1    48.3
+12   adc     ADC B 0x00 (0x79)                                             29.8    21.9    90.9    96.0    84.8    50.6    66.6    46.0     0.9    64.4
+13   adc     ADC B 0xff (0x79)                                             28.8    21.8    90.8    96.5    80.8    48.1    66.7    46.3     0.9    63.8
+14   adc     ADC R 0x00 (0x7A)                                             29.8    21.6    88.9    95.5    84.6    50.4    66.0    45.0     0.7    63.7
+15   adc     ADC R 0xff (0x7A)                                             28.8    15.2    59.0    96.2    48.4    15.8    66.8    14.6     0.7    47.9
+16   adc     ADC B 0xff com COMG bit 3 = 0                                 29.8    21.8    89.8    96.5    80.9    48.0    66.9    45.6     1.0    63.7
+17   brilho  BRTEN = 0, BRT 0x00                                           29.8    22.2    91.2    96.6    85.2    50.7    67.3    46.6     1.1    64.8
+18   brilho  BRTEN = 0, BRT 0xff                                           29.8    22.1    90.5    96.3    84.5    50.6    67.0    46.2     0.9    64.5
+19   brilho  BRTEN = 1, BRT 0x00                                           29.8     2.3    26.8    36.6    18.4     0.0     7.4     0.0     0.0     5.4
+20   brilho  BRTEN = 1, BRT 0x40                                           29.8     7.1    52.5    62.2    43.6    12.1    33.1    10.5     0.0    28.9
+21   brilho  BRTEN = 1, BRT 0xc0                                           29.8    51.4   132.4   125.1   118.2    82.3    95.6    82.3    27.4    96.8
+22   brilho  BRTEN = 1, BRT 0xff                                           29.8    98.6   183.2   173.2   166.2   130.1   143.6   131.9    73.9   144.6
+23   brilho  BRTEN = 1, BRTH = 1, BRT 0xff                                 28.8    50.8   128.6   124.6   119.9    83.2    95.3    80.2    26.8    95.6
+24   brilho  BRTEN = 1 + offset digital (COMF bit 1), BRT 0xff             28.8    99.0   183.9   173.9   166.7   130.2   144.4   132.1    74.9   145.5
+25   aec     AEC interno (0x13 bit 0)                                      27.8    29.5   117.4   123.6   105.4    63.8    86.5    61.7     2.2    83.5
+26   aec     AGC interno (0x13 bit 1)                                      29.8     9.2    40.0    46.4    39.0    21.9    31.9    19.0     0.0    29.2
+27   aec     AEC + AGC internos                                            26.8    17.3    71.0    77.2    65.3    38.8    53.5    36.0     0.5    51.0
+28   aec     AEC + AGC, alvo claro (0x24 = 0x60, 0x25 = 0x50)              27.8    15.1    62.8    68.7    56.0    33.3    47.3    32.2     0.4    44.8
+29   aec     AEC + AGC, alvo escuro (0x24 = 0x20, 0x25 = 0x90)             27.8    15.4    63.1    68.8    56.3    33.6    47.9    32.0     0.4    45.5
+30   aec     AEC + AGC, referencia baixa (0x68 = 0x0c)                     28.8     9.3    42.0    46.2    39.0    22.1    31.9    19.8     0.0    29.9
+31   aec     AEC + AGC, referencia alta (0x68 = 0xec)                      26.8    17.4    71.0    77.3    67.3    40.1    53.7    36.0     0.4    51.3
+32   aec     AEC + AGC, janela central 1/4 (0x29 bit 3)                    26.8    17.3    70.8    77.3    67.6    40.2    53.6    35.9     0.4    51.3
+33   awb     AWB desligado (0x12 bit 2 = 0)                                29.8    23.4   101.1    97.2    83.4    50.2    67.9    52.2     1.4    66.7
+34   awb     AWB ligado (= base)                                           29.8    22.4    90.0    96.6    85.2    50.9    67.4    46.1     1.1    64.7
+35   awb     AWB + modo rapido (0x20 bit 1)                                29.8    22.2    90.1    97.1    81.2    48.5    67.8    46.4     1.1    64.3
+36   awb     AWB + ajuste manual no automatico (0x20 bit 2)                29.8    22.0    89.5    96.1    85.0    50.5    66.3    45.5     1.0    64.0
+37   awb     AWB + modo esperto (0x20 bit 3)                               29.8    22.7    94.7    96.8    85.4    50.8    67.3    49.0     1.1    65.4
+38   awb     AWB + passo de 1 bit (0x15 bits 5:4 = 00)                     29.8    22.6    90.3    97.2    81.8    49.1    67.7    46.5     1.4    64.6
+
+Resumo: comb_sensor_resumo.txt  Relatorio: comb_sensor.html
