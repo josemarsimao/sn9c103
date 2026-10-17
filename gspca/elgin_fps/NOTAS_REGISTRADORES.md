@@ -933,3 +933,10 @@ Mesmo arranjo das varreduras (padrão "composto", S910 320x240 a 30 fps, ganho 4
 - **Clock com passos intermediários `[medido]`:** `0x17` SEN_RATE = 00 + `0x19` MCK_SIZE = N → clock = 24 MHz / N, taxa proporcional: N = 2 → 14,4 fps (brilho 47); 3 → 9,7 (70); 4 → 7,2 (87); 5 → 5,8 (98; o modo cru do Risolia); 8 → 3,6 (122); 15 → 1,9 (161, satura). Imagem íntegra; a exposição máxima cresce. Forma limpa de ter taxas baixas com mais luz. 12 MHz pelo SEN_RATE = 01 dá o mesmo (14,4 fps).
 - **A ponte gerando o sincronismo não serve:** `0x19` com SYNC_OUT / PCK_OUT / PCK_2X estraga a imagem ou a cor em todas as combinações (SYNC_OUT + PCK_OUT: 38,7 fps, imagem destruída), inclusive a original do gspca (`0x17 = 0x6C`, `0x19 = 0x2B`: 19,7 fps, imagem ruim, como em 2026-10-11).
 - **Polaridades do `0x18`:** trocar a borda do PCK (bit 0) ou do HSYNC (bit 1) desloca o mosaico e embaralha a cor; as do VSYNC (bits 2, 3) sem efeito.
+
+## `sonixb.c` atual do kernel × cópia de 2022 (2026-10-17)
+
+Baixado para `gspca/sonixb_2026/` (`sonixb.c`, `gspca.c`, `gspca.h`, `autogain_functions.c`; último commit do `sonixb.c`: 2026-05-05, "Fix comment in sd_init()"). Diferença para `gspca/latest/` (2022): **só um comentário**; não há implementação nova de brilho ou exposição.
+
+- **Causa do "brilho sem efeito" no nosso driver `[código]` + `[medido]`:** a init do OV7630 do `sonixb` (tabela `ov7630_sensor_init_stock` no `elgin_fps.c`, linha ~2488) grava `0x60 = 0xA9` e **`0x61 = 0x4A` (BRTEN ligado)**, com uma linha comentada "jfm" que tinha 0x42. A tabela ativa do `elgin_fps` (a da captura do Windows, linha ~2525) grava `0x60 = 0x29` e **`0x61 = 0x42` (BRTEN desligado)**. Com 0x42 o `0x06` não age (ver "Testes de combinação"). No `sonixb` o brilho grava o `0x06` direto e também serve de alvo do ganho automático (`desired_avg_lum = brilho × alvo / 127`), como no nosso.
+- Diferença também no `0x60`: 0xA9 (sonixb/Risolia) liga o pré-amplificador 1,5× (bit 7); 0x29 (Windows) não.
