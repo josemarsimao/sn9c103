@@ -1,0 +1,62 @@
+Varredura ponte: 188 casos, 46 com efeito, 12 pulados. Referencia: fps 29.8, media 20.9, linha 640
+
+b:0x01 bit 6 (0x44 -> 0x04): PAROU
+b:0x01 bit 1 (0x44 -> 0x46): PAROU
+b:0x05 bit 6 (0x20 -> 0x60): cor (4 medidas); rampa (11 medidas); brilho 26.85 (ref 20.9)
+b:0x05 bit 5 (0x20 -> 0x00): cor (4 medidas); rampa (6 medidas)
+b:0x05 bit 4 (0x20 -> 0x30): cor (3 medidas)
+b:0x05 bit 3 (0x20 -> 0x28): cor (2 medidas)
+b:0x06 bit 6 (0x20 -> 0x60): cor (4 medidas); rampa (10 medidas); brilho 26.66 (ref 20.9)
+b:0x06 bit 5 (0x20 -> 0x00): cor (4 medidas); rampa (6 medidas)
+b:0x06 bit 4 (0x20 -> 0x30): cor (4 medidas)
+b:0x06 bit 3 (0x20 -> 0x28): cor (2 medidas)
+b:0x07 bit 6 (0x20 -> 0x60): cor (8 medidas); rampa (11 medidas); brilho 30.68 (ref 20.9)
+b:0x07 bit 5 (0x20 -> 0x00): cor (8 medidas); rampa (9 medidas); brilho 16.17 (ref 20.9)
+b:0x07 bit 4 (0x20 -> 0x30): cor (6 medidas); rampa (3 medidas)
+b:0x07 bit 3 (0x20 -> 0x28): cor (2 medidas)
+b:0x12 bit 7 (0x02 -> 0x82): cor (14 medidas); rampa (16 medidas)
+b:0x12 bit 6 (0x02 -> 0x42): cor (16 medidas); rampa (13 medidas)
+b:0x12 bit 5 (0x02 -> 0x22): cor (3 medidas); rampa (9 medidas)
+b:0x12 bit 4 (0x02 -> 0x12): rampa (1 medidas)
+b:0x12 bit 0 (0x02 -> 0x03): cor (14 medidas)
+b:0x13 bit 7 (0x01 -> 0x81): cor (12 medidas); rampa (13 medidas)
+b:0x13 bit 6 (0x01 -> 0x41): cor (8 medidas); rampa (9 medidas)
+b:0x13 bit 0 (0x01 -> 0x00): cor (14 medidas)
+b:0x14 bit 7 (0x0a -> 0x8a): linha 100.00; cor (16 medidas); rampa (12 medidas); brilho 0.00 (ref 20.9)
+b:0x14 bit 6 (0x0a -> 0x4a): cor (16 medidas); rampa (12 medidas); brilho 1.84 (ref 20.9)
+b:0x14 bit 5 (0x0a -> 0x2a): cor (16 medidas); rampa (12 medidas); brilho 7.78 (ref 20.9)
+b:0x14 bit 4 (0x0a -> 0x1a): cor (16 medidas); rampa (12 medidas); brilho 13.02 (ref 20.9)
+b:0x14 bit 3 (0x0a -> 0x02): cor (12 medidas); rampa (16 medidas); brilho 27.76 (ref 20.9)
+b:0x14 bit 2 (0x0a -> 0x0e): cor (7 medidas); rampa (5 medidas)
+b:0x15 bit 5 (0x28 -> 0x08): cor (13 medidas); rampa (16 medidas); brilho 62.74 (ref 20.9)
+b:0x15 bit 4 (0x28 -> 0x38): cor (15 medidas); rampa (14 medidas); brilho 53.15 (ref 20.9)
+b:0x15 bit 3 (0x28 -> 0x20): cor (14 medidas); rampa (16 medidas); brilho 75.70 (ref 20.9)
+b:0x15 bit 2 (0x28 -> 0x2c): cor (13 medidas); rampa (16 medidas); brilho 52.80 (ref 20.9)
+b:0x15 bit 1 (0x28 -> 0x2a): cor (15 medidas); rampa (14 medidas); brilho 56.36 (ref 20.9)
+b:0x15 bit 0 (0x28 -> 0x29): cor (16 medidas); rampa (16 medidas); brilho 82.17 (ref 20.9)
+b:0x16 bit 4 (0x1e -> 0x0e): rampa (14 medidas); brilho 43.18 (ref 20.9)
+b:0x16 bit 3 (0x1e -> 0x16): brilho 27.46 (ref 20.9)
+b:0x17 bit 4 (0x68 -> 0x78): linha 320.00; cor (16 medidas); rampa (16 medidas); brilho 107.69 (ref 20.9)
+b:0x17 bit 3 (0x68 -> 0x60): fps 14.9; cor (16 medidas); rampa (14 medidas); brilho 46.11 (ref 20.9)
+b:0x17 bit 2 (0x68 -> 0x6c): PAROU
+b:0x18 bit 7 (0x9f -> 0x1f): cor (16 medidas); rampa (14 medidas); brilho 30.41 (ref 20.9)
+b:0x18 bit 5 (0x9f -> 0xbf): cor (15 medidas); rampa (14 medidas); brilho 24.90 (ref 20.9)
+b:0x18 bit 4 (0x9f -> 0x8f): cor (15 medidas); rampa (14 medidas); brilho 35.58 (ref 20.9)
+b:0x18 bit 1 (0x9f -> 0x9d): cor (16 medidas); rampa (13 medidas)
+b:0x18 bit 0 (0x9f -> 0x9e): cor (14 medidas)
+b:0x19 bit 1 (0x20 -> 0x22): cor (14 medidas)
+b:0x19 bit 0 (0x20 -> 0x21): fps 38.7; cor (15 medidas); rampa (14 medidas); brilho 39.00 (ref 20.9)
+
+Pulados:
+b:0x01 bit 7: modo de teste do ASIC ("nao habilitar")
+b:0x01 bit 2: desliga a transferencia de video
+b:0x01 bit 0: desliga o sensor
+b:0x08 todos os bits: controle do I2C (corta a comunicacao com o sensor)
+b:0x09 todos os bits: endereco I2C do sensor (corta a comunicacao)
+b:0x0a todos os bits: porta de dados I2C
+b:0x0b todos os bits: porta de dados I2C
+b:0x0c todos os bits: porta de dados I2C
+b:0x0d todos os bits: porta de dados I2C
+b:0x0e todos os bits: porta de dados I2C
+b:0x0f todos os bits: controle/estado I2C
+b:0x17 bit 5: desliga o clock do sensor

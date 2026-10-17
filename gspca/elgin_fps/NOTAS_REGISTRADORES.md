@@ -893,3 +893,17 @@ Câmera no suporte olhando o padrão "composto" da janela (faixas branco, vermel
 **Surpresas:** reservados com efeito forte: `0x76` bit 6 (brilho 23,5 → 99,8), `0x61` bit 6, `0x31` bit 4, `0x65` bits 7/6, `0x71` bits 6/5; `0x75` bits 6–4 (modo de teste interno) e `0x1F` bit 0 (reset da matriz) deixam a imagem **preta**; `0x26` bit 2 (troca MSB/LSB) embaralha o dado.
 
 **Sem efeito com um bit por vez:** `0x06` (brilho) em todos os bits; `0x61` bit 3 (BRTEN) sozinho — a hipótese "BRTEN faz o `0x06` agir" **não se confirmou** com o brilho no padrão; `0x03`/`0x05` (saturação e contraste, só YUV); offsets `0x21`/`0x22`/`0x2E` (precisam de `0x26` bit 1 **e** `0x27` bit 2 juntos: testar a combinação).
+
+## Varredura bit a bit da ponte (2026-10-17, `testes/varre_bits.py ponte`)
+
+Mesmo arranjo da varredura do sensor. 32 registradores (0x01–0x1F e 0x3F), **188 casos**, 12 pulados de propósito (`0x08`–`0x0F`, controle e dados do I²C; `0x01` bits 0, 2, 7; `0x17` bit 5). Dados `testes/varre_ponte.csv`, resumo `testes/varre_ponte_resumo.txt`, relatório `testes/varre_ponte.html`. Referência: 29,8 fps, média 20,9. **46 bits com efeito**; 3 pararam a imagem (recuperados).
+
+- **Param:** `0x01` bit 6 (clock do sistema 24 → 12 MHz) e bit 1 (S_PDN_INV: inverte o pino de desligar o sensor); `0x17` bit 2 (sensor a 48 MHz).
+- **Ganhos `0x05`/`0x06`/`0x07`:** bits 6–3 mudam a cor das suas posições (confirmado).
+- **`0x12`/`0x13` (H/V_START):** mudam a fase do mosaico (cor) e o enquadramento (confirmado).
+- **`0x14` (OFFSET):** bits 7–2 escurecem progressivamente (bit 7 → preto) (confirmado).
+- **`0x15`/`0x16` (H/V_SIZE):** mudam o tamanho da janela; como o formato pedido é fixo, a imagem decodificada se desarranja (esperado).
+- **`0x17`:** bit 4 = imagem de teste da ponte (confirmado); **bit 3 → SEN_RATE = 00: clock do sensor = 24 MHz / MCK_SIZE (`0x19` = 0x20 → 2) = 12 MHz → 14,9 fps, imagem boa e mais clara** (confirma a fórmula do Risolia; explica o `0x19 = 0x50` dele para cru: 24/5 = 4,8 MHz). `[medido]`
+- **`0x18`:** bit 7 (compressão; desligada, o quadro cru não decodifica como S910), bits 5/4 (escala), bits 1/0 (bordas de HSYNC/PCK: cor muda). **Bit 6 (SEL_CURVE): sem efeito visível.**
+- **`0x19`:** bit 1 (PCK_OUT) muda a cor; **bit 0 (SYNC_OUT, a ponte gera o sincronismo): 38,7 fps, mas a imagem sai destruída** (não aproveitável sem reconfigurar o sensor como escravo). Bits 7–4 (MCK_SIZE) sem efeito com SEN_RATE ≠ 00 (esperado).
+- **Sem efeito:** `0x02`–`0x04`, `0x10`, `0x11`, `0x1A`/`0x1B` (HO/VO_SIZE), `0x1C`–`0x1F` (janela de AE: só muda a medida do cabeçalho, e o ganho automático estava desligado), `0x3F`.
