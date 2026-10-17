@@ -92,6 +92,60 @@ class Doc:
             self.h = self.h[:pos] + '\n<tr class="%s">%s</tr>' % (cls, tds) + self.h[pos:]
         self.mudancas.append('nota %s %s: %s' % (('ponte', 'sensor')[lado], reg, rotulo))
 
+    def marca_bits(self, lado, reg, resultado):
+        """Marca o estado de teste (T) das linhas de bits do registrador a partir de uma varredura.
+        resultado = {bit: True (teve efeito) ou False (testado, sem efeito)}. Linha de um bit ou de uma
+        faixa (ex. "7:4"): T✔ se algum bit testado da linha teve efeito; T✖ se todos os testados ficaram
+        sem efeito, mas so a partir de T○: T✔ e T◐ existentes nao sao rebaixados (podem depender de combinacao). A linha do
+        registrador (cabecalho) segue a mesma regra com todos os bits. Devolve quantas linhas mudaram."""
+        lado = {'ponte': 0, 'sensor': 1}[lado]
+        reg = reg[:2].lower() + reg[2:].upper()
+        linhas = list(_LINHA.finditer(self.h))
+        chave = '<td class="%s">%s</td>' % ('f' if lado == 0 else 'f2', reg)
+        inicio = next((i for i, m in enumerate(linhas) if chave in m.group(0) and 'first' in m.group(0)), None)
+        if inicio is None:
+            raise KeyError('registrador %s nao encontrado' % reg)
+        fim = inicio + 1
+        while fim < len(linhas) and 'first' not in linhas[fim].group(0) and 'class="sec"' not in linhas[fim].group(0):
+            fim += 1
+        mudou = 0
+        for k in range(fim - 1, inicio - 1, -1):		# de tras para frente: as posicoes nao se deslocam
+            m = linhas[k]
+            tds = list(re.finditer(r'<td[^>]*>.*?</td>', m.group(0), re.S))
+            if len(tds) != 8:
+                continue
+            txt = re.sub(r'<[^>]+>', '', tds[1 + 4 * lado].group(0)).strip()
+            if k == inicio:
+                bits = set(range(8))				# cabecalho: o registrador inteiro
+            elif re.fullmatch(r'\d', txt):
+                bits = {int(txt)}
+            elif re.fullmatch(r'\d:\d', txt):
+                a, b = int(txt[0]), int(txt[2])
+                bits = set(range(min(a, b), max(a, b) + 1))
+            else:
+                continue					# linhas de nota ("—")
+            testados = {b: e for b, e in resultado.items() if b in bits}
+            if not testados:
+                continue
+            st = tds[3 + 4 * lado]
+            atual = re.search(r'<span class="t-[a-z]"[^>]*>T.</span>', st.group(0))
+            if not atual:
+                continue
+            if any(testados.values()):
+                novo = _T['y']
+            elif 'class="t-o"' not in atual.group(0):
+                continue					# so T○ vira T✖; T✔ e T◐ ficam (podem depender de combinacao)
+            else:
+                novo = _T['n']
+            if atual.group(0) == novo:
+                continue
+            novo_st = st.group(0).replace(atual.group(0), novo, 1)
+            ini_st = m.start() + st.start()
+            self.h = self.h[:ini_st] + novo_st + self.h[ini_st + len(st.group(0)):]
+            mudou += 1
+        self.mudancas.append('teste %s %s: %d linhas' % (('ponte', 'sensor')[lado], reg, mudou))
+        return mudou
+
     # ---------------------------------------------------------------- BITS
     def bloco(self, titulo, itens):
         """Acrescenta um quadro verde (div.cc) com título e lista, logo depois do último quadro existente
