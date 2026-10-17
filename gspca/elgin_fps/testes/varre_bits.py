@@ -308,9 +308,11 @@ def main():
         base = le_base(dev, regs)
         print('valores de base lidos: %d de %d' % (sum(v is not None for v in base.values()), len(base)))
 
+        restaura = {'rs': ''}			# devolve o registrador do caso anterior ao valor de base: alguns
+                                                # (ex. 0x7E/0x7F) nao voltam com o reset do sensor no inicio
         def referencia():
             """Captura a referencia e grava suas medidas no CSV (linha n = REF)."""
-            fps, nb, q = captura(dev, '')
+            fps, nb, q = captura(dev, restaura['rs'])
             if q is None:
                 return None
             linha = dict(n='REF', estado='REF', fps='%.1f' % (fps or 0.0), bytes=nb)
@@ -342,6 +344,9 @@ def main():
             feitos_agora += 1
             v = v0 ^ (1 << bit)
             rs = '%s:0x%02x=0x%02x' % (tipo, reg, v)
+            if restaura['rs'] and not restaura['rs'].startswith('%s:0x%02x=' % (tipo, reg)):
+                rs = restaura['rs'] + ',' + rs		# restaura o anterior antes de aplicar o caso
+            restaura['rs'] = '%s:0x%02x=0x%02x' % (tipo, reg, v0)
             with open(atual_path, 'w') as fa:			# "em andamento", antes de mexer na camera
                 fa.write('%d\n' % n)
                 fa.flush()
