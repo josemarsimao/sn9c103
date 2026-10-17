@@ -940,3 +940,11 @@ Baixado para `gspca/sonixb_2026/` (`sonixb.c`, `gspca.c`, `gspca.h`, `autogain_f
 
 - **Causa do "brilho sem efeito" no nosso driver `[código]` + `[medido]`:** a init do OV7630 do `sonixb` (tabela `ov7630_sensor_init_stock` no `elgin_fps.c`, linha ~2488) grava `0x60 = 0xA9` e **`0x61 = 0x4A` (BRTEN ligado)**, com uma linha comentada "jfm" que tinha 0x42. A tabela ativa do `elgin_fps` (a da captura do Windows, linha ~2525) grava `0x60 = 0x29` e **`0x61 = 0x42` (BRTEN desligado)**. Com 0x42 o `0x06` não age (ver "Testes de combinação"). No `sonixb` o brilho grava o `0x06` direto e também serve de alvo do ganho automático (`desired_avg_lum = brilho × alvo / 127`), como no nosso.
 - Diferença também no `0x60`: 0xA9 (sonixb/Risolia) liga o pré-amplificador 1,5× (bit 7); 0x29 (Windows) não.
+
+## Brilho real, alvo do automático separado e teste visual de saturação e contraste (2026-10-17)
+
+- **Driver (commit 277cb0d):** init do OV7630 com `0x61 = 0x4A` (BRTEN ligado, como no `sonixb`); o controle `brightness` grava o `0x06` e agora age (faixa boa, avaliada pelo Josemar no Multiview). Controle novo **"AE target"** (0–255, padrão 127) é o alvo do ganho automático, que antes usava o brilho.
+- **Avaliação visual no Multiview `[medido, visual]`:** o brilho do sensor é um **deslocamento**: subir o brilho levanta os pretos e deixa a imagem com pouco contraste e pouca saturação aparente.
+  - **Matriz de cor do sensor** (`0x27` bit 4 = 0, de 0x9A para 0x8A, liga a matriz anticrosstalk): **pouco efeito** na saturação.
+  - **Gama do sensor** (`0x14` bit 2, de 0x80 para 0x84): **um pouco melhor** no contraste.
+  - **Saturação não sai dos ganhos R/G/B da ponte**: eles só multiplicam cada canal (balanço de branco); saturação exige misturar os canais (`R' = Y + s·(R − Y)`). Na imagem crua, a saturação ajustável só é possível na aplicação, depois da conversão de cor.
