@@ -870,3 +870,26 @@ Câmera no suporte (~5 cm da tela, foco ajustado); janela `testes/tela_padrao.py
 - Origem das ~375 amostras: não explicada; talvez a janela HREF do sensor (`0x17`/`0x18`). `[hipótese]`
 - Confirma que a ponte **não se realinha** a cada HREF quando a janela é maior que a linha (conta amostras e atravessa para a linha seguinte).
 - Limite da medida automática: com o padrão pequeno e muito fundo escuro a correlação entre linhas pode dar 0 numa imagem inclinada; conferir pelas imagens (`testes/linha/largura_*.png`).
+
+## Varredura bit a bit do sensor, bits documentados (2026-10-17, `testes/varre_bits.py sensor`)
+
+Câmera no suporte olhando o padrão "composto" da janela (faixas branco, vermelho, verde, azul; rampa de 16 cinzas). Modo base S910 320x240 a 30 fps (sensor VGA progressivo); ganho 47 e exposição 67 fixos, ganho automático e taxa dinâmica desligados. Cada caso inverte **um** bit em relação ao valor lido do sensor. **511 casos** (64 registradores; só o `0x12` bit 7, reset, foi pulado), 23 referências. Dados: `testes/varre_sensor.csv`; resumo: `testes/varre_sensor_resumo.txt`; relatório com imagens: `testes/varre_sensor.html`. Referência: 29,8 fps, média 23,5 (branco do padrão ~95). **111 bits com efeito**; 10 pararam a imagem (todos recuperados sozinhos). Efeitos pequenos ("cor" em 1–2 medidas) podem ser ruído.
+
+**Param a imagem:** `0x11` bit 5 (divisor 33: o quadro demora mais que o limite), `0x13` bits 5 e 4, `0x14` bit 0, `0x16` bits 1 e 0 (FSD), `0x27` bit 0 (reservado), `0x2A` bit 1 ("um quadro só"), `0x2D` bit 1, `0x76` bit 5 (desligamento por software).
+
+**Confirmam o datasheet `[medido]`:** `0x00` bits 5–2 (ganho); `0x10` bits 7–3 (exposição); `0x11` bits 4–0 (divisor: 1,7 / 3,2 / 5,7 / 9,6 / 14,4 fps); `0x2A` bits 6/5 e `0x2B` bits 7/6 (ajuste fino da taxa: 17,9 / 22,1 / 25,8 / 26,8 fps); `0x12` bit 6 (espelho), bit 3 (RGB→YUV: imagem inválida para a ponte), bit 1 (barras de cor); `0x13` bits 0/1 (AEC/AGC internos), bit 7 (24 MHz: 26,8 fps); `0x17`–`0x1B` (janela HREF e deslocamento de pixel); `0x28` bit 7 (uma linha), bit 6 (preto e branco), bit 5 (progressivo).
+
+**Úteis para os controles `[medido]`:**
+- `0x60` bit 3 e bit 1: pré-ganho analógico do **R** e do **B**, cada um só nas posições da sua cor → **balanço de branco** em BGGR (o que a ponte não faz).
+- `0x01`/`0x02` bits 7–5: ganho B/R do sensor, na cor certa.
+- `0x0C`/`0x0D` bits 5–1: os alvos do AWB mudam a cor (os controles "AWB Target" funcionam).
+- `0x14` bit 2 (gama RGB): brilho 23,5 → 43,7, curva diferente → **curva/contraste pelo sensor**, em cru.
+- `0x28` bit 1 (+3 dB): brilho 23,5 → 39,1 → **ganho extra**.
+- `0x69` bit 3 (faixa do ADC): 23,5 → 47,2 (como já medido); bits 1/0 também mudam o brilho.
+- `0x78` e `0x7A` bits 6–4: offset do ADC dos canais G e R → **nível de preto por canal** (o `0x79`, canal B, não mostrou efeito).
+- `0x7D` bits 7/6 (preto óptico): 23,5 → 32.
+- `0x27` bit 4: desliga a matriz de correção de cor (muda a cor).
+
+**Surpresas:** reservados com efeito forte: `0x76` bit 6 (brilho 23,5 → 99,8), `0x61` bit 6, `0x31` bit 4, `0x65` bits 7/6, `0x71` bits 6/5; `0x75` bits 6–4 (modo de teste interno) e `0x1F` bit 0 (reset da matriz) deixam a imagem **preta**; `0x26` bit 2 (troca MSB/LSB) embaralha o dado.
+
+**Sem efeito com um bit por vez:** `0x06` (brilho) em todos os bits; `0x61` bit 3 (BRTEN) sozinho — a hipótese "BRTEN faz o `0x06` agir" **não se confirmou** com o brilho no padrão; `0x03`/`0x05` (saturação e contraste, só YUV); offsets `0x21`/`0x22`/`0x2E` (precisam de `0x26` bit 1 **e** `0x27` bit 2 juntos: testar a combinação).
