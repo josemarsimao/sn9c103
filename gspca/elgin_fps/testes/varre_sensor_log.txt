@@ -1,0 +1,45 @@
+Varredura bit a bit dos registradores com a camera olhando um padrao na tela (janela do notebook).
+
+Autor: Josemar Simao <josemars@ifes.edu.br>
+Co-autor e Revisor: Claude (Anthropic)
+
+Para cada bit da lista, inverte so aquele bit em relacao ao valor de base (lido do chip) e captura o
+padrao "composto" (faixas branco, vermelho, verde, azul em cima; rampa de 16 cinzas embaixo). Mede:
+fps, bytes do quadro, comprimento da linha, mosaico de cada faixa (B, G, G, R), os 16 degraus da
+rampa e se a imagem ainda e' a mesma. Compara com a referencia (sem mudanca), repetida no inicio e a
+cada 25 casos, e marca os bits com efeito.
+
+Fases (argumento):
+  sensor      bits DOCUMENTADOS do sensor OV7630 (fase 1; ~75 registradores)
+  ponte       registradores da ponte SN9C103 0x01-0x1F e 0x3F
+  reservados  registradores reservados do sensor
+  ou uma lista: s:0x14 s:0x28 b:0x18 (tipo:registrador; todos os bits)
+Opcoes: --continua (pula os casos ja feitos no CSV)   --ensaio (so os 10 primeiros casos)
+
+Modo base: S910 320x240 a 30 fps (modo normal, sensor VGA progressivo). Ganho automatico e taxa
+dinamica desligados durante o teste (voltam ao valor anterior). O driver reinicia o sensor e regrava
+a ponte a cada inicio de captura, entao cada caso parte do mesmo estado.
+Bits que nao sao testados (cortam o I2C, desligam o sensor ou so resetam): ver PULA.
+
+Camera no suporte olhando a janela; o script abre a janela no padrao "alinhar" e espera o Enter.
+Pede sudo uma vez. Resultado: varre_<fase>.csv, varre_<fase>_resumo.txt e varre_<fase>.html
+(imagens em testes/varre_<fase>/).
+
+==== 2026-10-17 15:14  fase sensor: 64 registradores, 511 casos numerados (1 pulados pela lista). Estimativa: ~3 min.
+>>> Camera analisada: /dev/video2  (Elgin camera (SN9C103 + OV7630))
+
+>>> Confira pelo Multiview se o contorno do padrao "alinhar" esta inteiro na imagem (a janela
+    abre na posicao gravada; +/- muda o tamanho). FECHE o Multiview e aperte Enter... regiao do padrao: linhas 0-240, colunas 22-271
+valores de base lidos: 64 de 64
+[001/511] s:0x00 bit 7 = 0x9f  fps= bytes=12096 media=12.42 linha=640.00  (1.1 s)
+[002/511] s:0x00 bit 6 = 0x5f  fps= bytes=12144 media=12.24 linha=640.00  (1.1 s)
+[003/511] s:0x00 bit 5 = 0x3f  fps= bytes=17638 media=30.05 linha=640.00  (1.1 s)
+[004/511] s:0x00 bit 4 = 0x0f  fps= bytes=10267 media=4.60 linha=640.00  (1.1 s)
+[005/511] s:0x00 bit 3 = 0x17  fps= bytes=10833 media=7.75 linha=640.00  (1.1 s)
+[006/511] s:0x00 bit 2 = 0x1b  fps= bytes=11535 media=10.29 linha=640.00  (1.1 s)
+[007/511] s:0x00 bit 1 = 0x1d  fps= bytes=11706 media=11.15 linha=640.00  (1.1 s)
+[008/511] s:0x00 bit 0 = 0x1e  fps= bytes=11943 media=11.80 linha=640.00  (1.1 s)
+[009/511] s:0x01 bit 7 = 0x0c  fps= bytes=11622 media=11.18 linha=640.00  (1.0 s)
+[010/511] s:0x01 bit 6 = 0xcc  fps= bytes=12428 media=12.99 linha=640.00  (1.1 s)
+
+Resumo: varre_sensor_resumo.txt (6 bits com efeito de 10)  Relatorio: varre_sensor.html
