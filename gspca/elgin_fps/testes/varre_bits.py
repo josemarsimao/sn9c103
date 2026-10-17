@@ -190,7 +190,7 @@ def salva(pasta, nome, q):
 
 def lista_casos(args):
     """Monta a lista de (tipo, registrador, bit) da fase pedida, tirando os de PULA."""
-    sel = [a for a in args if not a.startswith('--')]
+    sel = [a for i, a in enumerate(args) if not a.startswith('--') and (i == 0 or args[i - 1] != '--pula')]
     fase = sel[0] if sel else 'sensor'
     if fase == 'sensor':
         regs = [('s', r) for r in SENSOR_DOC]
@@ -232,33 +232,66 @@ def recupera(dev):
 
 
 def main():
-    """Roda a varredura, grava o CSV a cada caso e no fim escreve o resumo e o relatorio HTML."""
+    """Roda a varredura. Cada caso tem numero fixo (ordem da lista da fase). Antes de cada caso grava o
+    numero em varre_<fase>_atual.txt; depois grava a linha no CSV (com fsync) antes do caso seguinte.
+    --continua retoma no caso interrompido; --pula N[,M...] salta casos (ex.: o que trava a camera)."""
     fase, regs, casos, pulados = lista_casos(sys.argv[1:])
+    total = len(casos)
     if '--ensaio' in sys.argv:
         casos = casos[:10]
+    pula_user = set()
+    for i, a in enumerate(sys.argv):
+        if a == '--pula' and i + 1 < len(sys.argv):
+            pula_user |= {int(x) for x in sys.argv[i + 1].split(',') if x.strip()}
     pasta = os.path.join(HERE, 'varre_%s' % fase)
     csv_path = os.path.join(HERE, 'varre_%s.csv' % fase)
-    sys.stdout = Tee(sys.__stdout__, open(os.path.join(HERE, 'varre_%s_log.txt' % fase), 'a'))
+    atual_path = os.path.join(HERE, 'varre_%s_atual.txt' % fase)
+    log = open(os.path.join(HERE, 'varre_%s_log.txt' % fase), 'a', buffering=1)
+    sys.stdout = Tee(sys.__stdout__, log)
     if subprocess.run(['sudo', '-v']).returncode:
         sys.exit('sudo nao validado')
     print(__doc__)
-    dev = acha_dev()
-    print('fase %s: %d registradores, %d casos (%d pulados). Estimativa: ~%d min.' % (
-        fase, len(regs), len(casos), len(pulados), len(casos) * 3.5 / 60 + 3))
-    feitos = set()
-    if '--continua' in sys.argv and os.path.exists(csv_path):
-        for row in csv.DictReader(open(csv_path)):
-            feitos.add((row['tipo'], int(row['reg'], 16), int(row['bit']) if row['bit'] != '' else -1))
+    print('==== %s  fase %s: %d registradores, %d casos numerados (%d pulados pela lista). Estimativa: ~%d min.' % (
+        time.strftime('%Y-%m-%d %H:%M'), fase, len(regs), total, len(pulados), len(casos) * 3.5 / 60 + 3))
 
+    campos = ['n', 'tipo', 'reg', 'bit', 'base', 'valor', 'estado', 'fps', 'bytes'] + \
+        sorted(medidas(np.zeros((H, W), np.float32), (0, H, 0, W)))
+    feitos = set()
+    continua = '--continua' in sys.argv and os.path.exists(csv_path)
+    if continua:
+        for row in csv.DictReader(open(csv_path)):
+            if row['n'] != 'REF':
+                feitos.add(int(row['n']))
+        print('retomando: %d casos ja gravados' % len(feitos))
+        try:
+            parado = int(open(atual_path).read().strip())
+            if parado not in feitos:
+                print('*** o caso %d foi interrompido na rodada anterior: %s' % (parado, 'sera PULADO (--pula)'
+                      if parado in pula_user else 'sera repetido (se travar de novo, use --pula %d)' % parado))
+        except (OSError, ValueError):
+            pass
+    fcsv = open(csv_path, 'a' if continua else 'w', newline='')
+    wr = csv.DictWriter(fcsv, campos, extrasaction='ignore')
+    if not continua:
+        wr.writeheader()
+
+    def grava(linha):
+        """Grava uma linha no CSV e forca a ida ao disco antes de seguir."""
+        wr.writerow(linha)
+        fcsv.flush()
+        os.fsync(fcsv.fileno())
+
+    dev = acha_dev()
     ctrl0 = {}
     for nome in ('gain_automatic', 'exposure_dynamic_framerate'):
         out = subprocess.run(['v4l2-ctl', '-d', dev, '-C', nome], capture_output=True, text=True).stdout
         ctrl0[nome] = out.split(':')[-1].strip()
         subprocess.run(['v4l2-ctl', '-d', dev, '-c', nome + '=0'], capture_output=True)
     jan = Janela('alinhar')
+    terminou = False
     try:
-        input('\n>>> Posicione a janela pelo Multiview (padrao "alinhar", +/- muda o tamanho) ate o contorno\n'
-              '    ficar inteiro na imagem, FECHE o Multiview e aperte Enter... ')
+        input('\n>>> Confira pelo Multiview se o contorno do padrao "alinhar" esta inteiro na imagem (a janela\n'
+              '    abre na posicao gravada; +/- muda o tamanho). FECHE o Multiview e aperte Enter... ')
         jan.mostra('branco', espera=0.6)
         _, _, qb = captura(dev, '')
         if qb is None:
@@ -269,14 +302,15 @@ def main():
         base = le_base(dev, regs)
         print('valores de base lidos: %d de %d' % (sum(v is not None for v in base.values()), len(base)))
 
-        refs = []
         def referencia():
-            """Captura a referencia e guarda as medidas."""
+            """Captura a referencia e grava suas medidas no CSV (linha n = REF)."""
             fps, nb, q = captura(dev, '')
-            if q is not None:
-                refs.append(dict(medidas(q, roi), fps=fps or 0.0, bytes=nb))
-                return q
-            return None
+            if q is None:
+                return None
+            linha = dict(n='REF', estado='REF', fps='%.1f' % (fps or 0.0), bytes=nb)
+            linha.update({k: '%.2f' % v for k, v in medidas(q, roi).items()})
+            grava(linha)
+            return q
         qref = None
         for _ in range(3):					# 3 referencias: medem a variacao natural
             q = referencia()
@@ -285,73 +319,87 @@ def main():
             sys.exit('a referencia nao deu imagem: confira a camera e o padrao')
         salva(pasta, 'referencia', qref)
 
-        novo = not os.path.exists(csv_path) or '--continua' not in sys.argv
-        fcsv = open(csv_path, 'w' if novo else 'a', newline='')
-        campos = None
-        n = 0
-        for tipo, reg, bit in casos:
-            if (tipo, reg, bit) in feitos:
+        feitos_agora = 0
+        for n, (tipo, reg, bit) in enumerate(casos, 1):
+            if n in feitos:
                 continue
+            nome = '[%03d/%03d] %s:0x%02x bit %d' % (n, total, tipo, reg, bit)
             v0 = base.get((tipo, reg))
-            if v0 is None:
-                print('%s:0x%02x sem valor de base: pulado' % (tipo, reg))
+            if n in pula_user or v0 is None:
+                why = 'PULADO (--pula)' if n in pula_user else 'SEM BASE'
+                grava(dict(n=n, tipo=tipo, reg='0x%02x' % reg, bit=bit, estado=why))
+                print('%s  ->  %s' % (nome, why))
                 continue
-            if n and n % REF_CADA == 0:
+            if feitos_agora and feitos_agora % REF_CADA == 0:
                 subprocess.run(['sudo', '-v'])
                 referencia()
-            n += 1
+            feitos_agora += 1
             v = v0 ^ (1 << bit)
             rs = '%s:0x%02x=0x%02x' % (tipo, reg, v)
+            with open(atual_path, 'w') as fa:			# "em andamento", antes de mexer na camera
+                fa.write('%d\n' % n)
+                fa.flush()
+                os.fsync(fa.fileno())
             t0 = time.time()
             fps, nb, q = captura(dev, rs)
-            lido = None
-            linha = dict(tipo=tipo, reg='0x%02x' % reg, bit=bit, base='0x%02x' % v0, valor='0x%02x' % v,
+            linha = dict(n=n, tipo=tipo, reg='0x%02x' % reg, bit=bit, base='0x%02x' % v0, valor='0x%02x' % v,
                          fps='' if fps is None else '%.1f' % fps, bytes=nb)
             if q is None:
                 linha['estado'] = 'SEM IMAGEM' if fps else 'PAROU'
-                print('%s  ->  %s' % (rs, linha['estado']))
+                grava(linha)
+                print('%s = 0x%02x  ->  %s' % (nome, v, linha['estado']))
                 dev = recupera(dev)
                 if dev is None:
-                    print('a camera nao voltou: desconecte e reconecte, depois rode com --continua')
+                    print('a camera nao voltou: desconecte e reconecte, depois rode de novo com --continua')
                     break
-            else:
-                m = medidas(q, roi)
-                linha.update({k: '%.2f' % val for k, val in m.items()})
-                linha['estado'] = 'ok'
-                salva(pasta, '%s%02x_b%d' % (tipo, reg, bit), q)
-            if campos is None:
-                campos = ['tipo', 'reg', 'bit', 'base', 'valor', 'estado', 'fps', 'bytes'] + \
-                    sorted(k for k in medidas(qref, roi))
-                if novo:
-                    csv.DictWriter(fcsv, campos).writeheader()
-            csv.DictWriter(fcsv, campos, extrasaction='ignore').writerow(linha)
-            fcsv.flush()
-            if linha['estado'] == 'ok':
-                print('%s  fps=%s bytes=%d media=%s linha=%s  (%.1f s)' % (
-                    rs, linha['fps'], nb, linha['media'], linha['linha'], time.time() - t0))
+                continue
+            m = medidas(q, roi)
+            linha.update({k: '%.2f' % val for k, val in m.items()})
+            linha['estado'] = 'ok'
+            salva(pasta, '%s%02x_b%d' % (tipo, reg, bit), q)
+            grava(linha)
+            print('%s = 0x%02x  fps=%s bytes=%d media=%s linha=%s  (%.1f s)' % (
+                nome, v, linha['fps'], nb, linha['media'], linha['linha'], time.time() - t0))
+        else:
+            terminou = True
         fcsv.close()
+        if terminou:
+            try:
+                os.remove(atual_path)
+            except OSError:
+                pass
     finally:
         jan.fecha()
         sudo_tee(PS, '')
         for nome, val in ctrl0.items():
             if val:
                 subprocess.run(['v4l2-ctl', '-d', dev, '-c', '%s=%s' % (nome, val)], capture_output=True)
-    resumo(fase, csv_path, refs, pulados, pasta)
+    resumo(fase, csv_path, pulados, pasta)
+    if not terminou:
+        print('Rodada incompleta: rode de novo com --continua para seguir do caso interrompido.')
 
 
-def resumo(fase, csv_path, refs, pulados, pasta):
-    """Compara cada caso com a referencia (tolerancia = variacao das referencias) e escreve o resumo e o
-    relatorio HTML com as imagens dos bits com efeito."""
-    if not refs or not os.path.exists(csv_path):
+def resumo(fase, csv_path, pulados, pasta):
+    """Compara cada caso com a referencia (tolerancia = variacao das referencias gravadas no CSV) e
+    escreve o resumo e o relatorio HTML com as imagens dos bits com efeito."""
+    if not os.path.exists(csv_path):
+        return
+    todas = list(csv.DictReader(open(csv_path)))
+    refs = [{k: float(v) for k, v in r.items() if k not in ('n', 'tipo', 'reg', 'bit', 'base', 'valor', 'estado') and v != ''}
+            for r in todas if r['n'] == 'REF']
+    if not refs:
         return
     chaves = [k for k in refs[0] if k not in ('fps', 'bytes')]
     ref = {k: statistics.median(r[k] for r in refs) for k in chaves + ['fps', 'bytes']}
     tol = {k: max(3 * (statistics.pstdev([r[k] for r in refs]) if len(refs) > 1 else 0), 0.08 * abs(ref[k]) + 2)
            for k in chaves}
     tol['linha'] = 2
-    linhas = list(csv.DictReader(open(csv_path)))
+    linhas = [r for r in todas if r['n'] != 'REF']
     efeitos = []
     for row in linhas:
+        if row['estado'] in ('PULADO (--pula)', 'SEM BASE'):
+            pulados.append((row['tipo'], int(row['reg'], 16), int(row['bit']), row['estado']))
+            continue
         if row['estado'] != 'ok':
             efeitos.append((row, [row['estado']]))
             continue

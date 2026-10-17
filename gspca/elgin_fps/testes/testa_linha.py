@@ -27,6 +27,8 @@ script abre a janela no padrao "alinhar"; posicione e ajuste o tamanho (+/-) pel
 contorno ficar inteiro na imagem, FECHE o Multiview e aperte Enter. Depois tudo e' automatico; as
 medidas usam so a regiao do padrao (achada na captura do branco de cada caso). ~5 min.
 Com --celular: modo manual antigo (tela do celular cobrindo toda a imagem, Enter a cada tela).
+Casos numerados de 01 a 25; cada um e' gravado em linha_dados.csv antes do seguinte. Se travar, rode
+de novo com --continua (retoma no caso interrompido) ou --continua --pula N (salta o caso N).
 Pede sudo uma vez.
 Resultado: linha_resultado.txt e imagens em testes/linha/
 """
@@ -148,68 +150,143 @@ def ctrl(nome, valor=None):
 
 
 def main():
-    """Pede cada tela, captura os cinco casos e no fim monta a tabela de cores e o comprimento da linha."""
-    sys.stdout = t.Tee(sys.__stdout__, open(os.path.join(HERE, 'linha_resultado.txt'), 'w'))
+    """Roda os 25 casos numerados (5 telas x 5 configuracoes), gravando cada um no CSV antes do
+    seguinte; --continua retoma no caso interrompido, --pula N[,M] salta casos. No fim monta a tabela
+    de cores e o comprimento da linha a partir do CSV."""
+    import csv
+    pula = set()
+    for i, a in enumerate(sys.argv):
+        if a == '--pula' and i + 1 < len(sys.argv):
+            pula |= {int(x) for x in sys.argv[i + 1].split(',') if x.strip()}
+    csv_path = os.path.join(HERE, 'linha_dados.csv')
+    atual_path = os.path.join(HERE, 'linha_atual.txt')
+    campos = ['n', 'tela', 'caso', 'estado', 'fps', 'sensor', 'roi', 'periodo'] + \
+        ['g%d%d' % (r, c) for r in range(2) for c in range(4)]
+    sys.stdout = t.Tee(sys.__stdout__, open(os.path.join(HERE, 'linha_resultado.txt'), 'a', buffering=1))
     if t.subprocess.run(['sudo', '-v']).returncode:
         sys.exit('sudo nao validado')
     print(__doc__)
-    print('dispositivo:', t.DEV)
+    print('==== %s  dispositivo: %s' % (__import__('time').strftime('%Y-%m-%d %H:%M'), t.DEV))
     t.W, t.H = W, H
     t.LER = (0x11, 0x14, 0x28, 0x2d)
+    lista = [(tela, padrao, pedido, caso) for tela, padrao, pedido in TELAS for caso in CASOS]
+    feitos, roi = set(), {}
+    continua = '--continua' in sys.argv and os.path.exists(csv_path)
+    if continua:
+        for row in csv.DictReader(open(csv_path)):
+            feitos.add(int(row['n']))
+            if row['tela'] == 'BRANCO' and row['roi']:
+                roi[row['caso']] = tuple(int(x) for x in row['roi'].split('-'))
+        print('retomando: %d casos ja gravados' % len(feitos))
+        try:
+            parado = int(open(atual_path).read())
+            if parado not in feitos:
+                print('*** o caso %d foi interrompido: %s' % (parado, 'sera PULADO' if parado in pula else
+                      'sera repetido (se travar de novo, use --pula %d)' % parado))
+        except (OSError, ValueError):
+            pass
+    fcsv = open(csv_path, 'a' if continua else 'w', newline='')
+    wr = csv.DictWriter(fcsv, campos)
+    if not continua:
+        wr.writeheader()
+
+    def grava(linha):
+        """Grava a linha no CSV e forca a ida ao disco."""
+        wr.writerow(linha)
+        fcsv.flush()
+        os.fsync(fcsv.fileno())
+
     antes = {c: ctrl(c) for c in ('gain_automatic', 'exposure_dynamic_framerate')}
     ctrl('gain_automatic', 0)
     ctrl('exposure_dynamic_framerate', 0)
-    g = {}						# g[caso][tela] = grade 2x4
-    roi = {}						# roi[caso] = regiao do padrao (achada no branco)
     jan_p = None
+    terminou = False
     try:
         if not CELULAR:
             jan_p = Janela('alinhar')
-            input('\n>>> Posicione a janela pelo Multiview (padrao "alinhar", +/- muda o tamanho) ate o contorno\n'
-                  '    ficar inteiro na imagem, FECHE o Multiview e aperte Enter... ')
-        for tela, padrao, pedido in TELAS:
-            t.subprocess.run(['sudo', '-v'])
-            if CELULAR:
-                input('\n>>> Mostre %s e aperte Enter (mantenha ate o proximo pedido)... ' % pedido)
-            else:
-                jan_p.mostra(padrao)
-                print('\n--- padrao %s' % padrao)
-            for caso in CASOS:
-                nome = caso[0]
-                jan = 640 if tela == 'MEIO' else 320
-                t.sudo_tee(t.PS, regs(caso, jan))
-                info = ''
-                if tela == 'BRANCO':			# fps e registradores lidos de volta, uma vez por caso
-                    fps, lido = t.mede(30)
-                    info = '  fps=%s  sensor[%s]' % ('travou' if fps is None else '%.1f' % fps,
-                                                     ' '.join('%02x=%s' % (r, '??' if v is None else '%02x' % v)
-                                                              for r, v in lido.items()))
-                q = captura(jan, 240)
-                if q is None:
-                    print('  %-6s SEM IMAGEM%s' % (nome, info))
-                    continue
-                salva('%s_%s' % (tela.lower(), nome), q)
-                if tela == 'MEIO':
-                    a, _ = borda(q)
-                    g.setdefault(nome, {})['MEIO'] = a
-                    print('  %-6s linha do sensor ~ %.0f amostras' % (nome, 640 + a))
+            input('\n>>> Confira pelo Multiview se o contorno do padrao "alinhar" esta inteiro na imagem (a janela\n'
+                  '    abre na posicao gravada; +/- muda o tamanho). FECHE o Multiview e aperte Enter... ')
+        tela_atual = None
+        for n, (tela, padrao, pedido, caso) in enumerate(lista, 1):
+            nome = caso[0]
+            if n in feitos:
+                continue
+            rotulo = '[%02d/%02d] %-8s %-6s' % (n, len(lista), tela, nome)
+            if n in pula:
+                grava(dict(n=n, tela=tela, caso=nome, estado='PULADO'))
+                print('%s PULADO (--pula)' % rotulo)
+                continue
+            if tela != tela_atual:				# troca a tela so quando muda
+                t.subprocess.run(['sudo', '-v'])
+                if CELULAR:
+                    input('\n>>> Mostre %s e aperte Enter (mantenha ate o proximo pedido)... ' % pedido)
                 else:
-                    if tela == 'BRANCO':
-                        roi[nome] = regiao(q)
-                    m = grade(q, roi.get(nome, (8, q.shape[0] - 8, 8, q.shape[1] - 8)))
-                    g.setdefault(nome, {})[tela] = m
-                    sat = ' SATURADO (diminua o brilho)' if q.max() >= 250 and np.mean(q >= 250) > 0.2 else ''
-                    reg = '  regiao linhas %d-%d colunas %d-%d' % roi[nome] if tela == 'BRANCO' and nome in roi else ''
-                    print('  %-6s par: %s  impar: %s%s%s%s' % (nome, ' '.join('%5.1f' % x for x in m[0]),
-                                                             ' '.join('%5.1f' % x for x in m[1]), sat, info, reg))
+                    jan_p.mostra(padrao)
+                tela_atual = tela
+            with open(atual_path, 'w') as fa:		# "em andamento", antes de mexer na camera
+                fa.write('%d\n' % n)
+                fa.flush()
+                os.fsync(fa.fileno())
+            jan = 640 if tela == 'MEIO' else 320
+            t.sudo_tee(t.PS, regs(caso, jan))
+            linha = dict(n=n, tela=tela, caso=nome)
+            if tela == 'BRANCO':				# fps e registradores lidos de volta, uma vez por caso
+                fps, lido = t.mede(30)
+                linha['fps'] = 'travou' if fps is None else '%.1f' % fps
+                linha['sensor'] = ' '.join('%02x=%s' % (r, '??' if v is None else '%02x' % v) for r, v in lido.items())
+            q = captura(jan, 240)
+            if q is None:
+                linha['estado'] = 'SEM IMAGEM'
+                grava(linha)
+                print('%s SEM IMAGEM  %s' % (rotulo, linha.get('sensor', '')))
+                continue
+            salva('%s_%s' % (tela.lower(), nome), q)
+            if tela == 'MEIO':
+                a, per = borda(q)
+                linha.update(estado='ok', periodo=per)
+                grava(linha)
+                print('%s linha do sensor ~ %d amostras' % (rotulo, per))
+                continue
+            if tela == 'BRANCO':
+                roi[nome] = regiao(q)
+                linha['roi'] = '%d-%d-%d-%d' % roi[nome]
+            m = grade(q, roi.get(nome, (8, q.shape[0] - 8, 8, q.shape[1] - 8)))
+            linha.update(estado='ok', **{'g%d%d' % (r, c): '%.2f' % m[r, c] for r in range(2) for c in range(4)})
+            grava(linha)
+            sat = ' SATURADO (diminua o brilho da tela)' if np.mean(q >= 250) > 0.2 else ''
+            print('%s par: %s  impar: %s%s  %s %s' % (rotulo, ' '.join('%5.1f' % x for x in m[0]),
+                                                     ' '.join('%5.1f' % x for x in m[1]), sat,
+                                                     linha.get('fps', ''), linha.get('sensor', '')))
+        else:
+            terminou = True
     finally:
+        fcsv.close()
         if jan_p:
             jan_p.fecha()
         t.sudo_tee(t.PS, '')
         for c, v in antes.items():
             if v:
                 ctrl(c, v)
+    if terminou:
+        try:
+            os.remove(atual_path)
+        except OSError:
+            pass
+    tabela(csv_path)
 
+
+def tabela(csv_path):
+    """Monta, a partir do CSV, a cor de cada amostra (dividida pelo branco) e o comprimento da linha."""
+    import csv
+    g = {}
+    for row in csv.DictReader(open(csv_path)):
+        if row['estado'] != 'ok':
+            continue
+        d = g.setdefault(row['caso'], {})
+        if row['tela'] == 'MEIO':
+            d['MEIO'] = int(row['periodo'])
+        else:
+            d[row['tela']] = np.array([[float(row['g%d%d' % (r, c)]) for c in range(4)] for r in range(2)])
     print('\n==== COR DE CADA AMOSTRA (dividida pelo branco; letra = cor dominante, minuscula = fraca) ====')
     print('%-6s %-27s %-27s %s' % ('caso', 'linha par (col 0 1 2 3)', 'linha impar (col 0 1 2 3)', 'descricao'))
     for nome, _, desc in CASOS:
@@ -231,9 +308,9 @@ def main():
         print('%-6s %-27s %-27s %s' % (nome, lin[0], lin[1], desc))
     print('\n==== COMPRIMENTO DA LINHA (tela meio a meio, janela de 640) ====')
     for nome, _, desc in CASOS:
-        a = g.get(nome, {}).get('MEIO')
-        print('%-6s %s   %s' % (nome, 'sem medida' if a is None else '~%.0f amostras por linha' % (640 + a), desc))
-    print('\nEsperado: ref ~640 e B G B G / G R G R. Imagens em %s/' % OUT)
+        per = g.get(nome, {}).get('MEIO')
+        print('%-6s %s   %s' % (nome, 'sem medida' if per is None else '~%d amostras por linha' % per, desc))
+    print('\nEsperado: ref ~640 e B G B G / G R G R. Dados: %s  Imagens: %s/' % (csv_path, OUT))
 
 
 if __name__ == '__main__':

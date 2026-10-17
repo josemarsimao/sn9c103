@@ -17,14 +17,22 @@ Comandos (para os scripts de teste): uma linha por comando na entrada padrao, co
 (ex.: "vermelho"); "sair" fecha. A cada troca a janela escreve "ok <nome>" na saida padrao, depois
 de desenhar, para o script saber que pode capturar.
 
+Posicao, tamanho e escala sao gravados em tela_padrao.json (nesta pasta) a cada mudanca e
+restaurados ao abrir: com a camera fixa no suporte, a janela volta sempre ao mesmo lugar.
+Para reposicionar do zero, apague o tela_padrao.json.
+
 Uso:  python3 tela_padrao.py              (comeca no branco)
       python3 tela_padrao.py rampa        (comeca no padrao pedido)
 """
+import json
+import os
 import sys
 
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import GLib, Gtk  # noqa: E402
+
+CONF = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tela_padrao.json')
 
 # nome -> funcao de desenho (cairo, largura, altura)
 
@@ -115,9 +123,13 @@ class Tela(Gtk.Window):
     """A janela: desenha o padrao atual e troca por teclado ou por comando na entrada padrao."""
 
     def __init__(self, inicial):
-        """Cria a janela (800x600, sempre por cima) e comeca a ouvir a entrada padrao."""
+        """Cria a janela (sempre por cima) na posicao, tamanho e escala gravados (ou 800x600 na
+        primeira vez) e comeca a ouvir a entrada padrao."""
         super().__init__(title='tela padrao')
-        self.set_default_size(800, 600)
+        self.conf = self.le_conf()
+        self.set_default_size(self.conf.get('w', 800), self.conf.get('h', 600))
+        if 'x' in self.conf:
+            self.move(self.conf['x'], self.conf['y'])
         self.set_keep_above(True)
         self.idx = NOMES.index(inicial) if inicial in NOMES else 0
         self.area = Gtk.DrawingArea()
@@ -126,15 +138,45 @@ class Tela(Gtk.Window):
         self.connect('key-press-event', self.tecla)
         self.connect('destroy', Gtk.main_quit)
         self.avisar = None			# nome a confirmar na saida padrao depois do proximo desenho
-        self.escala = 0.8			# fracao da janela ocupada pelo padrao (o resto e' margem preta)
+        self.escala = self.conf.get('escala', 0.8)	# fracao da janela ocupada pelo padrao (o resto e' margem preta)
+        self.grava_id = None			# gravacao adiada (enquanto a janela e' arrastada)
+        self.connect('configure-event', self.mudou)
         GLib.io_add_watch(sys.stdin, GLib.IO_IN | GLib.IO_HUP, self.comando)
         self.titulo()
+
+    def le_conf(self):
+        """Le a posicao, o tamanho e a escala gravados; {} se ainda nao houver."""
+        try:
+            return json.load(open(CONF))
+        except (OSError, ValueError):
+            return {}
+
+    def mudou(self, widget, ev):
+        """A janela foi movida ou redimensionada: grava meio segundo depois de parar."""
+        if self.grava_id:
+            GLib.source_remove(self.grava_id)
+        self.grava_id = GLib.timeout_add(500, self.grava)
+        return False
+
+    def grava(self):
+        """Grava posicao, tamanho e escala em tela_padrao.json."""
+        self.grava_id = None
+        x, y = self.get_position()
+        w, h = self.get_size()
+        self.conf = dict(x=x, y=y, w=w, h=h, escala=round(self.escala, 2))
+        try:
+            json.dump(self.conf, open(CONF, 'w'))
+        except OSError:
+            pass
+        self.titulo()
+        return False
 
     def titulo(self):
         """Mostra o padrao atual e o tamanho da janela no titulo."""
         a = self.get_allocation()
-        self.set_title('tela padrao: %d %s  padrao %d%% da janela (%dx%d)  espaco = proximo, +/- tamanho' % (
-            self.idx + 1, NOMES[self.idx], round(self.escala * 100), a.width, a.height))
+        pos = '  pos %d,%d' % (self.conf['x'], self.conf['y']) if 'x' in self.conf else ''
+        self.set_title('tela padrao: %d %s  padrao %d%% da janela (%dx%d)%s  espaco = proximo, +/- tamanho' % (
+            self.idx + 1, NOMES[self.idx], round(self.escala * 100), a.width, a.height, pos))
 
     def desenha(self, widget, cr):
         """Desenha o padrao atual ocupando a area inteira; confirma a troca pedida por comando."""
@@ -178,9 +220,11 @@ class Tela(Gtk.Window):
         elif k in ('+', '='):
             self.escala = min(1.0, self.escala + 0.05)
             self.troca(self.idx)
+            self.grava()
         elif k == '-':
             self.escala = max(0.2, self.escala - 0.05)
             self.troca(self.idx)
+            self.grava()
         elif nome in ('q', 'Escape'):
             Gtk.main_quit()
         return True
