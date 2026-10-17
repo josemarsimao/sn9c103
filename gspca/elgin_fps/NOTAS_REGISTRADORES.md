@@ -839,3 +839,24 @@ Script `testes/testa_duaslinhas.py` (resultado `testes/duaslinhas_resultado.txt`
 - **Refutado `[medido]`:** o formato de duas linhas não dá as 4 cores por campo. Junto com o teste do QVGA progressivo, fecha a questão: **60 fps com cor completa não é possível** neste par sensor/ponte.
 - **Ponte SN9C103 `[medido]`:** aceita `0x15 = 0x28` (640) com o sensor em QVGA, mas quando a janela é maior que a linha do sensor ela **atravessa o fim da linha** (pega amostras da linha seguinte), o que inclina a imagem: não se realinha a cada HREF, só conta amostras. Logo, a linha do QVGA tem menos de 640 amostras **também** no formato de duas linhas (a hipótese "duas linhas = 640 amostras por HREF com o par B/G + G/R" não se confirma).
 - Observação: no caso "larga uma linha" o `0x11` foi lido como 0x01 (gravado 0x03 pelo `regs_start`); algo do driver o regravou no início da captura. Não afeta a conclusão.
+
+## Linha única × duas linhas com a janela de padrões (2026-10-17 14:55)
+
+Primeiro teste com a câmera no suporte (~5 cm da tela do notebook) e a janela `testes/tela_padrao.py` (posição gravada em `testes/tela_padrao.json`). Script `testes/testa_linha.py` (dados `testes/linha_dados.csv`, imagens `testes/linha/`). Ponte com janela de 320 sem escala para a cor; janela de 640 para o comprimento da linha.
+
+**Cor de cada amostra `[medido]`** (tela branca, vermelha, verde e azul; cada posição dividida pelo branco):
+
+| Caso | Linha par | Linha ímpar | Leitura |
+|---|---|---|---|
+| ref: VGA progressivo | B G | G R | mosaico completo |
+| prog1: QVGA progressivo, linha única (`0x28 = 0xA0`) | B G | G R | completo (o QVGA preserva a cor) |
+| entr1: QVGA entrelaçado, linha única (`0x28 = 0x80`, o 60 fps) | B G | **B G** | só azul e verde, sem vermelho |
+| entr2: QVGA entrelaçado, duas linhas (`0x28 = 0x00`) | **R G** | **R G** | só vermelho e verde, sem azul |
+| prog2: QVGA progressivo, duas linhas (`0x28 = 0x20`) | **R G** | **R G** | só vermelho e verde, mesmo no progressivo |
+
+- **No formato de duas linhas a ponte só recebe as linhas G/R**, no entrelaçado e no progressivo. O formato troca qual paridade chega, mas nunca entrega as duas; não aparece `B G R G` em nenhum caso.
+
+**Comprimento da linha (tela meio a meio, janela de 640):**
+- ref: **640** amostras, borda limpa no meio (valida o método).
+- prog2 (duas linhas): **640 amostras por HREF, mas só as primeiras 320 têm imagem**; a segunda metade vem uniforme (sem conteúdo). O comprimento dobra, mas a metade extra está vazia.
+- prog1, entr1, entr2 (linha única e entr2): imagem **inclinada** (a linha não tem 640 amostras); o período de 1280 que a autocorrelação deu é efeito da inclinação, não o comprimento. Pendente: medir variando a largura da janela da ponte (`testes/testa_largura.py`).
