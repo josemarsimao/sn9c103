@@ -1,0 +1,133 @@
+Comprimento real da linha do sensor no QVGA: varia a largura da janela da ponte (0x15) com a tela
+meio branca / meio preta e mede a inclinacao da borda.
+
+Autor: Josemar Simao <josemars@ifes.edu.br>
+Co-autor e Revisor: Claude (Anthropic)
+
+Se a janela da ponte cabe na linha do sensor, cada linha da imagem comeca no mesmo ponto e a borda
+branco/preto fica vertical (inclinacao 0). Se a janela e' maior que a linha, a ponte atravessa para a
+linha seguinte e a borda anda um pouco a cada linha. A maior largura sem inclinacao (e o valor da
+inclinacao logo acima dela) da' o comprimento real da linha em cada formato.
+
+Casos: prog1 (QVGA progressivo, linha unica), entr1 (QVGA entrelacado, linha unica), entr2 (QVGA
+entrelacado, duas linhas), prog2 (QVGA progressivo, duas linhas); larguras 0x15 = 0x10 a 0x28
+(256 a 640 amostras, passo 16). Taxa reduzida (0x11 = 3); ganho automatico e taxa dinamica
+desligados. Casos numerados, gravados um a um em largura_dados.csv; se travar, rode de novo com
+--continua (retoma no caso interrompido) ou --continua --pula N.
+
+A janela de padroes abre na posicao gravada (tela_padrao.json) no padrao "meio". ~5 min.
+Resultado: largura_resultado.txt
+
+==== 2026-10-17 15:08  dispositivo: /dev/video2
+
+>>> Confira pelo Multiview se o contorno do padrao "alinhar" esta inteiro na imagem (a janela
+    abre na posicao gravada). FECHE o Multiview e aperte Enter... [001/100] prog1  0x15=0x10 (256 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[002/100] prog1  0x15=0x11 (272 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[003/100] prog1  0x15=0x12 (288 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[004/100] prog1  0x15=0x13 (304 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[005/100] prog1  0x15=0x14 (320 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[006/100] prog1  0x15=0x15 (336 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[007/100] prog1  0x15=0x16 (352 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[008/100] prog1  0x15=0x17 (368 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[009/100] prog1  0x15=0x18 (384 amostras) inclinacao  -9.0 amostras/linha (bordas nitidas 47%)
+[010/100] prog1  0x15=0x19 (400 amostras) inclinacao -14.0 amostras/linha (bordas nitidas 77%)
+[011/100] prog1  0x15=0x1a (416 amostras) inclinacao +38.0 amostras/linha (bordas nitidas 50%)
+[012/100] prog1  0x15=0x1b (432 amostras) inclinacao -49.0 amostras/linha (bordas nitidas 51%)
+[013/100] prog1  0x15=0x1c (448 amostras) inclinacao -64.0 amostras/linha (bordas nitidas 48%)
+[014/100] prog1  0x15=0x1d (464 amostras) inclinacao +85.0 amostras/linha (bordas nitidas 46%)
+[015/100] prog1  0x15=0x1e (480 amostras) inclinacao -91.0 amostras/linha (bordas nitidas 67%)
+[016/100] prog1  0x15=0x1f (496 amostras) inclinacao +102.0 amostras/linha (bordas nitidas 63%)
+[017/100] prog1  0x15=0x20 (512 amostras) inclinacao  -6.0 amostras/linha (bordas nitidas 59%)
+[018/100] prog1  0x15=0x21 (528 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 54%)
+[019/100] prog1  0x15=0x22 (544 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 54%)
+[020/100] prog1  0x15=0x23 (560 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 63%)
+[021/100] prog1  0x15=0x24 (576 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 27%)
+[022/100] prog1  0x15=0x25 (592 amostras) inclinacao  +1.0 amostras/linha (bordas nitidas 30%)
+[023/100] prog1  0x15=0x26 (608 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 15%)
+[024/100] prog1  0x15=0x27 (624 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 3%)
+[025/100] prog1  0x15=0x28 (640 amostras) inclinacao  +1.0 amostras/linha (bordas nitidas 14%)
+[026/100] entr1  0x15=0x10 (256 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[027/100] entr1  0x15=0x11 (272 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[028/100] entr1  0x15=0x12 (288 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[029/100] entr1  0x15=0x13 (304 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[030/100] entr1  0x15=0x14 (320 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[031/100] entr1  0x15=0x15 (336 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[032/100] entr1  0x15=0x16 (352 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[033/100] entr1  0x15=0x17 (368 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[034/100] entr1  0x15=0x18 (384 amostras) inclinacao  -8.0 amostras/linha (bordas nitidas 74%)
+[035/100] entr1  0x15=0x19 (400 amostras) inclinacao +25.0 amostras/linha (bordas nitidas 40%)
+[036/100] entr1  0x15=0x1a (416 amostras) inclinacao -27.0 amostras/linha (bordas nitidas 100%)
+[037/100] entr1  0x15=0x1b (432 amostras) inclinacao -50.0 amostras/linha (bordas nitidas 49%)
+[038/100] entr1  0x15=0x1c (448 amostras) inclinacao -63.0 amostras/linha (bordas nitidas 58%)
+[039/100] entr1  0x15=0x1d (464 amostras) inclinacao -82.0 amostras/linha (bordas nitidas 56%)
+[040/100] entr1  0x15=0x1e (480 amostras) inclinacao -87.0 amostras/linha (bordas nitidas 62%)
+[041/100] entr1  0x15=0x1f (496 amostras) inclinacao -122.0 amostras/linha (bordas nitidas 38%)
+[042/100] entr1  0x15=0x20 (512 amostras) inclinacao -125.0 amostras/linha (bordas nitidas 51%)
+[043/100] entr1  0x15=0x21 (528 amostras) inclinacao -131.0 amostras/linha (bordas nitidas 48%)
+[044/100] entr1  0x15=0x22 (544 amostras) inclinacao +139.0 amostras/linha (bordas nitidas 67%)
+[045/100] entr1  0x15=0x23 (560 amostras) inclinacao -148.0 amostras/linha (bordas nitidas 54%)
+[046/100] entr1  0x15=0x24 (576 amostras) inclinacao +152.0 amostras/linha (bordas nitidas 62%)
+[047/100] entr1  0x15=0x25 (592 amostras) inclinacao -151.0 amostras/linha (bordas nitidas 84%)
+[048/100] entr1  0x15=0x26 (608 amostras) inclinacao -140.0 amostras/linha (bordas nitidas 40%)
+[049/100] entr1  0x15=0x27 (624 amostras) inclinacao -225.0 amostras/linha (bordas nitidas 75%)
+[050/100] entr1  0x15=0x28 (640 amostras) inclinacao +178.0 amostras/linha (bordas nitidas 5%)
+[051/100] entr2  0x15=0x10 (256 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[052/100] entr2  0x15=0x11 (272 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[053/100] entr2  0x15=0x12 (288 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[054/100] entr2  0x15=0x13 (304 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[055/100] entr2  0x15=0x14 (320 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[056/100] entr2  0x15=0x15 (336 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[057/100] entr2  0x15=0x16 (352 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[058/100] entr2  0x15=0x17 (368 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[059/100] entr2  0x15=0x18 (384 amostras) inclinacao  -9.0 amostras/linha (bordas nitidas 42%)
+[060/100] entr2  0x15=0x19 (400 amostras) inclinacao +23.0 amostras/linha (bordas nitidas 43%)
+[061/100] entr2  0x15=0x1a (416 amostras) inclinacao -39.0 amostras/linha (bordas nitidas 45%)
+[062/100] entr2  0x15=0x1b (432 amostras) inclinacao -53.0 amostras/linha (bordas nitidas 75%)
+[063/100] entr2  0x15=0x1c (448 amostras) inclinacao -68.0 amostras/linha (bordas nitidas 50%)
+[064/100] entr2  0x15=0x1d (464 amostras) inclinacao -78.0 amostras/linha (bordas nitidas 65%)
+[065/100] entr2  0x15=0x1e (480 amostras) inclinacao -106.0 amostras/linha (bordas nitidas 3%)
+[066/100] entr2  0x15=0x1f (496 amostras) inclinacao +123.0 amostras/linha (bordas nitidas 44%)
+[067/100] entr2  0x15=0x20 (512 amostras) inclinacao -128.0 amostras/linha (bordas nitidas 93%)
+[068/100] entr2  0x15=0x21 (528 amostras) inclinacao -133.0 amostras/linha (bordas nitidas 90%)
+[069/100] entr2  0x15=0x22 (544 amostras) inclinacao -166.0 amostras/linha (bordas nitidas 68%)
+[070/100] entr2  0x15=0x23 (560 amostras) inclinacao +167.0 amostras/linha (bordas nitidas 70%)
+[071/100] entr2  0x15=0x24 (576 amostras) inclinacao -160.0 amostras/linha (bordas nitidas 55%)
+[072/100] entr2  0x15=0x25 (592 amostras) inclinacao -197.0 amostras/linha (bordas nitidas 0%)
+[073/100] entr2  0x15=0x26 (608 amostras) inclinacao +150.0 amostras/linha (bordas nitidas 40%)
+[074/100] entr2  0x15=0x27 (624 amostras) inclinacao -90.0 amostras/linha (bordas nitidas 23%)
+[075/100] entr2  0x15=0x28 (640 amostras) inclinacao +209.0 amostras/linha (bordas nitidas 0%)
+[076/100] prog2  0x15=0x10 (256 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[077/100] prog2  0x15=0x11 (272 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[078/100] prog2  0x15=0x12 (288 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[079/100] prog2  0x15=0x13 (304 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[080/100] prog2  0x15=0x14 (320 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[081/100] prog2  0x15=0x15 (336 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[082/100] prog2  0x15=0x16 (352 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[083/100] prog2  0x15=0x17 (368 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[084/100] prog2  0x15=0x18 (384 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[085/100] prog2  0x15=0x19 (400 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[086/100] prog2  0x15=0x1a (416 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[087/100] prog2  0x15=0x1b (432 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[088/100] prog2  0x15=0x1c (448 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[089/100] prog2  0x15=0x1d (464 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[090/100] prog2  0x15=0x1e (480 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[091/100] prog2  0x15=0x1f (496 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[092/100] prog2  0x15=0x20 (512 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[093/100] prog2  0x15=0x21 (528 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[094/100] prog2  0x15=0x22 (544 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[095/100] prog2  0x15=0x23 (560 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[096/100] prog2  0x15=0x24 (576 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[097/100] prog2  0x15=0x25 (592 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[098/100] prog2  0x15=0x26 (608 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[099/100] prog2  0x15=0x27 (624 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+[100/100] prog2  0x15=0x28 (640 amostras) inclinacao  +0.0 amostras/linha (bordas nitidas 100%)
+
+==== COMPRIMENTO DA LINHA ====
+prog1  retas ate 368; 384 inclina -9/linha -> linha ~375 amostras   (QVGA progressivo, linha unica)
+       256:+0 272:+0 288:+0 304:+0 320:+0 336:+0 352:+0 368:+0 384:-9 400:-14 416:+38 432:-49 448:-64 464:+85 480:-91 496:+102 512:-6 528:+0 544:+0 560:+0 576:+0 592:+1 608:+0 624:+0 640:+1
+entr1  retas ate 368; 384 inclina -8/linha -> linha ~376 amostras   (QVGA entrelacado, linha unica (60 fps))
+       256:+0 272:+0 288:+0 304:+0 320:+0 336:+0 352:+0 368:+0 384:-8 400:+25 416:-27 432:-50 448:-63 464:-82 480:-87 496:-122 512:-125 528:-131 544:+139 560:-148 576:+152 592:-151 608:-140 624:-225 640:+178
+entr2  retas ate 368; 384 inclina -9/linha -> linha ~375 amostras   (QVGA entrelacado, DUAS linhas)
+       256:+0 272:+0 288:+0 304:+0 320:+0 336:+0 352:+0 368:+0 384:-9 400:+23 416:-39 432:-53 448:-68 464:-78 480:-106 496:+123 512:-128 528:-133 544:-166 560:+167 576:-160 592:-197 608:+150 624:-90 640:+209
+prog2  nenhuma largura inclinou (linha >= 640 amostras)   (QVGA progressivo, DUAS linhas)
+       256:+0 272:+0 288:+0 304:+0 320:+0 336:+0 352:+0 368:+0 384:+0 400:+0 416:+0 432:+0 448:+0 464:+0 480:+0 496:+0 512:+0 528:+0 544:+0 560:+0 576:+0 592:+0 608:+0 624:+0 640:+0

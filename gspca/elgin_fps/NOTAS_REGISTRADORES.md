@@ -860,3 +860,19 @@ Primeiro teste com a câmera no suporte (~5 cm da tela do notebook) e a janela `
 - ref: **640** amostras, borda limpa no meio (valida o método).
 - prog2 (duas linhas): **640 amostras por HREF, mas só as primeiras 320 têm imagem**; a segunda metade vem uniforme (sem conteúdo). O comprimento dobra, mas a metade extra está vazia.
 - prog1, entr1, entr2 (linha única e entr2): imagem **inclinada** (a linha não tem 640 amostras); o período de 1280 que a autocorrelação deu é efeito da inclinação, não o comprimento. Pendente: medir variando a largura da janela da ponte (`testes/testa_largura.py`).
+
+### Comprimento real da linha no QVGA (2026-10-17, `testes/testa_largura.py`)
+
+Tela meio a meio; janela da ponte `0x15` de 0x10 a 0x28 (256 a 640 amostras), escala 1/1. Medida: deslocamento do conteúdo entre linhas vizinhas (correlação); 0 = a janela cabe na linha. Dados em `testes/largura_dados.csv`.
+
+| Formato | Retas até | Primeira que inclina | Linha |
+|---|---|---|---|
+| QVGA progressivo, linha única | 368 | 384 (−9/linha) | **~375 amostras** |
+| QVGA entrelaçado, linha única (60 fps) | 368 | 384 (−8) | **~376** |
+| QVGA entrelaçado, duas linhas | 368 | 384 (−9) | **~375** |
+| QVGA progressivo, duas linhas | 640 | nenhuma | **≥ 640** (metade extra vazia) |
+
+- As larguras seguintes confirmam: 432 → −49 a −53 e 448 → −63 a −68 (esperado −57 e −73 para 375), linha entre ~375 e 380. `[medido]`
+- **No QVGA a linha do sensor tem ~375 amostras, não 320.** Com a janela de 320 (60 fps, 80x60) a ponte corta ~15% da largura (a direita). A janela pode ir até **368** (`0x15 = 0x17`) sem inclinar: melhoria possível para recuperar o campo de visão nos modos QVGA (ajustando recorte e escala). `[medido]`
+- Origem das ~375 amostras: não explicada; talvez a janela HREF do sensor (`0x17`/`0x18`). `[hipótese]`
+- Confirma que a ponte **não se realinha** a cada HREF quando a janela é maior que a linha (conta amostras e atravessa para a linha seguinte).
