@@ -48,6 +48,9 @@ W, H = 320, 240
 FMT = ['--set-fmt-video=width=%d,height=%d,pixelformat=S910' % (W, H), '--set-parm=30', '--stream-mmap']
 RAW = '/tmp/varre_bits.raw'
 REF_CADA = 25					# repete a referencia a cada N casos
+# controles fixos durante a varredura (mesmo ponto de partida em todas as rodadas; o branco do padrao
+# fica em ~95 de 255). Ganho e exposicao automaticos e taxa dinamica desligados.
+FIXOS = [('gain_automatic', 0), ('exposure_dynamic_framerate', 0), ('gain', 47), ('exposure', 67)]
 
 # registradores documentados do sensor (datasheet OV7630), sem os de leitura (0x0A, 0x0B, 0x1C, 0x1D)
 SENSOR_DOC = ([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x0c, 0x0d] + list(range(0x10, 0x1c)) + [0x1f]
@@ -114,14 +117,15 @@ def le_base(dev, alvos):
 
 
 def captura(dev, rs):
-    """Grava o regs_start, captura 25 quadros (descarta 10) e devolve (fps, bytes, matriz) ou (None, 0, None)."""
+    """Grava o regs_start, captura 50 quadros (descarta 10; ~1,7 s, para o v4l2-ctl informar o fps) e
+    devolve (fps, bytes, matriz do primeiro quadro gravado) ou (None, 0, None)."""
     sudo_tee(PS, rs)
     try:
         os.remove(RAW)
     except OSError:
         pass
     try:
-        out = subprocess.run(['v4l2-ctl', '-d', dev] + FMT + ['--stream-skip=10', '--stream-count=15',
+        out = subprocess.run(['v4l2-ctl', '-d', dev] + FMT + ['--stream-skip=10', '--stream-count=40',
                                                               '--stream-to=' + RAW],
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=45).stdout
     except subprocess.TimeoutExpired:
@@ -226,7 +230,7 @@ def recupera(dev):
     subprocess.run(['sudo', '-n', 'modprobe', 'gspca_elgin_fps'], capture_output=True)
     time.sleep(4)
     dev = acha_dev()
-    for nome, val in (('gain_automatic', 0), ('exposure_dynamic_framerate', 0)):
+    for nome, val in FIXOS:
         subprocess.run(['v4l2-ctl', '-d', dev, '-c', '%s=%d' % (nome, val)], capture_output=True)
     return dev if captura(dev, '')[2] is not None else None
 
@@ -252,7 +256,7 @@ def main():
         sys.exit('sudo nao validado')
     print(__doc__)
     print('==== %s  fase %s: %d registradores, %d casos numerados (%d pulados pela lista). Estimativa: ~%d min.' % (
-        time.strftime('%Y-%m-%d %H:%M'), fase, len(regs), total, len(pulados), len(casos) * 3.5 / 60 + 3))
+        time.strftime('%Y-%m-%d %H:%M'), fase, len(regs), total, len(pulados), len(casos) * 4.2 / 60 + 3))
 
     campos = ['n', 'tipo', 'reg', 'bit', 'base', 'valor', 'estado', 'fps', 'bytes'] + \
         sorted(medidas(np.zeros((H, W), np.float32), (0, H, 0, W)))
@@ -283,10 +287,12 @@ def main():
 
     dev = acha_dev()
     ctrl0 = {}
-    for nome in ('gain_automatic', 'exposure_dynamic_framerate'):
+    for nome, val in FIXOS:				# guarda o valor atual e fixa o da varredura
         out = subprocess.run(['v4l2-ctl', '-d', dev, '-C', nome], capture_output=True, text=True).stdout
         ctrl0[nome] = out.split(':')[-1].strip()
-        subprocess.run(['v4l2-ctl', '-d', dev, '-c', nome + '=0'], capture_output=True)
+        subprocess.run(['v4l2-ctl', '-d', dev, '-c', '%s=%d' % (nome, val)], capture_output=True)
+    print('controles fixos: %s (originais: %s)' % (', '.join('%s=%d' % c for c in FIXOS),
+                                                  ', '.join('%s=%s' % c for c in ctrl0.items())))
     jan = Janela('alinhar')
     terminou = False
     try:
@@ -371,7 +377,7 @@ def main():
     finally:
         jan.fecha()
         sudo_tee(PS, '')
-        for nome, val in ctrl0.items():
+        for nome, val in reversed(list(ctrl0.items())):	# ganho e exposicao antes do automatico
             if val:
                 subprocess.run(['v4l2-ctl', '-d', dev, '-c', '%s=%s' % (nome, val)], capture_output=True)
     resumo(fase, csv_path, pulados, pasta)
