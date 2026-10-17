@@ -1,0 +1,78 @@
+Linha unica x duas linhas (COMH 0x28 bit 7) com padroes na tela: cores e comprimento da linha.
+
+Autor: Josemar Simao <josemars@ifes.edu.br>
+Co-autor e Revisor: Claude (Anthropic)
+
+Perguntas:
+ 1. Que cor vem em cada amostra da linha, em cada formato do sensor? Com cor solida (branco, vermelho,
+    verde, azul) cada posicao (linha par/impar, coluna de 4 em 4) mostra a cor que carrega. Linha unica
+    deve dar B G B G / G R G R; se duas linhas trouxer o par misturado, aparece B G R G.
+ 2. Quantas amostras tem cada linha (HREF)? Com a tela meio branca / meio preta e a janela da ponte
+    em 640 sem escala, a borda anda de uma linha para a outra se a linha do sensor tiver outro tamanho:
+    comprimento da linha = 640 + deslocamento da borda por linha.
+
+Casos (todos pedem S910 320x240 ao v4l2 e trocam registradores por regs_start; janela da ponte
+sem escala para nao descartar amostras):
+  ref    sensor VGA progressivo, modo normal (ponte 640x480 com escala 1/2): referencia
+  prog1  sensor QVGA progressivo, linha unica
+  entr1  sensor QVGA entrelacado, linha unica (o modo 60 fps)
+  entr2  sensor QVGA entrelacado, DUAS linhas
+  prog2  sensor QVGA progressivo, DUAS linhas
+Taxa reduzida pelo 0x11 para caber no USB. Ganho automatico e taxa dinamica ficam desligados (eles
+regravam o 0x11) e voltam ao valor anterior no fim.
+
+Padrao (janela no notebook, tela_padrao.py): a camera no suporte (~5 cm) olhando para a janela. O
+script abre a janela no padrao "alinhar"; posicione e ajuste o tamanho (+/-) pelo Multiview ate o
+contorno ficar inteiro na imagem, FECHE o Multiview e aperte Enter. Depois tudo e' automatico; as
+medidas usam so a regiao do padrao (achada na captura do branco de cada caso). ~5 min.
+Com --celular: modo manual antigo (tela do celular cobrindo toda a imagem, Enter a cada tela).
+Casos numerados de 01 a 25; cada um e' gravado em linha_dados.csv antes do seguinte. Se travar, rode
+de novo com --continua (retoma no caso interrompido) ou --continua --pula N (salta o caso N).
+Pede sudo uma vez.
+Resultado: linha_resultado.txt e imagens em testes/linha/
+
+==== 2026-10-17 15:39  dispositivo: /dev/video2
+
+>>> Confira pelo Multiview se o contorno do padrao "alinhar" esta inteiro na imagem (a janela
+    abre na posicao gravada; +/- muda o tamanho). FECHE o Multiview e aperte Enter... [01/25] BRANCO   ref    par: 113.4 110.3 113.2 110.4  impar: 112.0 104.7 111.9 104.9  29.8 11=00 14=80 28=a0 2d=01
+[02/25] BRANCO   prog1  par: 220.7 221.7 221.2 221.7  impar: 222.7 213.0 223.5 212.8  14.9 11=01 14=a0 28=a0 2d=01
+[03/25] BRANCO   entr1  par: 223.3 223.4 223.9 224.2  impar: 223.2 223.6 224.1 224.5  29.8 11=01 14=a0 28=80 2d=41
+[04/25] BRANCO   entr2  par: 218.4 221.5 218.0 221.3  impar: 218.9 221.6 218.4 221.3  29.8 11=01 14=a0 28=00 2d=41
+[05/25] BRANCO   prog2  par: 216.2 219.3 215.7 219.1  impar: 216.0 219.4 215.9 219.1  14.7 11=01 14=a0 28=20 2d=01
+[06/25] VERMELHO ref    par:   7.3  16.7   7.4  16.6  impar:  15.0  45.4  15.1  45.6   
+[07/25] VERMELHO prog1  par:  18.3  34.5  18.1  34.4  impar:  30.3  96.8  30.5  96.9   
+[08/25] VERMELHO entr1  par:  18.8  32.6  18.6  32.8  impar:  18.4  32.5  18.6  32.7   
+[09/25] VERMELHO entr2  par:  99.4  25.7  99.3  25.7  impar:  99.4  25.6  99.2  25.6   
+[10/25] VERMELHO prog2  par: 100.4  28.0 100.2  28.0  impar: 100.2  28.0 100.2  28.0   
+[11/25] VERDE    ref    par:  37.9  69.7  37.9  69.8  impar:  70.5  35.8  70.6  36.0   
+[12/25] VERDE    prog1  par:  75.6 140.2  75.7 140.2  impar: 140.1  72.0 140.7  71.9   
+[13/25] VERDE    entr1  par:  76.7 140.3  76.7 140.8  impar:  76.7 140.3  76.9 141.2   
+[14/25] VERDE    entr2  par:  73.7 136.9  73.9 136.8  impar:  73.6 136.8  73.4 136.6   
+[15/25] VERDE    prog2  par:  75.0 136.2  75.1 136.0  impar:  74.9 136.3  74.8 136.1   
+[16/25] AZUL     ref    par:  56.7  25.0  56.6  25.1  impar:  26.5   6.5  26.4   6.5   
+[17/25] AZUL     prog1  par: 114.2  51.3 114.5  51.5  impar:  53.5  16.9  53.8  17.0   
+[18/25] AZUL     entr1  par: 119.5  50.3 120.0  50.5  impar: 119.4  50.4 120.0  50.7   
+[19/25] AZUL     entr2  par:  20.2  46.6  20.3  46.5  impar:  20.7  46.7  20.7  46.7   
+[20/25] AZUL     prog2  par:  23.7  48.2  23.6  48.0  impar:  23.5  48.0  23.5  48.1   
+[21/25] MEIO     ref    linha do sensor ~ 640 amostras
+[22/25] MEIO     prog1  linha do sensor ~ 1281 amostras
+[23/25] MEIO     entr1  linha do sensor ~ 1281 amostras
+[24/25] MEIO     entr2  linha do sensor ~ 1281 amostras
+[25/25] MEIO     prog2  linha do sensor ~ 640 amostras
+
+==== COR DE CADA AMOSTRA (dividida pelo branco; letra = cor dominante, minuscula = fraca) ====
+caso   linha par (col 0 1 2 3)     linha impar (col 0 1 2 3)   descricao
+ref    b G b G                     G r G r                     VGA progressivo, modo normal (referencia)
+prog1  b G b G                     G r G r                     QVGA progressivo, linha unica
+entr1  b G b G                     b G b G                     QVGA entrelacado, linha unica (60 fps)
+entr2  r G r G                     r G r G                     QVGA entrelacado, DUAS linhas
+prog2  r G r G                     r G r G                     QVGA progressivo, DUAS linhas
+
+==== COMPRIMENTO DA LINHA (tela meio a meio, janela de 640) ====
+ref    ~640 amostras por linha   VGA progressivo, modo normal (referencia)
+prog1  ~1281 amostras por linha   QVGA progressivo, linha unica
+entr1  ~1281 amostras por linha   QVGA entrelacado, linha unica (60 fps)
+entr2  ~1281 amostras por linha   QVGA entrelacado, DUAS linhas
+prog2  ~640 amostras por linha   QVGA progressivo, DUAS linhas
+
+Esperado: ref ~640 e B G B G / G R G R. Dados: /home/josemar/Downloads/projects/sn9c103/gspca/elgin_fps/testes/linha_dados.csv  Imagens: /home/josemar/Downloads/projects/sn9c103/gspca/elgin_fps/testes/linha/

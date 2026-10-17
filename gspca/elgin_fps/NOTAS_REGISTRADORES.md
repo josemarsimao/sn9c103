@@ -839,3 +839,34 @@ Script `testes/testa_duaslinhas.py` (resultado `testes/duaslinhas_resultado.txt`
 - **Refutado `[medido]`:** o formato de duas linhas não dá as 4 cores por campo. Junto com o teste do QVGA progressivo, fecha a questão: **60 fps com cor completa não é possível** neste par sensor/ponte.
 - **Ponte SN9C103 `[medido]`:** aceita `0x15 = 0x28` (640) com o sensor em QVGA, mas quando a janela é maior que a linha do sensor ela **atravessa o fim da linha** (pega amostras da linha seguinte), o que inclina a imagem: não se realinha a cada HREF, só conta amostras. Logo, a linha do QVGA tem menos de 640 amostras **também** no formato de duas linhas (a hipótese "duas linhas = 640 amostras por HREF com o par B/G + G/R" não se confirma).
 - Observação: no caso "larga uma linha" o `0x11` foi lido como 0x01 (gravado 0x03 pelo `regs_start`); algo do driver o regravou no início da captura. Não afeta a conclusão.
+
+## Linha única × duas linhas e comprimento da linha, com a janela de padrões (2026-10-17 15:39)
+
+Câmera no suporte (~5 cm da tela, foco ajustado); janela `testes/tela_padrao.py` com posição, tamanho e escala gravados em `testes/tela_padrao.json` (800x600, padrão em 20% da janela, enquadrado com margem preta nos quatro lados). Uma rodada anterior, com o padrão maior que o campo da câmera, foi descartada; os resultados abaixo repetem os dela.
+
+**Cor de cada amostra `[medido]`** (`testes/testa_linha.py`, dados `testes/linha_dados.csv`; telas branca, vermelha, verde e azul; cada posição dividida pelo branco; ponte com janela de 320 sem escala):
+
+| Caso | Linha par | Linha ímpar | Leitura |
+|---|---|---|---|
+| ref: VGA progressivo | B G | G R | mosaico completo |
+| prog1: QVGA progressivo, linha única (`0x28 = 0xA0`) | B G | G R | completo (o QVGA preserva a cor) |
+| entr1: QVGA entrelaçado, linha única (`0x28 = 0x80`, o 60 fps) | B G | **B G** | só azul e verde, sem vermelho |
+| entr2: QVGA entrelaçado, duas linhas (`0x28 = 0x00`) | **R G** | **R G** | só vermelho e verde, sem azul |
+| prog2: QVGA progressivo, duas linhas (`0x28 = 0x20`) | **R G** | **R G** | só vermelho e verde, mesmo no progressivo |
+
+- **No formato de duas linhas a ponte só recebe as linhas G/R**, no entrelaçado e no progressivo. O formato troca qual paridade chega, mas nunca entrega as duas (não aparece `B G R G`).
+
+**Comprimento da linha `[medido]`** (`testes/testa_largura.py`, dados `testes/largura_dados.csv`; tela meio a meio; janela da ponte `0x15` de 0x10 a 0x28, escala 1/1; deslocamento do conteúdo entre linhas vizinhas):
+
+| Formato | Retas até | Primeira que inclina | Linha |
+|---|---|---|---|
+| VGA (ref) | 640 | — | 640 |
+| QVGA progressivo, linha única | 368 | 384 | **~375** (duas rodadas; na 2ª a medida automática falhou com o padrão pequeno e foi confirmada pelas imagens) |
+| QVGA entrelaçado, linha única (60 fps) | 368 | 384 (−8) | **~376** |
+| QVGA entrelaçado, duas linhas | 368 | 384 (−7) | **~377** |
+| QVGA progressivo, duas linhas | 640 | nenhuma | **≥ 640**, só as primeiras 320 com imagem (a outra metade uniforme) |
+
+- **No QVGA de linha única a linha tem ~375 amostras, não 320.** Com 352 e 368 a imagem sai reta, com uma faixa escura nas últimas ~20–30 amostras (conteúdo útil até ~345–350). Com a janela de 320 (60 fps, 80x60) a ponte corta parte da largura útil. Melhoria possível: janela de até 368 (`0x15 = 0x17`) nos modos QVGA, ajustando recorte e escala. `[medido]`
+- Origem das ~375 amostras: não explicada; talvez a janela HREF do sensor (`0x17`/`0x18`). `[hipótese]`
+- Confirma que a ponte **não se realinha** a cada HREF quando a janela é maior que a linha (conta amostras e atravessa para a linha seguinte).
+- Limite da medida automática: com o padrão pequeno e muito fundo escuro a correlação entre linhas pode dar 0 numa imagem inclinada; conferir pelas imagens (`testes/linha/largura_*.png`).
