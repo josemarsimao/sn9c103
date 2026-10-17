@@ -1,0 +1,21 @@
+Varredura reservados: 472 casos, 17 com efeito, 0 pulados. Referencia: fps 29.8, media 22.3, linha 640
+
+s:0x6b bit 6 (0x00 -> 0x40): linha 100.00; cor (16 medidas); rampa (13 medidas); brilho 0.00 (ref 22.3)
+s:0x6b bit 5 (0x00 -> 0x20): cor (16 medidas); rampa (13 medidas); brilho 0.99 (ref 22.3)
+s:0x6b bit 4 (0x00 -> 0x10): cor (16 medidas); rampa (13 medidas); brilho 7.04 (ref 22.3)
+s:0x6b bit 3 (0x00 -> 0x08): cor (16 medidas); rampa (13 medidas); brilho 11.69 (ref 22.3)
+s:0x6b bit 2 (0x00 -> 0x04): cor (13 medidas); rampa (13 medidas); brilho 16.29 (ref 22.3)
+s:0x6b bit 1 (0x00 -> 0x02): cor (8 medidas); rampa (7 medidas)
+s:0x7e bit 7 (0x00 -> 0x80): fps 23.8; cor (16 medidas); rampa (16 medidas); brilho 37.21 (ref 22.3)
+s:0x7e bit 6 (0x00 -> 0x40): fps 26.8; cor (16 medidas); rampa (13 medidas); brilho 29.66 (ref 22.3)
+s:0x7e bit 5 (0x00 -> 0x20): fps 26.8; cor (15 medidas); rampa (10 medidas); brilho 26.41 (ref 22.3)
+s:0x7f bit 7 (0x00 -> 0x80): PAROU
+s:0x7f bit 6 (0x00 -> 0x40): PAROU
+s:0x7f bit 5 (0x00 -> 0x20): fps 1.8; cor (16 medidas); rampa (16 medidas); brilho 242.50 (ref 22.3)
+s:0x7f bit 4 (0x00 -> 0x10): fps 3.5; cor (16 medidas); rampa (16 medidas); brilho 230.65 (ref 22.3)
+s:0x7f bit 3 (0x00 -> 0x08): fps 6.3; cor (16 medidas); rampa (16 medidas); brilho 163.81 (ref 22.3)
+s:0x7f bit 2 (0x00 -> 0x04): fps 10.0; cor (16 medidas); rampa (16 medidas); brilho 114.78 (ref 22.3)
+s:0x7f bit 1 (0x00 -> 0x02): fps 14.9; cor (16 medidas); rampa (16 medidas); brilho 78.13 (ref 22.3)
+s:0x7f bit 0 (0x00 -> 0x01): fps 20.2; cor (16 medidas); rampa (16 medidas); brilho 51.38 (ref 22.3)
+
+Pulados:

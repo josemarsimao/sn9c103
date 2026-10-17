@@ -907,3 +907,11 @@ Mesmo arranjo da varredura do sensor. 32 registradores (0x01–0x1F e 0x3F), **1
 - **`0x18`:** bit 7 (compressão; desligada, o quadro cru não decodifica como S910), bits 5/4 (escala), bits 1/0 (bordas de HSYNC/PCK: cor muda). **Bit 6 (SEL_CURVE): sem efeito visível.**
 - **`0x19`:** bit 1 (PCK_OUT) muda a cor; **bit 0 (SYNC_OUT, a ponte gera o sincronismo): 38,7 fps, mas a imagem sai destruída** (não aproveitável sem reconfigurar o sensor como escravo). Bits 7–4 (MCK_SIZE) sem efeito com SEN_RATE ≠ 00 (esperado).
 - **Sem efeito:** `0x02`–`0x04`, `0x10`, `0x11`, `0x1A`/`0x1B` (HO/VO_SIZE), `0x1C`–`0x1F` (janela de AE: só muda a medida do cabeçalho, e o ganho automático estava desligado), `0x3F`.
+
+## Varredura bit a bit dos reservados do sensor (2026-10-17, `testes/varre_bits.py reservados`)
+
+Mesmo arranjo; cada caso restaura o registrador anterior ao valor de base (alguns reservados não voltam com o reset do sensor). 59 registradores, **472 casos**; dados `testes/varre_reservados.csv`, resumo `testes/varre_reservados_resumo.txt`. Referência: 29,8 fps, média 22,3. **Só 17 bits com efeito**, em três registradores; 2 pararam por tempo esgotado (`0x7F` bits 7/6, quadros muito longos) e foram recuperados.
+
+- **`0x6B` bits 6–1:** escurece progressivamente (22,3 → 16,3 / 11,7 / 7,0 / 1,0 / 0): comporta-se como **nível de preto** (confirma a varredura de 2026-10-12). `[medido]`
+- **`0x7E` bits 7–5 e `0x7F` bits 5–1:** baixam a taxa (0x7E: 23,8 / 26,8 fps; 0x7F: 14,9 / 10,0 / 6,3 / 3,5 / 1,8 fps) e clareiam (exposição mais longa, até saturar). Com o bit 7 do `0x7E` (128 unidades) o quadro cresce ~8,5 ms: **~66 µs por unidade, cerca de uma linha** → contador de 16 bits de **linhas extras por quadro** (`0x7F` = byte alto), agora medido com o sensor em VGA. Outra forma de alongar a exposição e baixar a taxa, em passos finos. `[medido]`
+- **Sem efeito com um bit por vez:** todos os demais reservados (`0x07`–`0x09`, `0x0E`, `0x0F`, `0x1E`, `0x34`–`0x4B`, `0x4E`–`0x5F`, `0x62`–`0x64`, `0x6A`, `0x6C`–`0x6E`, `0x7B`), inclusive o `0x6C`.
