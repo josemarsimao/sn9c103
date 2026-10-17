@@ -2113,12 +2113,11 @@ struct sd {
 
 	struct v4l2_ctrl *brightness;
 	struct v4l2_ctrl *plfreq;
-	struct v4l2_ctrl *contrast;	/* contraste: reg 0x05 (CNT) do sensor; so' vale se a Bayer crua o aplicar */
+	struct v4l2_ctrl *contrast;	/* contraste: na curva da ponte (regs 0x20-0x30) junto com a gama; 128 = sem mudanca */
 	struct v4l2_ctrl *awb;		/* balanco de branco automatico pelo sensor (COMA bit 2) */
 	struct v4l2_ctrl *rgain;	/* ganhos R, G e B da ponte (regs 0x05/0x06/0x07, por posicao no mosaico) */
 	struct v4l2_ctrl *ggain;
 	struct v4l2_ctrl *bgain;
-	struct v4l2_ctrl *satur;	/* saturacao: reg 0x03 (SAT) do sensor; idem */
 
 	atomic_t avg_lum;
 	int prev_avg_lum;
@@ -3632,23 +3631,6 @@ static int sd_init(struct gspca_dev *gspca_dev)
 	return gspca_dev->usb_err;
 }
 
-/* Contraste (reg 0x05, CNT) e saturacao (reg 0x03, SAT) do sensor OV7630. O datasheet os coloca na etapa de
- * imagem processada (YUV); nao se sabe se a Bayer crua os aplica: os controles ficam disponiveis para teste.
- * (O balanco de branco manual pelos regs 0x01/0x02 foi retirado: ficam os valores da init.) */
-static void setcs(struct gspca_dev *gspca_dev)
-{
-	struct sd *sd = (struct sd *) gspca_dev;
-	__u8 i2c[8] = { 0xa0, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10 };
-
-	if (!sd->contrast || !sd->satur)
-		return;
-	i2c[1] = sensor_data[sd->sensor].sensor_addr;
-	i2c[3] = sd->satur->val;	/* reg 0x03 SAT */
-	i2c_w(gspca_dev, i2c);
-	i2c[2] = 0x05;
-	i2c[3] = sd->contrast->val;	/* reg 0x05 CNT */
-	i2c_w(gspca_dev, i2c);
-}
 
 /* Correcao do H_START com o espelho ligado. Medido (testa_controles.py): com +1 a fase do mosaico saia trocada,
  * entao o sensor ja' inverte a paridade ao espelhar e nao precisa de correcao */
@@ -3670,12 +3652,27 @@ static const __u8 gamma_tb[9][17] = {
 
 static const char * const test_menu[] = { "Disabled", "Bridge test image", "Sensor color bars" };
 
+/* curva da ponte (regs 0x20 a 0x30, 17 pontos): gama da tabela gamma_tb e, por cima, o contraste em
+ * torno do cinza medio: y = 128 + (gama - 128) x contraste / 128 (contraste 128 = sem mudanca, 0 = tudo
+ * cinza, 255 = ~2x), limitado a 0..255. Substitui o contraste do sensor (reg 0x05), que so age em YUV. */
+static void curva(struct sd *sd, __u8 *tb)
+{
+	int i, y, c = sd->contrast ? sd->contrast->val : 128;
+	const __u8 *g = gamma_tb[sd->gamma ? sd->gamma->val : 2];
+
+	for (i = 0; i < 17; i++) {
+		y = 128 + ((int)g[i] - 128) * c / 128;
+		tb[i] = y < 0 ? 0 : y > 255 ? 255 : y;
+	}
+}
+
+/* grava a curva (gama + contraste) na ponte, ao vivo */
 static void setgamma(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	__u8 tb[17];
 
-	memcpy(tb, gamma_tb[sd->gamma->val], sizeof(tb));
+	curva(sd, tb);
 	reg_w(gspca_dev, 0x20, tb, sizeof(tb));
 }
 
@@ -3934,8 +3931,7 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 		}
 		break;
 	case V4L2_CID_CONTRAST:
-	case V4L2_CID_SATURATION:
-		setcs(gspca_dev);
+		setgamma(gspca_dev);			/* contraste entra na curva da ponte */
 		break;
 	case V4L2_CID_AUTO_WHITE_BALANCE:
 		setwb(gspca_dev);
@@ -4061,8 +4057,9 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	/* "Auto Exposure, Dynamic Framerate": deixa o driver baixar a taxa quando o canal USB satura (S910) */
 	sd->dynfps = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_EXPOSURE_AUTO_PRIORITY, 0, 1, 1, 1);
 	if (sd->sensor == SENSOR_OV7630) {	/* ganhos de cor do sensor; padrao = init do Windows */
-		sd->contrast = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_CONTRAST, 0, 255, 1, 0x20);
-		sd->satur = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_SATURATION, 0, 255, 1, 0x80);
+		/* contraste pela curva da ponte (128 = sem mudanca); a saturacao do sensor (reg 0x03) saiu:
+		 * so age em YUV, e na imagem crua a saturacao so e' possivel na aplicacao */
+		sd->contrast = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_CONTRAST, 0, 255, 1, 128);
 		sd->awb = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
 		{
 			static const struct v4l2_ctrl_config rg_cfg = {
@@ -4154,7 +4151,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam = &gspca_dev->cam;
-	int i, mode;
+	int mode;
 	__u8 regs[0x31]; // josemar: Em sn9n102.pdf tem a descricao de 0x1Fh registradores. Sugere que regs pertence ao controlador sn9c102/103
 	const __u8 i2c[] = { 0xa0, 0x21, 0x13, 0x80, 0x00, 0x00, 0x00, 0x10 };
 
@@ -4381,8 +4378,7 @@ if (stock_regs) {   /* valores "originais" (antigo #if(0)) */
 		regs[0x14] = sd->black->val;
 
 	/* Setup the gamma table (only used with the sn9c103 bridge) */
-	for (i = 0; i < 17; i++)
-		regs[0x20 + i] = gamma_tb[sd->gamma ? sd->gamma->val : 2][i];
+	curva(sd, &regs[0x20]);		/* gama + contraste */
 
 
 
@@ -4514,7 +4510,6 @@ if (stock_regs) {   /* valores "originais" (antigo #if(0)) */
 
 	setgain(gspca_dev);             // configura ganho pelo sensor          r00
 	setbrightness(gspca_dev);       // configura brilho pelo sensor         r06
-	setcs(gspca_dev);               // contraste e saturacao do sensor       r05 e r03
 	setwb(gspca_dev);               // balanco de branco automatico do sensor (COMA bit 2)
 	setgains(gspca_dev);            // ganhos R, G e B da ponte (r05, r06, r07)
 	if (sd->hflip && (sd->hflip->val || sd->testpat->val == 2))
