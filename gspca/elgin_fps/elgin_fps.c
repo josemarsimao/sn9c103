@@ -2152,10 +2152,7 @@ struct sd {
 	struct v4l2_ctrl *gamma;	/* curva de gama da ponte (regs 0x20 a 0x30): 0 a 8 */
 	struct v4l2_ctrl *hflip;	/* espelho horizontal (COMA bit 6 do sensor) */
 	struct v4l2_ctrl *vflip;	/* inversao vertical (COMN 0x75 bit 7 do sensor) */
-	struct v4l2_ctrl *bandf;	/* filtro de banda (COMJ 0x2D bit 2 do sensor) */
 	struct v4l2_ctrl *ae_target;	/* alvo de luminosidade do ganho automatico (127 = padrao) */
-	struct v4l2_ctrl *abg_blue;	/* alvo do AWB, fundo azul (sensor 0x0C) */
-	struct v4l2_ctrl *abg_red;	/* alvo do AWB, fundo vermelho (sensor 0x0D) */
 	__u8 vstart;			/* V_START base (reg 0x13 da ponte) */
 	struct v4l2_ctrl *testpat;	/* padrao de teste: 0 desligado, 1 ponte (0x17 bit 4), 2 barras do sensor */
 	__u8 hstart;			/* H_START base (sem a correcao do espelho) */
@@ -3789,36 +3786,6 @@ static void setvflip(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, 0x13, &vs, 1);
 }
 
-/* filtro de banda: COMJ (0x2D) bit 2; base 0x81 (0xc1 no modo 'hi', como no init) */
-static void setbandf(struct gspca_dev *gspca_dev)
-{
-	struct sd *sd = (struct sd *) gspca_dev;
-	__u8 i2c[8] = { 0xa0, 0x00, 0x2d, 0x81, 0x00, 0x00, 0x00, 0x10 };
-
-	if (sd->sensor != SENSOR_OV7630 || !sd->bandf)
-		return;
-	i2c[1] = sensor_data[sd->sensor].sensor_addr;
-	if (sd->hi)
-		i2c[3] = 0xc1;
-	if (sd->bandf->val)
-		i2c[3] |= 0x04;
-	i2c_w(gspca_dev, i2c);
-}
-
-/* alvos do AWB: 'fundo' azul (0x0C) e vermelho (0x0D), 0..63 */
-static void setawbt(struct gspca_dev *gspca_dev)
-{
-	struct sd *sd = (struct sd *) gspca_dev;
-	__u8 i2c[8] = { 0xb0, 0x00, 0x0c, 0x20, 0x20, 0x00, 0x00, 0x10 };
-
-	if (sd->sensor != SENSOR_OV7630 || !sd->abg_blue || !sd->abg_red)
-		return;
-	i2c[1] = sensor_data[sd->sensor].sensor_addr;
-	i2c[3] = sd->abg_blue->val;
-	i2c[4] = sd->abg_red->val;
-	i2c_w(gspca_dev, i2c);
-}
-
 static void settest(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -3830,8 +3797,6 @@ static void settest(struct gspca_dev *gspca_dev)
 	setcoma(gspca_dev);
 }
 
-#define V4L2_CID_AWB_BG (V4L2_CID_USER_BASE + 0x1f02)	/* controles proprios: alvos do AWB */
-#define V4L2_CID_AWB_RG (V4L2_CID_USER_BASE + 0x1f03)
 #define V4L2_CID_RED_GAIN_BR (V4L2_CID_USER_BASE + 0x1f04)	/* controles proprios: ganhos R, G e B da ponte */
 #define V4L2_CID_GREEN_GAIN_BR (V4L2_CID_USER_BASE + 0x1f05)
 #define V4L2_CID_BLUE_GAIN_BR (V4L2_CID_USER_BASE + 0x1f06)
@@ -4025,15 +3990,8 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_VFLIP:
 		setvflip(gspca_dev);
 		break;
-	case V4L2_CID_BAND_STOP_FILTER:
-		setbandf(gspca_dev);
-		break;
 	case V4L2_CID_AE_TARGET:
 		sd->autogain_ignore_frames = 0;	/* o automatico passa a buscar o alvo novo ja no proximo quadro */
-		break;
-	case V4L2_CID_AWB_BG:
-	case V4L2_CID_AWB_RG:
-		setawbt(gspca_dev);
 		break;
 	case V4L2_CID_AE_WINDOW:
 	case V4L2_CID_AE_START_X:
@@ -4149,20 +4107,9 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 		sd->gamma = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_GAMMA, 0, 8, 1, 2);
 		sd->hflip = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_HFLIP, 0, 1, 1, 0);
 		sd->vflip = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_VFLIP, 0, 1, 1, 0);
-		sd->bandf = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_BAND_STOP_FILTER, 0, 1, 1, 0);
-		{
-			static const struct v4l2_ctrl_config bg_cfg = {
-				.ops = &sd_ctrl_ops, .id = V4L2_CID_AWB_BG, .name = "AWB Target Blue",
-				.type = V4L2_CTRL_TYPE_INTEGER, .min = 0, .max = 63, .step = 1, .def = 0x20,
-			};
-			static const struct v4l2_ctrl_config rg_cfg = {
-				.ops = &sd_ctrl_ops, .id = V4L2_CID_AWB_RG, .name = "AWB Target Red",
-				.type = V4L2_CTRL_TYPE_INTEGER, .min = 0, .max = 63, .step = 1, .def = 0x20,
-			};
-
-			sd->abg_blue = v4l2_ctrl_new_custom(hdl, &bg_cfg, NULL);
-			sd->abg_red = v4l2_ctrl_new_custom(hdl, &rg_cfg, NULL);
-		}
+		/* "Band-stop filter" (0x2D bit 2: so age com o AEC interno do sensor, desligado; sem efeito na
+		 * varredura) e "AWB Target Blue/Red" (0x0C/0x0D, alvos do AWB; ficam no padrao 0x20 do sensor)
+		 * removidos em 2026-10-17 a pedido do Josemar */
 		/* controles "AE window" (menu + 4 numeros) e "AE target" removidos em 2026-10-17 junto com o ganho
 		 * automatico: a janela de AE fica no padrao de cada modo (ae_def), usada pelo contraste adaptativo */
 		sd->testpat = v4l2_ctrl_new_std_menu_items(hdl, &sd_ctrl_ops, V4L2_CID_TEST_PATTERN, ARRAY_SIZE(test_menu) - 1, 0, 0, test_menu);
@@ -4546,8 +4493,6 @@ if (stock_regs) {   /* valores "originais" (antigo #if(0)) */
 	setgains(gspca_dev);            // ganhos R, G e B da ponte (r05, r06, r07)
 	if (sd->hflip && (sd->hflip->val || sd->testpat->val == 2))
 		setcoma(gspca_dev);         // espelho e/ou barras de cor: COMA do sensor (r12)
-	setawbt(gspca_dev);             // alvos do AWB (r0c e r0d)
-	setbandf(gspca_dev);            // filtro de banda (r2d)
 	if (sd->vflip && sd->vflip->val)
 		setvflip(gspca_dev);        // inversao vertical (r75)
 	setexposure(gspca_dev);         // configura exposicao pelo sensor      r10 e r11
