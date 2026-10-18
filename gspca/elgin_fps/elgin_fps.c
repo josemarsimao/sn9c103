@@ -2169,6 +2169,9 @@ struct sd {
 	u8 hi;			/* 1 = modo de 60 fps (S910 160x120), fixado no sd_start */
 	int cap_mode;		/* modo em que o limite fps_cap foi criado */
 	u16 ae_area;		/* area da janela de AE em blocos de 32x32 (117 = janela padrao) */
+	u8 pivo;		/* ponto de apoio do contraste aplicado na curva (tom medio da cena, 0 = ainda nao medido) */
+	u8 pivo_espera;		/* quadros ate poder regravar a curva */
+	int pivo_f;		/* tom medio filtrado, x16 */
 	u32 fps_logged;		/* ultima taxa (fps, reg 0x11, ajuste fino) mostrada no log; 0 = nenhuma */
 	struct v4l2_ctrl *ae_win;	/* menu: janela de AE (padrao do modo, tela cheia, centro, metades, personalizada) */
 	struct v4l2_ctrl *ae_sx, *ae_sy, *ae_ex, *ae_ey;	/* janela personalizada (regs 0x1C a 0x1F) */
@@ -3525,12 +3528,15 @@ static int elg_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum, int desir
 	return retval;
 }
 
+static void contraste_adapta(struct gspca_dev *gspca_dev);
+
 static void do_autogain(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	int deadzone, desired_avg_lum, avg_lum, exposure_max;
 
 	rate_guard(gspca_dev);
+	contraste_adapta(gspca_dev);		/* o contraste acompanha o tom medio da cena (com ou sem automatico) */
 
 	if (!gspca_dev->autogain || !gspca_dev->gain || !gspca_dev->exposure)
 		return;
@@ -3652,16 +3658,44 @@ static const __u8 gamma_tb[9][17] = {
 
 static const char * const test_menu[] = { "Disabled", "Bridge test image", "Sensor color bars" };
 
-/* curva da ponte (regs 0x20 a 0x30, 17 pontos): gama da tabela gamma_tb e, por cima, o contraste em
- * torno do cinza medio: y = 128 + (gama - 128) x contraste / 128 (contraste 128 = sem mudanca, 0 = tudo
- * cinza, 255 = ~2x), limitado a 0..255. Substitui o contraste do sensor (reg 0x05), que so age em YUV. */
+/* tom medio da cena (0..255) a partir da soma de luminosidade do cabecalho (janela de AE): tom ~ soma x
+ * PIVO_K / (area x 256). Calibracao inicial: com o alvo padrao (soma 13000 em 117 blocos) a media medida
+ * na janela foi ~51 (NOTAS, validacao do ganho automatico de 2026-10-11) -> 0,46 */
+#define PIVO_K 118
+
+/* contraste em S com as pontas presas (0 -> 0, 255 -> 255) e apoio no tom medio p: abaixo de p,
+ * y = p.x / (k.p - (k-1).x); acima, o espelho. A inclinacao em p e' k: k > 1 escurece abaixo e clareia
+ * acima de p; k < 1 aproxima os tons de p sem perder o preto e o branco. Contas inteiras (k em 1/256). */
+static int curva_s(int x, int p, int kq)
+{
+	int a, b;
+
+	if (kq == 256)
+		return x;
+	if (x <= p)
+		return p * x * 256 / (kq * p - (kq - 256) * x);
+	a = 255 - x;
+	b = 255 - p;
+	return 255 - b * a * 256 / (kq * b - (kq - 256) * a);
+}
+
+/* curva da ponte (regs 0x20 a 0x30, 17 pontos, entrada i x 16): primeiro o contraste em S apoiado no tom
+ * medio da cena (sd->pivo), depois a gama da tabela gamma_tb (interpolada). contraste 128 = sem mudanca
+ * (k = 1); 255 -> k = 3; 0 -> k = 1/3. Substitui o contraste do sensor (reg 0x05), que so age em YUV. */
 static void curva(struct sd *sd, __u8 *tb)
 {
-	int i, y, c = sd->contrast ? sd->contrast->val : 128;
+	int i, x, y, gi, c = sd->contrast ? sd->contrast->val : 128;
+	int p = sd->pivo ? sd->pivo : 64;
+	int kq = c >= 128 ? 256 + (c - 128) * 512 / 127 : 256 - (128 - c) * 171 / 128;
 	const __u8 *g = gamma_tb[sd->gamma ? sd->gamma->val : 2];
 
+	p = p < 16 ? 16 : p > 224 ? 224 : p;
 	for (i = 0; i < 17; i++) {
-		y = 128 + ((int)g[i] - 128) * c / 128;
+		x = i == 16 ? 255 : i * 16;
+		y = curva_s(x, p, kq);				/* contraste */
+		y = y < 0 ? 0 : y > 255 ? 255 : y;
+		gi = y >> 4;					/* gama: interpolacao entre os pontos da tabela */
+		y = gi >= 16 ? g[16] : g[gi] + ((int)g[gi + 1] - g[gi]) * (y & 15) / 16;
 		tb[i] = y < 0 ? 0 : y > 255 ? 255 : y;
 	}
 }
@@ -3674,6 +3708,37 @@ static void setgamma(struct gspca_dev *gspca_dev)
 
 	curva(sd, tb);
 	reg_w(gspca_dev, 0x20, tb, sizeof(tb));
+}
+
+/* contraste adaptativo: acompanha o tom medio da cena (soma de luminosidade do cabecalho, a cada quadro)
+ * e regrava a curva quando ele muda mais de 8 niveis, no maximo a cada 10 quadros. Com contraste 128
+ * (sem mudanca) nao faz nada. Roda em do_autogain (contexto de processo, depois de cada quadro). */
+static void contraste_adapta(struct gspca_dev *gspca_dev)
+{
+	struct sd *sd = (struct sd *) gspca_dev;
+	int lum, p, pn;
+
+	if (!sd->contrast || sd->contrast->val == 128 || !sd->ae_area)
+		return;
+	lum = atomic_read(&sd->avg_lum);
+	if (lum < 0)
+		return;
+	p = lum * PIVO_K / (sd->ae_area * 256);
+	p = p < 16 ? 16 : p > 224 ? 224 : p;
+	if (!sd->pivo_f)
+		sd->pivo_f = p * 16;
+	sd->pivo_f += (p * 16 - sd->pivo_f) / 4;	/* filtro: sem saltos de quadro a quadro */
+	if (sd->pivo_espera) {
+		sd->pivo_espera--;
+		return;
+	}
+	pn = sd->pivo_f / 16;
+	if (sd->pivo && abs(pn - sd->pivo) <= 8)
+		return;
+	sd->pivo = pn;
+	sd->pivo_espera = 10;
+	setgamma(gspca_dev);
+	KDBG2(gspca_dev->v4l2_dev.dev, "contraste_adapta", " tom medio %d (soma %d, area %d) - %d", pn, lum, sd->ae_area, elgcnt)
 }
 
 static void setblack(struct gspca_dev *gspca_dev)
