@@ -3695,7 +3695,7 @@ static void curva(struct sd *sd, __u8 *tb)
 		y = curva_s(x, p, kq);				/* contraste */
 		y = y < 0 ? 0 : y > 255 ? 255 : y;
 		gi = y >> 4;					/* gama: interpolacao entre os pontos da tabela */
-		y = gi >= 16 ? g[16] : g[gi] + ((int)g[gi + 1] - g[gi]) * (y & 15) / 16;
+		y = (gi >= 16 || y >= 255) ? g[16] : g[gi] + ((int)g[gi + 1] - g[gi]) * (y & 15) / 16;
 		tb[i] = y < 0 ? 0 : y > 255 ? 255 : y;
 	}
 }
