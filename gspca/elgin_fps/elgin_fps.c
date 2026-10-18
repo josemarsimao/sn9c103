@@ -4081,14 +4081,6 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 
 	if (sd->sensor == SENSOR_OV6650 || sd->sensor == SENSOR_OV7630 || sd->sensor == SENSOR_PAS106 || sd->sensor == SENSOR_PAS202)
 		sd->brightness = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_BRIGHTNESS, 0, 255, 1, 127);
-	if (sd->sensor == SENSOR_OV7630) {
-		/* alvo do ganho automatico, separado do brilho (lido em do_autogain; nao grava registrador) */
-		static const struct v4l2_ctrl_config aet_cfg = {
-			.ops = &sd_ctrl_ops, .id = V4L2_CID_AE_TARGET, .name = "AE target",
-			.type = V4L2_CTRL_TYPE_INTEGER, .min = 0, .max = 255, .step = 1, .def = 127,
-		};
-		sd->ae_target = v4l2_ctrl_new_custom(hdl, &aet_cfg, NULL);
-	}
 
 	/* Gain range is sensor dependent */
 	switch (sd->sensor) {
@@ -4171,39 +4163,8 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 			sd->abg_blue = v4l2_ctrl_new_custom(hdl, &bg_cfg, NULL);
 			sd->abg_red = v4l2_ctrl_new_custom(hdl, &rg_cfg, NULL);
 		}
-		{
-			static const struct v4l2_ctrl_config aw_cfg = {
-				.ops = &sd_ctrl_ops, .id = V4L2_CID_AE_WINDOW, .name = "AE window",
-				.type = V4L2_CTRL_TYPE_MENU, .min = 0, .max = ARRAY_SIZE(ae_win_menu) - 1, .def = 0,
-				.qmenu = ae_win_menu,
-			};
-			static const struct v4l2_ctrl_config sx_cfg = {
-				.ops = &sd_ctrl_ops, .id = V4L2_CID_AE_START_X, .name = "AE custom start X",
-				.type = V4L2_CTRL_TYPE_INTEGER, .min = 0, .max = 7, .step = 1, .def = 1,
-			};
-			static const struct v4l2_ctrl_config sy_cfg = {
-				.ops = &sd_ctrl_ops, .id = V4L2_CID_AE_START_Y, .name = "AE custom start Y",
-				.type = V4L2_CTRL_TYPE_INTEGER, .min = 0, .max = 7, .step = 1, .def = 2,
-			};
-			static const struct v4l2_ctrl_config ex_cfg = {
-				.ops = &sd_ctrl_ops, .id = V4L2_CID_AE_END_X, .name = "AE custom end X",
-				.type = V4L2_CTRL_TYPE_INTEGER, .min = 0, .max = 31, .step = 1, .def = 7,
-			};
-			static const struct v4l2_ctrl_config ey_cfg = {
-				.ops = &sd_ctrl_ops, .id = V4L2_CID_AE_END_Y, .name = "AE custom end Y",
-				.type = V4L2_CTRL_TYPE_INTEGER, .min = 0, .max = 15, .step = 1, .def = 6,
-			};
-
-			sd->ae_win = v4l2_ctrl_new_custom(hdl, &aw_cfg, NULL);
-			sd->ae_sx = v4l2_ctrl_new_custom(hdl, &sx_cfg, NULL);
-			sd->ae_sy = v4l2_ctrl_new_custom(hdl, &sy_cfg, NULL);
-			sd->ae_ex = v4l2_ctrl_new_custom(hdl, &ex_cfg, NULL);
-			sd->ae_ey = v4l2_ctrl_new_custom(hdl, &ey_cfg, NULL);
-			v4l2_ctrl_activate(sd->ae_sx, false);	/* menu comeca em "Mode default" */
-			v4l2_ctrl_activate(sd->ae_sy, false);
-			v4l2_ctrl_activate(sd->ae_ex, false);
-			v4l2_ctrl_activate(sd->ae_ey, false);
-		}
+		/* controles "AE window" (menu + 4 numeros) e "AE target" removidos em 2026-10-17 junto com o ganho
+		 * automatico: a janela de AE fica no padrao de cada modo (ae_def), usada pelo contraste adaptativo */
 		sd->testpat = v4l2_ctrl_new_std_menu_items(hdl, &sd_ctrl_ops, V4L2_CID_TEST_PATTERN, ARRAY_SIZE(test_menu) - 1, 0, 0, test_menu);
 	}
 	if (hdl->error) {
@@ -4438,10 +4399,9 @@ if (stock_regs) {   /* valores "originais" (antigo #if(0)) */
 	memcpy(sd->ae_def, &regs[0x1c], 4);
 	sd->ae_w = regs[0x15] / 2;
 	sd->ae_h = regs[0x16] / 2;
-	if (sd->ae_win) {
+	if (sd->ae_win)
 		ae_window(sd, &regs[0x1c]);
-		ae_set_area(sd, &regs[0x1c]);
-	}
+	ae_set_area(sd, &regs[0x1c]);		/* area sempre: o contraste adaptativo mede a luz nessa janela */
 	if (sd->vflip && sd->vflip->val)
 		regs[0x13] += VFLIP_VSTART_ADJ;
 	if (sd->hflip && sd->hflip->val)
