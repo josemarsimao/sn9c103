@@ -297,6 +297,52 @@ def fig_imagens_aec():
     salva(s, 'cap01_imagens_aec')
 
 
+def fig_aec_sequencia():
+    """1.x Sequencia do AEC do OV7630: pixel -> comparadores -> contadores -> decisao -> 0x10/0x76."""
+    s, c = tela(820, 470)
+    texto(c, 410, 22, 'AEC do OV7630: da leitura dos pixels à nova exposição (a cada 1, 2 ou 4 campos)', 13, centro=True, negrito=True)
+    # coluna 1: pixels
+    caixa(c, 20, 60, 150, 60, 'Pixels do campo\n(todos, ou só o quarto\ncentral: 0x29[3] = 1)', AZUL, 9)
+    # comparadores
+    caixa(c, 225, 45, 165, 40, 'acima do nível fixo?\n→ conta "claro"', AZUL, 9)
+    caixa(c, 225, 95, 165, 40, 'abaixo do nível fixo?\n→ conta "escuro"', AZUL, 9)
+    seta(c, 170, 82, 225, 65)
+    seta(c, 170, 98, 225, 115)
+    texto(c, 307, 152, 'comparadores e contadores\ninternos (níveis não documentados)', 8, CINZA, centro=True)
+    # proporcoes
+    caixa(c, 445, 60, 150, 60, 'Fim do campo:\n% de claros e\n% de escuros', VERDE, 9)
+    seta(c, 390, 65, 445, 80)
+    seta(c, 390, 115, 445, 100)
+    # referencias
+    caixa(c, 445, 175, 150, 75, 'REFERÊNCIAS\n0x24[7:0] AEW (claros)\n0x25[7:0] AEB (escuros)\n0x68[7:5] ARL (nível)', LARANJA, 8.5)
+    # decisao
+    caixa(c, 650, 100, 150, 90, 'DECISÃO\nclaros demais → expõe menos\nescuros demais → expõe mais\ndentro da faixa → mantém', AZUL, 8.5)
+    seta(c, 595, 90, 650, 130)
+    seta(c, 595, 212, 650, 165)
+    # saida
+    caixa(c, 650, 260, 150, 70, 'GRAVA a exposição\nAEC[9:0] =\n0x10[7:0] + 0x76[1:0]', LARANJA, 9)
+    seta(c, 725, 190, 725, 260)
+    # efeito
+    caixa(c, 330, 285, 260, 60, 'Próximo campo: cada pixel acumula\nluz por TEX = TLINE × AEC[9:0]\n(no máximo, o tempo do quadro)', VERDE, 9)
+    seta(c, 650, 300, 590, 312)
+    c.set_source_rgb(*ESCURO)
+    c.set_line_width(1.4)
+    c.move_to(330, 318)
+    c.line_to(95, 318)
+    c.stroke()
+    seta(c, 95, 318, 95, 120)
+    # opcoes
+    texto(c, 20, 375, 'Opções que mudam o ciclo:', 9.5, ESCURO, negrito=True)
+    texto(c, 20, 393, '• 0x2A[0] = 1: troca a contagem pela média de luminância interna   '
+                      '• 0x2D[7] = 1: decide a cada 2 ou 4 campos (0 = a cada campo)', 8.5, ESCURO)
+    texto(c, 20, 411, '• 0x15[2] e 0x15[3]: modo rápido e passo grande (limiares em 0x77)   '
+                      '• 0x28[4] = 1: congela a exposição e o ganho atuais', 8.5, ESCURO)
+    texto(c, 20, 429, '• 0x75[3]: descarta um quadro quando a exposição muda muito   '
+                      '• 0x1F[5]: passos mais espaçados abaixo de 8 linhas', 8.5, ESCURO)
+    texto(c, 20, 452, 'Liga: 0x13[0] = 1. Com o AGC (0x13[1] = 1), o mesmo ciclo também ajusta o ganho 0x00[5:0].', 9, LARANJA)
+    salva(s, 'cap01_aec_sequencia')
+
+
 if __name__ == '__main__':
-    for f in (fig_cadeia, fig_malha, fig_aec_hist, fig_janela_ae, fig_exposicao, fig_atuacao_pixel, fig_medidas_aec, fig_imagens_aec):
+    for f in (fig_cadeia, fig_malha, fig_aec_hist, fig_aec_sequencia, fig_janela_ae, fig_exposicao, fig_atuacao_pixel, fig_medidas_aec, fig_imagens_aec):
         f()

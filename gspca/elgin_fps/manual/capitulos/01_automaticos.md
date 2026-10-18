@@ -76,67 +76,107 @@ Tabela: Termos usados neste capítulo
 
 ## 1.4 AEC — exposição automática do sensor
 
-### O que faz
+### O que é
 
-Escolhe o **tempo de exposição** para que a imagem não fique nem escura nem estourada. Com o AEC ligado, o sensor **reescreve sozinho** o registrador de exposição (`0x10` e `0x76` bits 1:0) a cada campo [datasheet].
+Exposição é o **tempo** em que cada pixel fica acumulando luz antes de ser lido. Com pouca luz, é preciso expor por mais tempo; com muita luz, por menos tempo, ou a imagem estoura. O **AEC** (*Automatic Exposure Control*) é o circuito do próprio sensor que escolhe esse tempo sozinho, imagem após imagem, para que a cena não fique nem escura nem estourada. Ele se liga com **0x13[0] = 1** (COMB).
 
-### Como decide
+![Sequência do AEC](../figuras/cap01_aec_sequencia.png)
 
-Segundo o datasheet, o algoritmo **conta os pixels claros e escuros da imagem inteira** (acima e abaixo de níveis fixos) e compara a proporção com duas referências: **AEW** (`0x24`) e **AEB** (`0x25`). A imagem é considerada estável quando a proporção de claros e escuros fica dentro da faixa definida por elas [datasheet]. A otimização supõe uma cena "normal", com o assunto bem iluminado em relação ao fundo; para outras cenas, o datasheet recomenda ajustar essa razão.
+### De onde vem a medida
+
+Quem mede é o **próprio sensor**: nada vem da ponte nem do driver. Enquanto os pixels de um campo são lidos, **comparadores internos** verificam cada pixel contra dois níveis fixos e **contam** quantos ficaram **acima** do nível alto (os "claros") e quantos ficaram **abaixo** do nível baixo (os "escuros") [datasheet]. Não é uma comparação pixel a pixel com o alvo, nem uma média: é uma **contagem**. Os dois níveis fixos são internos e **o datasheet não diz quanto valem**.
 
 ![AEC: contagem de pixels claros e escuros](../figuras/cap01_aec_hist.png)
 
-### A exposição dentro do quadro
+A região contada é, normalmente, **o campo inteiro**. Com **0x29[3] = 1** (COMI), só o **quarto central** da imagem entra na conta — útil quando o assunto está no centro e o fundo é muito claro ou muito escuro [datasheet].
+
+Há um modo alternativo: com **0x2A[0] = 1** (FRARH), o sensor deixa de contar pixels e passa a usar a **média de luminância** do campo, calculada internamente [datasheet]. Essa mesma média pode ficar disponível para leitura em **0x7C[7:0]** (AVG) quando **0x20[6] = 1** (COME) — o valor do Windows liga esse bit.
+
+### Qual é a referência
+
+São **duas referências independentes de 8 bits** — não um único valor de 16 bits:
+
+- **0x24[7:0] — AEW:** a proporção desejada de pixels **claros**. Aumentar AEW deixa a imagem final **mais clara** [datasheet].
+- **0x25[7:0] — AEB:** a proporção desejada de pixels **escuros**. Aumentar AEB deixa a imagem final **mais escura** [datasheet].
+
+Cada unidade vale cerca de **1,3%** dos pixels no modo entrelaçado e **0,7%** no progressivo; a faixa útil vai de 0x01 a 0x9A, e as duas devem obedecer a **AEW + AEB > 0x9A** [datasheet]. Os padrões são **0x24 = 0x10** e **0x25 = 0x8A**, descritos pelo datasheet como "25% de claros" e "75% de escuros".
+
+> **Atenção:** a unidade e os padrões do datasheet não fecham: 0x10 = 16 unidades daria ~21% (entrelaçado) ou ~11% (progressivo), e não 25%. Os números servem como ordem de grandeza.
+
+Uma terceira referência age sobre o AEC e o AGC juntos: **0x68[7:5]** (ARL), a **tensão de referência** do circuito. Valores maiores levam a uma imagem final mais clara (de 000 = mais escuro a 111 = mais claro) [datasheet]. O padrão é 0xAC (bits 7:5 = 101).
+
+### Como decide
+
+Ao fim do campo, o sensor tem as duas proporções medidas e as compara com AEW e AEB. Pelo datasheet, a imagem é considerada **estável** quando as proporções estão dentro da faixa definida por essas referências; fora dela, o sensor **aumenta ou diminui** a exposição [datasheet]. [hipótese] A leitura mais natural é: claros demais → expõe menos; escuros demais → expõe mais; dentro da faixa → mantém. O tamanho do passo não é documentado.
+
+O **ritmo** e o **passo** podem ser ajustados:
+
+- **0x2D[7]** (COMJ): 1 = decide a cada 2 ou 4 campos; 0 = a cada campo. Padrão e valor nesta câmera: 1.
+- **0x15[2]** (COMD): modo **rápido**, usado quando a cena muda muito; **0x15[3]** escolhe passo grande (1) ou pequeno (0). Os limiares do modo rápido ficam em **0x77[7:4]** e **0x77[3:0]** (AEGR), com o mesmo sentido de AEW e AEB.
+- **0x1F[5]** (SOFT): passos mais espaçados quando a exposição é menor que 8 linhas.
+- **0x75[3]** (COMN): descarta um quadro quando a exposição muda muito (evita um quadro "meio a meio").
+- **0x28[4]** (COMH): **congela** a exposição e o ganho atuais (o AEC deixa de mexer).
+
+### Onde atua
+
+O resultado é um número de **10 bits**, AEC[9:0], que o sensor grava em dois registradores:
+
+- **0x10[7:0]** ← bits 9:2 da exposição;
+- **0x76[1:0]** ← bits 1:0 da exposição.
+
+O tempo de exposição é **TEX = TLINE × AEC[9:0]**: o número de **linhas** que o pixel fica exposto, vezes o tempo de uma linha (TLINE) [datasheet]. A exposição **nunca passa do tempo do quadro** (33,3 ms a 30 fps). [hipótese] Pelo tamanho de uma "linha extra" medida com 0x7E/0x7F (~66 µs por unidade), TLINE fica perto de 63–66 µs.
 
 ![Exposição dentro do quadro](../figuras/cap01_exposicao.png)
 
-- O valor `AEC[9:0]` tem 10 bits: os 8 altos em `0x10` e os 2 baixos em `0x76` bits 1:0 [datasheet].
-- O tempo de exposição é `TLINE × AEC` [datasheet]; a exposição nunca passa do tempo do quadro. A 30 fps, um quadro dura 33,3 ms. [hipótese] Pelo tamanho de uma "linha extra" medida com `0x7E`/`0x7F` (~66 µs por unidade), TLINE fica perto de 63–66 µs.
-- O driver usa como exposição máxima útil `0x10 = 0x41` (valor do datasheet citado no código herdado do gspca) e converte o controle `exposure` (em unidades de 0,5 ms) para esse registrador.
-- Para expor **mais** que um quadro, só baixando a taxa: divisor `0x11`, ajuste fino `0x2A`/`0x2B`, linhas extras `0x7E`/`0x7F` ou o clock que a ponte fornece (`0x17` + `MCK_SIZE` no `0x19`). Ver o capítulo de taxa de quadros.
+**Efeito no pixel:** o valor do pixel cresce **proporcionalmente** ao tempo de exposição — o dobro do tempo, o dobro do valor —, até o limite de saturação (240 na saída crua). A exposição não aumenta o ruído eletrônico; por isso é a primeira escolha quando falta luz, antes do ganho.
 
-### Registradores do AEC
+### Interações e cuidados
 
-Tabela: Registradores do AEC do OV7630
-| Registrador | Bits | Função | Padrão [datasheet] | Nesta câmera |
-|---|---|---|---|---|
-| `0x13` COMB | 0 | **Liga o AEC** | 1 | **0** (driver grava `0x80`) |
-| `0x10` AEC | 7:0 | Exposição, bits 9:2 (escrita pelo AEC quando ligado) | 0x41 | controle `exposure` |
-| `0x76` COMO | 1:0 | Exposição, bits 1:0 | 01 | 00 [Windows] |
-| `0x24` AEW | 7:0 | Proporção de pixels **claros** (padrão 25%; 1,3%/passo entrelaçado, 0,7% progressivo; faixa 0x01–0x9A). Maior = imagem mais clara | 0x10 | 0x10 |
-| `0x25` AEB | 7:0 | Proporção de pixels **escuros** (padrão 75%). Maior = imagem mais escura. Regra: AEW + AEB > 0x9A | 0x8A | 0x8A |
-| `0x68` ARL | 7:5 | Tensão de referência do AEC/AGC: maior = imagem final mais clara | 0xAC | 0xAC |
-| `0x29` COMI | 3 | 1 = mede só o **quarto central** da imagem | 0 | 0 (0x30 [Windows]) |
-| `0x2A` FRARH | 0 | 1 = usa a **média** de luminância interna em vez da contagem de pixels | 0 | 0 |
-| `0x2D` COMJ | 7 | Ritmo: 1 = atualiza a cada 2 ou 4 campos; 0 = a cada campo | 1 | 1 |
-| `0x28` COMH | 4 | **Congela** o AEC/AGC (mantém `0x00` e `0x10`) | 0 | 0 |
-| `0x15` COMD | 3, 2 | Modo AEC rápido (bit 2) e passo grande (bit 3) | 0 | 0 |
-| `0x77` AEGR | 7:4, 3:0 | Limiares do modo rápido (como AEW/AEB) | 0xF3 | — |
-| `0x75` COMN | 3, 2 | Bit 3: descarta um quadro quando a exposição muda muito; bit 2: permite exposição menor que 1/120 s no modo suave | — | 0x8E [Windows] |
-| `0x1F` SOFT | 5 | Intervalo maior entre passos do AEC/AGC abaixo de 8 linhas | 0 | 0 |
+> **Atenção:** com o AEC ligado, o controle manual `exposure` do driver perde o efeito: o sensor reescreve **0x10[7:0]** a cada decisão. O mesmo acontece com o controle `gain` e **0x00[5:0]** se o AGC também estiver ligado (**0x13[1] = 1**).
 
-### Filtro de banda (cintilação)
-
-Sob luz fluorescente, a luz pisca a 100 Hz (rede de 50 Hz) ou 120 Hz (60 Hz). Se a exposição não for múltipla desse período, aparecem faixas. O OV7630 tem um modo do AEC que só escolhe exposições "seguras": `0x2D` bit 2 (BANDF) [datasheet], com a opção de clock em `0x13` bit 6. **Só funciona com o AEC ligado**: com a exposição manual, o bit não teve efeito [medido, `varre_bits.py`]. O driver trata a cintilação ajustando a taxa pelo `0x2B` (controle `power_line_frequency`).
+- O AEC **não altera a taxa de quadros**: o teto da exposição é o quadro. Para expor mais que isso, é preciso baixar a taxa (divisor **0x11[5:0]**, ajuste fino **0x2A[6:5] + 0x2B[7:0]**, linhas extras **0x7E/0x7F** ou clock da ponte) — assunto do capítulo de taxa de quadros.
+- **Filtro de banda:** sob luz fluorescente (que pisca a 100 ou 120 Hz), **0x2D[2]** (BANDF) faz o AEC escolher só exposições múltiplas do período da luz, evitando faixas na imagem; **0x13[6]** escolhe a opção de clock desse modo. **Só funciona com o AEC ligado**: com a exposição manual, o bit não teve efeito [medido, `varre_bits.py`].
+- A contagem é feita na **imagem crua** (Bayer): um objeto muito vermelho ou azul pode ser contado como escuro por ter um canal fraco. [hipótese]
 
 ### O que foi medido
 
-Teste `testes/testa_combina.py` (2026-10-17): padrão composto na tela, ganho 47 e exposição 67 manuais como ponto de partida [medido].
+Teste `testes/testa_combina.py` (2026-10-17), com o padrão composto na tela, ganho 47 e exposição 67 manuais como ponto de partida [medido]:
 
 ![Brilho medido com os automáticos internos](../figuras/cap01_medidas_aec.png)
 
 ![Imagens reais: manual, AEC, AGC e os dois](../figuras/cap01_imagens_aec.png)
 
-- **AEC ligado** (`0x13 = 0x81`): brilho **21,7 → 29,5** — o sensor escolheu uma exposição maior.
-- **AEC + AGC** (`0x13 = 0x83`): 17,3 — o sensor escolhe o próprio par exposição/ganho.
-- **Referência `0x68` baixa** (0x0C): 9,3 (mais escuro); alta (0xEC): igual ao padrão.
-- **Alvos `0x24`/`0x25`** e **janela central** (`0x29` bit 3): quase sem efeito nesta cena.
+- **AEC ligado** (0x13 = 0x81): brilho **21,7 → 29,5** — o sensor escolheu uma exposição maior que a manual.
+- **AEC + AGC** (0x13 = 0x83): 17,3 — o sensor escolhe o próprio par exposição/ganho.
+- **Referência ARL baixa** (0x68 = 0x0C): 9,3, mais escuro; alta (0xEC): igual ao padrão.
+- **AEW/AEB** (claro: 0x24 = 0x60 e 0x25 = 0x50; escuro: 0x24 = 0x20 e 0x25 = 0x90) e **quarto central** (0x29[3]): quase sem diferença nesta cena.
 
-> **Nota:** situação no driver — o AEC está desligado. Desde 2026-10-17 a exposição é **manual** (controle `exposure`). Para usar o AEC do sensor, basta `0x13 = 0x81` (ou `0x83` com o AGC).
+> **Nota:** situação no driver — o AEC está **desligado** (o driver grava 0x13 = 0x80). Desde 2026-10-17 a exposição é **manual** (controle `exposure`). Para usar o AEC do sensor, basta 0x13[0] = 1 (e 0x13[1] = 1 para o AGC junto).
 
-> **Atenção:** com o AEC ligado, o controle `exposure` perde o efeito, porque o sensor reescreve o `0x10` a cada campo. O mesmo vale para o AGC e o controle `gain`.
+### Perguntas em aberto
 
----
+> **Não esquecer:** o que o datasheet não responde e ainda falta medir — (1) os **níveis fixos** dos comparadores de claro e escuro; (2) a **regra exata** com AEW e AEB e o **tamanho do passo**; (3) por que a unidade (1,3% / 0,7%) não fecha com os padrões "25% / 75%"; (4) por que mexer em AEW/AEB quase não mudou a imagem no teste (cena com muito preto? contagem saturada?); (5) o valor exato de **TLINE**.
+
+### Resumo
+
+Tabela: AEC do OV7630 — quem mede, referências e onde atua
+| Papel | Registrador[bits] | Valores e unidade | Padrão [datasheet] | Nesta câmera |
+|---|---|---|---|---|
+| Liga o AEC | 0x13[0] (COMB) | 1 = ligado | 1 | **0** (driver grava 0x80) |
+| Região medida | 0x29[3] (COMI) | 1 = só o quarto central | 0 | 0 (0x30 [Windows]) |
+| Tipo de medida | 0x2A[0] (FRARH) | 0 = contagem; 1 = média | 0 | 0 |
+| Referência: claros | 0x24[7:0] (AEW) | 0x01–0x9A; ~1,3% (entr.) ou ~0,7% (progr.) por unidade; maior = mais claro | 0x10 | 0x10 |
+| Referência: escuros | 0x25[7:0] (AEB) | idem; maior = mais escuro; AEW + AEB > 0x9A | 0x8A | 0x8A |
+| Referência: nível | 0x68[7:5] (ARL) | 000–111; maior = mais claro (AEC e AGC) | 101 (0xAC) | 101 |
+| Ritmo | 0x2D[7] (COMJ) | 1 = a cada 2 ou 4 campos; 0 = a cada campo | 1 | 1 |
+| Modo rápido / passo | 0x15[2] / 0x15[3] (COMD) | 1 = rápido / 1 = passo grande | 0 / 0 | 0 / 0 |
+| Limiares do modo rápido | 0x77[7:4] / 0x77[3:0] (AEGR) | como AEW / AEB | 0xF3 | — |
+| Congelar | 0x28[4] (COMH) | 1 = mantém exposição e ganho | 0 | 0 |
+| Descartar quadro | 0x75[3] (COMN) | 1 = descarta quando a exposição muda muito | — | 1 (0x8E [Windows]) |
+| Passos abaixo de 8 linhas | 0x1F[5] (SOFT) | 1 = passos mais espaçados | 0 | 0 |
+| Filtro de banda | 0x2D[2] (COMJ), 0x13[6] (COMB) | 1 = exposições múltiplas da rede | 0 | 0 |
+| **Resultado: exposição** | **0x10[7:0] + 0x76[1:0]** | AEC[9:0] em linhas; TEX = TLINE × AEC | 0x41 / 01 | controle `exposure` / 00 |
+| Média disponível | 0x7C[7:0] (AVG), com 0x20[6] = 1 | média do campo | — | ligada (0x20 = 0x44 [Windows]) |
 
 ## 1.5 AGC — ganho automático do sensor
 
