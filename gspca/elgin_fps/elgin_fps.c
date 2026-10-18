@@ -2915,7 +2915,7 @@ static void setexposure(struct gspca_dev *gspca_dev)
 		   steps become very large (relatively) when below 10 causing
 		   the image to oscillate from much too dark, to much too bright
 		   and back again. */
-		if (gspca_dev->autogain->val && reg10 < 10)
+		if (gspca_dev->autogain && gspca_dev->autogain->val && reg10 < 10)
 			reg10 = 10;
 		else if (reg10 > reg10_max)
 			reg10 = reg10_max;
@@ -3989,6 +3989,13 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 			KDBG2(gspca_dev->v4l2_dev.dev, "sd_s_ctrl - setgain"," - %d",elgcnt)
         }
 		break;
+	case V4L2_CID_EXPOSURE:			/* sem o automatico, ganho e exposicao chegam separados */
+		setexposure(gspca_dev);
+		apply_fps(gspca_dev);
+		break;
+	case V4L2_CID_GAIN:
+		setgain(gspca_dev);
+		break;
 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
 		if (!ctrl->val && sd->fps_cap) {
 			sd->fps_cap = 0;
@@ -4111,9 +4118,9 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 
 	}
 
-	if (gspca_dev->exposure) {
-		gspca_dev->autogain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops, V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
-	}
+	/* controle de ganho automatico (V4L2_CID_AUTOGAIN) removido em 2026-10-17 a pedido do Josemar: ganho e
+	 * exposicao ficam sempre manuais. Sem ele (gspca_dev->autogain = NULL), do_autogain so roda a trava de
+	 * banda e o contraste adaptativo. */
 
 	if (sd->sensor == SENSOR_OV6650 || sd->sensor == SENSOR_OV7630)
 		sd->plfreq = v4l2_ctrl_new_std_menu(hdl, &sd_ctrl_ops, V4L2_CID_POWER_LINE_FREQUENCY, V4L2_CID_POWER_LINE_FREQUENCY_60HZ, 0, V4L2_CID_POWER_LINE_FREQUENCY_DISABLED);
@@ -4204,7 +4211,7 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 		return hdl->error;
 	}
 
-	if (gspca_dev->autogain)
+	if (gspca_dev->autogain)		/* so se o controle automatico voltar a existir */
 		v4l2_ctrl_auto_cluster(3, &gspca_dev->autogain, 0, false);
 
 	return 0;
