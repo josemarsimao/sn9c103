@@ -1,0 +1,9 @@
+==== 2026-10-17 21:43  dispositivo /dev/video2: BA81 320x240, so o 0x18 muda (VGA e QVGA)
+[1/8] VGA  0x18=0x0f (bits 5:4 = 00, 1/1): 2588 bytes por quadro
+[2/8] VGA  0x18=0x1f (bits 5:4 = 01, 1/2): 76800 bytes por quadro = 320x240
+[3/8] VGA  0x18=0x2f (bits 5:4 = 10, 1/4): 19200 bytes por quadro = 160x120
+[4/8] VGA  0x18=0x3f (bits 5:4 = 11, ?): 19200 bytes por quadro = 160x120
+[5/8] QVGA 0x18=0x0f (bits 5:4 = 00, 1/1): 76800 bytes por quadro = 320x240
+[6/8] QVGA 0x18=0x1f (bits 5:4 = 01, 1/2): 19200 bytes por quadro = 160x120
+[7/8] QVGA 0x18=0x2f (bits 5:4 = 10, 1/4): 4800 bytes por quadro = 80x60
+[8/8] QVGA 0x18=0x3f (bits 5:4 = 11, ?): 4800 bytes por quadro = 80x60

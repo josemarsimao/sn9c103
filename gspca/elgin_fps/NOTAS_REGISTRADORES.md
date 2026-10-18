@@ -948,3 +948,16 @@ Baixado para `gspca/sonixb_2026/` (`sonixb.c`, `gspca.c`, `gspca.h`, `autogain_f
   - **Matriz de cor do sensor** (`0x27` bit 4 = 0, de 0x9A para 0x8A, liga a matriz anticrosstalk): **pouco efeito** na saturação.
   - **Gama do sensor** (`0x14` bit 2, de 0x80 para 0x84): **um pouco melhor** no contraste.
   - **Saturação não sai dos ganhos R/G/B da ponte**: eles só multiplicam cada canal (balanço de branco); saturação exige misturar os canais (`R' = Y + s·(R − Y)`). Na imagem crua, a saturação ajustável só é possível na aplicação, depois da conversão de cor.
+
+## Escala da ponte: `0x18` bits 5:4 (2026-10-17, `testes/testa_escala.py`)
+
+BA81 320x240 (sem compressão: o tamanho do quadro revela a escala), só o `0x18` muda; sensor em VGA (janela da ponte 640x480) e em QVGA (`0x14 = 0xA0`, janela 320x240). Dados `testes/escala_dados.csv`.
+
+| Bits 5:4 | VGA | QVGA |
+|---|---|---|
+| 00 (1/1) | não cabe no buffer de 320x240 (2 588 bytes de resto) | 76 800 = 320x240 |
+| 01 (1/2) | 76 800 = 320x240 | 19 200 = 160x120 |
+| 10 (1/4) | 19 200 = 160x120 | 4 800 = 80x60 |
+| **11** | **19 200 = 160x120** | **4 800 = 80x60** |
+
+- **Confirmado `[medido]`:** 11 também é 1/4 (como diz o mapa do SN9C102, "1x"). A escala atua sobre a janela da ponte e não depende do modo do sensor.

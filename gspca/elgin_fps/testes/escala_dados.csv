@@ -1,0 +1,9 @@
+n,modo,reg18,bits54,esperado,fps,bytes_por_quadro,quadros
+1,VGA,0x0f,00,1/1,7.9,2588,5
+2,VGA,0x1f,01,1/2,7.9,76800,5
+3,VGA,0x2f,10,1/4,,19200,5
+4,VGA,0x3f,11,?,7.9,19200,5
+5,QVGA,0x0f,00,1/1,,76800,5
+6,QVGA,0x1f,01,1/2,,19200,5
+7,QVGA,0x2f,10,1/4,,4800,5
+8,QVGA,0x3f,11,?,,4800,5
