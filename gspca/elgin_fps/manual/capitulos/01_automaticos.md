@@ -2,11 +2,7 @@
 
 Este capítulo explica os ajustes **automáticos** que existem na câmera Elgin (ponte SN9C103 + sensor OV7630): o que são, como decidem, onde atuam no caminho do pixel, quais registradores os controlam, quais valores servem de referência e o que foi medido na câmera real.
 
-**Legenda das fontes** usada em todo o manual:
-**[datasheet]** documento do fabricante (OV7630 v1.7 para o sensor; SN9C102 v0.9 para a ponte, por falta do mapa do SN9C103) ·
-**[Windows]** valor gravado pelo driver original do Windows (captura USB) ·
-**[medido]** testado nesta câmera, com o arquivo do teste indicado ·
-**[hipótese]** dedução ainda não confirmada.
+> **Dados:** legenda das fontes usada em todo o manual — **[datasheet]** documento do fabricante (OV7630 v1.7 para o sensor; SN9C102 v0.9 para a ponte, por falta do mapa do SN9C103); **[Windows]** valor gravado pelo driver original do Windows (captura USB); **[medido]** testado nesta câmera, com o arquivo do teste indicado; **[hipótese]** dedução ainda não confirmada.
 
 ---
 
@@ -35,6 +31,7 @@ Na câmera há automáticos em **dois lugares**:
 
 O valor que chega ao computador para cada pixel passa por esta sequência:
 
+Tabela: Etapas do caminho do pixel e os ajustes que agem em cada uma
 | Etapa | O que acontece | Ajustes que agem aqui |
 |---|---|---|
 | **Fotodiodo** | Acumula a luz durante o **tempo de exposição** | Exposição: `0x10` + `0x76` bits 1:0 (AEC) |
@@ -61,6 +58,7 @@ O valor que chega ao computador para cada pixel passa por esta sequência:
 
 ## 1.3 Glossário rápido
 
+Tabela: Termos usados neste capítulo
 | Termo | Significado |
 |---|---|
 | **AEC** | *Automatic Exposure Control* — exposição automática: o sensor escolhe o tempo de exposição |
@@ -99,6 +97,7 @@ Segundo o datasheet, o algoritmo **conta os pixels claros e escuros da imagem in
 
 ### Registradores do AEC
 
+Tabela: Registradores do AEC do OV7630
 | Registrador | Bits | Função | Padrão [datasheet] | Nesta câmera |
 |---|---|---|---|---|
 | `0x13` COMB | 0 | **Liga o AEC** | 1 | **0** (driver grava `0x80`) |
@@ -133,7 +132,9 @@ Teste `testes/testa_combina.py` (2026-10-17): padrão composto na tela, ganho 47
 - **Referência `0x68` baixa** (0x0C): 9,3 (mais escuro); alta (0xEC): igual ao padrão.
 - **Alvos `0x24`/`0x25`** e **janela central** (`0x29` bit 3): quase sem efeito nesta cena.
 
-**Situação no driver:** desligado. Desde 2026-10-17 a exposição é **manual** (controle `exposure`). Para usar o AEC do sensor, basta `0x13 = 0x81` (ou `0x83` com o AGC); enquanto estiver ligado, o controle `exposure` perde o efeito, porque o sensor reescreve o `0x10`.
+> **Nota:** situação no driver — o AEC está desligado. Desde 2026-10-17 a exposição é **manual** (controle `exposure`). Para usar o AEC do sensor, basta `0x13 = 0x81` (ou `0x83` com o AGC).
+
+> **Atenção:** com o AEC ligado, o controle `exposure` perde o efeito, porque o sensor reescreve o `0x10` a cada campo. O mesmo vale para o AGC e o controle `gain`.
 
 ---
 
@@ -145,6 +146,7 @@ Escolhe o **ganho analógico** (`0x00`) para compensar a falta de luz quando a e
 
 ### Registradores do AGC
 
+Tabela: Registradores do AGC do OV7630
 | Registrador | Bits | Função | Nesta câmera |
 |---|---|---|---|
 | `0x13` COMB | 1 | **Liga o AGC** | 0 |
@@ -155,7 +157,7 @@ Escolhe o **ganho analógico** (`0x00`) para compensar a falta de luz quando a e
 | `0x61` SPCB | 7 | Realimentação do AGC/AEC pelo canal Y — **deve ser 0 em RGB** [datasheet] | 0 |
 | `0x68` ARL | 7:5 | Referência comum do AEC/AGC | 0xAC |
 
-**Curiosidade do ganho do OV7630:** no valor 32 o ganho volta ao nível de 16; por isso o driver (como o `sonixb` do kernel) pula a faixa 32–47 da escala 0–63, e o controle `gain` vai de 0 a 47 [código do sonixb].
+> **Nota:** no OV7630, o ganho no valor 32 volta ao nível do 16; por isso o driver (como o `sonixb` do kernel) pula a faixa 32–47 da escala 0–63, e o controle `gain` vai de 0 a 47 [código do sonixb].
 
 ### O que foi medido
 
@@ -177,6 +179,7 @@ O AWB supõe que a cena, em média, é cinza. Ele compara os canais e corrige at
 
 ### Registradores do AWB
 
+Tabela: Registradores do AWB do OV7630
 | Registrador | Bits | Função | Padrão [datasheet] | Nesta câmera |
 |---|---|---|---|---|
 | `0x12` COMA | 2 | **Liga o AWB** | 1 | 1 (controle `white_balance_automatic`) |
@@ -198,7 +201,7 @@ O AWB supõe que a cena, em média, é cinza. Ele compara os canais e corrige at
 - Alvos `0x0C`/`0x0D`: mudam a cor (cada bit alto mexe nas posições da sua cor) [medido, `varre_bits.py`].
 - Modos do `0x20` e passo do `0x15`: efeitos pequenos [medido].
 
-**Situação no driver:** AWB **ligado** por padrão. Desligado, o driver devolve `0x01`/`0x02` aos valores do Windows (0x77/0x3A). Os controles dos alvos foram retirados em 2026-10-17 (ficam em 0x20).
+> **Nota:** situação no driver — AWB **ligado** por padrão. Desligado, o driver devolve `0x01`/`0x02` aos valores do Windows (0x77/0x3A). Os controles dos alvos foram retirados em 2026-10-17 (ficam em 0x20).
 
 ---
 
@@ -208,6 +211,7 @@ O AWB supõe que a cena, em média, é cinza. Ele compara os canais e corrige at
 
 O OV7630 pode ajustar sozinho o **brilho** (`0x06`) pela proporção de pixels abaixo de um nível de referência: se houver pixels escuros demais, ele baixa o brilho; se de menos, aumenta [datasheet].
 
+Tabela: Registradores do brilho automático
 | Registrador | Bits | Função |
 |---|---|---|
 | `0x2C` EXBK | 7:4, 3:0 | Faixas de proporção (0,06% a 3,85%) que definem quando o brilho sobe ou desce |
@@ -220,6 +224,7 @@ Na varredura bit a bit, o `0x2C` **não teve efeito** visível [medido].
 
 A matriz do sensor tem pixels nas bordas **cobertos por metal**: eles não recebem luz e mostram o "preto verdadeiro" do momento (que muda com a temperatura). O sensor usa essas **linhas de preto óptico** para corrigir o nível de preto de toda a imagem [datasheet].
 
+Tabela: Registradores do preto automático
 | Registrador | Bits | Função | Nesta câmera | Medido |
 |---|---|---|---|---|
 | `0x7D` COMP | 6, 7 | Liga a linha de preto óptico (6) e a usa na calibração (7) | ligados (`0xF7` [Windows]) | desligar → imagem **mais clara** (21,7 → 32) |
@@ -243,6 +248,7 @@ A ponte **não tem automático próprio** — não muda exposição nem ganho so
 
 ![Janela de medida da ponte](../figuras/cap01_janela_ae.png)
 
+Tabela: Registradores da janela de medida da ponte
 | Registrador | Nome | Bits úteis [medido] | Unidade |
 |---|---|---|---|
 | `0x1C` | AE_STRX — início horizontal | 2:0 (0–7) | 32 pixels |
@@ -256,6 +262,7 @@ O valor do Windows e do driver Risolia é **`02 03 0F 0C`**: de (64, 96) a (480,
 
 A ponte põe um cabeçalho **no começo de cada quadro**, dentro do próprio fluxo de vídeo (não é lido por registrador). O driver o encontra procurando a assinatura `FF FF 00 C4 C4 96` [documentação do driver Risolia].
 
+Tabela: Cabeçalho de 18 bytes de cada quadro (SN9C103)
 | Bytes | Conteúdo |
 |---|---|
 | 0–5 | Assinatura `FF FF 00 C4 C4 96` |
@@ -268,7 +275,7 @@ A ponte põe um cabeçalho **no começo de cada quadro**, dentro do próprio flu
 - A soma é feita **pelo hardware** enquanto os pixels passam; ler o valor não custa nada ao driver.
 - [hipótese] Como o cabeçalho vem **antes** dos pixels e a ponte só tem 2 KB de memória, a soma deve se referir ao **quadro anterior** — um quadro de atraso, irrelevante para os automáticos.
 - Os bits 4 e 5 do byte 8 sugerem um modo de exposição da própria ponte; o uso deles **não é conhecido** [hipótese].
-- A soma é **proporcional à área** da janela: mudar a janela sem recalcular a área (`ae_area` no driver) invalida a medida.
+> **Atenção:** a soma é **proporcional à área** da janela. Mudar a janela sem recalcular a área (`ae_area` no driver) invalida a medida.
 
 ### Converter a soma em tom médio
 
@@ -282,6 +289,7 @@ Calibração inicial: com a soma de 13 000 na janela de 117 blocos, a média med
 
 ## 1.9 Automáticos feitos pelo driver
 
+Tabela: Automáticos do driver
 | Automático | Mede | Atua em | Situação |
 |---|---|---|---|
 | **Contraste adaptativo** | Tom médio da cena (cabeçalho) | Curva da ponte `0x20`–`0x30` | **Ativo** |
@@ -307,6 +315,7 @@ Até 2026-10-17 o driver tinha um automático próprio: comparava a soma do cabe
 
 ## 1.10 Valores de referência — resumo
 
+Tabela: Resumo dos automáticos da câmera
 | Automático | Liga | Mede | Alvo / referência | Atua em | Hoje |
 |---|---|---|---|---|---|
 | **AEC** (sensor) | `0x13` bit 0 | Contagem de pixels claros/escuros (imagem toda ou quarto central) | AEW `0x24`, AEB `0x25`, ARL `0x68` | Exposição `0x10`/`0x76` | Desligado |

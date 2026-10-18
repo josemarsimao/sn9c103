@@ -10,6 +10,7 @@ Uso:  python3 figuras_cap01.py
 import csv
 import math
 import os
+import statistics
 
 import cairo
 
@@ -254,21 +255,23 @@ def fig_medidas_aec():
         return
     linhas = list(csv.DictReader(open(caminho)))
     refs = [float(r['media']) for r in linhas if r['n'] == 'REF']
-    ref = sorted(refs)[len(refs) // 2]
-    sel = [('referência\n(manual)', ref)] + [(r['descricao'].replace('AEC + AGC, ', '').replace(' (0x', '\n(0x')[:34], float(r['media']))
-                                            for r in linhas if r['grupo'] == 'aec']
-    s, c = tela(780, 330)
+    ref = statistics.median(refs)			# mesma conta do resumo do teste
+    curtos = ['AEC\ninterno', 'AGC\ninterno', 'AEC + AGC', 'alvo claro\n(0x24/0x25)', 'alvo escuro\n(0x24/0x25)', 'referência\nbaixa (0x68)', 'referência\nalta (0x68)', 'janela central\n(0x29 bit 3)']
+    aec = [float(r['media']) for r in linhas if r['grupo'] == 'aec']
+    sel = [('referência\n(manual)', ref)] + list(zip(curtos, aec))
+    s, c = tela(780, 270)
     texto(c, 390, 22, 'Brilho medido com os automáticos internos do sensor (0x13) — mesmo padrão, ganho 47, exposição 67',
           11, centro=True, negrito=True)
-    x0, y0, h, bw = 40, 50, 180, 80
+    x0, y0, h = 30, 50, 180
+    bw = (780 - 2 * x0) / len(sel) - 8			# barras ajustadas a largura
     m = max(v for _, v in sel)
     for i, (nome, v) in enumerate(sel):
         bh = h * v / m
         c.set_source_rgb(*(CINZA if i == 0 else AZUL))
-        c.rectangle(x0 + i * (bw + 6), y0 + h - bh, bw, bh)
+        c.rectangle(x0 + i * (bw + 8), y0 + h - bh, bw, bh)
         c.fill()
-        texto(c, x0 + i * (bw + 6) + bw / 2, y0 + h - bh - 4, '%.1f' % v, 9, ESCURO, centro=True)
-        texto(c, x0 + i * (bw + 6) + bw / 2, y0 + h + 14, nome, 7.5, ESCURO, centro=True)
+        texto(c, x0 + i * (bw + 8) + bw / 2, y0 + h - bh - 4, '%.1f' % v, 9, ESCURO, centro=True)
+        texto(c, x0 + i * (bw + 8) + bw / 2, y0 + h + 14, nome, 8, ESCURO, centro=True)
     salva(s, 'cap01_medidas_aec')
 
 
